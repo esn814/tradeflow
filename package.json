@@ -9,6 +9,7 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:server": "vitest run --config vitest.config.server.js",
     "format": "prettier --write \"src/**/*.{js,jsx,json,css}\" \"server/**/*.js\" \"*.{json,md}\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx,json,css}\" \"server/**/*.js\" \"*.{json,md}\""
   },
@@ -46,6 +47,7 @@
     "sharp": "^0.35.3",
     "tailwindcss": "^4.3.3",
     "vite": "^8.1.1",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "zod": "^4.4.3"
   }
 }
