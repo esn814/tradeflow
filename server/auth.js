@@ -14,7 +14,7 @@ export const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_ALGORITHM = 'HS256';
 
 // ── FIX #5: Short-lived JWT (30min) + refresh token (7d) ──
-const JWT_EXPIRY = '30m';
+const JWT_EXPIRY = '5m';
 const REFRESH_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 // ── FIX #6: SIWE domain binding ──

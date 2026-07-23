@@ -9,6 +9,7 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: 'hidden',
     chunkSizeWarningLimit: 600,
+    modulePreload: { polyfill: false },
     rolldownOptions: {
       output: {
         manualChunks(id) {
