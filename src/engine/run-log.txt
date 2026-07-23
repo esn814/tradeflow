@@ -1,0 +1,116 @@
+[08:55:48] Watcher started. Monitoring v3 test (pid 575)...
+
+[09:14:49] ═══ V3 TEST FINISHED ═══
+
+[09:14:49] Launching pressure test (1000 bots × 3 engines × 50ms tick)...
+╔══════════════════════════════════════════════════════════════╗
+║  PRESSURE TEST: 1000 bots × 3 engines × 3600s            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Tick interval: 50ms | Strategies: 5 | Coins: 13
+Aggressive params enabled | 3 parallel engines
+
+  Engine 0: 334 bots, 50ms tick
+  Engine 1: 334 bots, 50ms tick
+  Engine 2: 332 bots, 50ms tick
+
+Total bots spawned across 3 engines. Running...
+  [60s] trades=388259 vol=$253.6M tps=6471.0 err=0
+  [120s] trades=772563 vol=$580.6M tps=6438.0 err=0
+  [180s] trades=1156952 vol=$996.2M tps=6427.5 err=0
+  [240s] trades=1537825 vol=$1469.8M tps=6407.6 err=0
+  [300s] trades=1920787 vol=$1970.5M tps=6402.6 err=0
+  [360s] trades=2303598 vol=$2479.9M tps=6398.9 err=0
+  [420s] trades=2685800 vol=$3005.9M tps=6394.8 err=0
+  [480s] trades=3068290 vol=$3685.4M tps=6392.3 err=0
+  [540s] trades=3450996 vol=$4431.6M tps=6390.7 err=0
+[600s] Trades: 3831284 | Vol: $5323642802 | TPS: 6385.5 | Errors: 0
+  [600s] trades=3831339 vol=$5323.8M tps=6385.6 err=0
+  [660s] trades=4213723 vol=$6322.4M tps=6384.4 err=0
+  [720s] trades=4594556 vol=$7474.7M tps=6381.3 err=0
+  [780s] trades=4974441 vol=$8761.9M tps=6377.5 err=0
+  [840s] trades=5355169 vol=$10312.6M tps=6375.2 err=0
+  [900s] trades=5735167 vol=$12363.1M tps=6372.4 err=0
+  [960s] trades=6114115 vol=$14905.8M tps=6368.9 err=0
+  [1020s] trades=6491893 vol=$18420.9M tps=6364.6 err=0
+  [1080s] trades=6871697 vol=$23257.6M tps=6362.7 err=0
+  [1140s] trades=7252584 vol=$28149.2M tps=6361.9 err=0
+[1200s] Trades: 7629296 | Vol: $33336407180 | TPS: 6357.7 | Errors: 0
+  [1200s] trades=7629296 vol=$33336.4M tps=6357.7 err=0
+  [1260s] trades=8005235 vol=$38560.8M tps=6353.4 err=0
+  [1320s] trades=8379962 vol=$44231.7M tps=6348.5 err=0
+  [1380s] trades=8757200 vol=$49900.6M tps=6345.8 err=0
+  [1440s] trades=9130963 vol=$56368.7M tps=6340.9 err=0
+  [1500s] trades=9505907 vol=$62287.8M tps=6337.3 err=0
+  [1560s] trades=9879413 vol=$69962.4M tps=6333.0 err=0
+  [1620s] trades=10253389 vol=$78300.3M tps=6329.3 err=0
+  [1680s] trades=10627274 vol=$85253.3M tps=6325.8 err=0
+  [1740s] trades=11002570 vol=$94877.3M tps=6323.3 err=0
+[1800s] Trades: 11374327 | Vol: $104849105946 | TPS: 6319.1 | Errors: 0
+  [1800s] trades=11374327 vol=$104849.1M tps=6319.1 err=0
+  [1860s] trades=11741510 vol=$113910.1M tps=6312.6 err=0
+  [1920s] trades=12107934 vol=$124696.9M tps=6306.2 err=0
+  [1980s] trades=12471236 vol=$134690.6M tps=6298.6 err=0
+  [2040s] trades=12834457 vol=$144071.3M tps=6291.4 err=0
+  [2100s] trades=13192379 vol=$155224.8M tps=6282.1 err=0
+  [2160s] trades=13550550 vol=$166491.6M tps=6273.4 err=0
+  [2220s] trades=13907200 vol=$179658.1M tps=6264.5 err=0
+  [2280s] trades=14259303 vol=$193816.5M tps=6254.1 err=0
+  [2340s] trades=14609483 vol=$209966.0M tps=6243.4 err=0
+[2400s] Trades: 14959416 | Vol: $227761518558 | TPS: 6233.1 | Errors: 0
+  [2400s] trades=14959624 vol=$227770.2M tps=6233.2 err=0
+  [2460s] trades=15308248 vol=$251533.3M tps=6222.9 err=0
+  [2520s] trades=15657657 vol=$280244.1M tps=6213.4 err=0
+  [2580s] trades=16007570 vol=$304462.1M tps=6204.5 err=0
+  [2640s] trades=16356166 vol=$322202.9M tps=6195.5 err=0
+  [2700s] trades=16703375 vol=$338995.3M tps=6186.4 err=0
+  [2760s] trades=17049738 vol=$362781.2M tps=6177.4 err=0
+  [2820s] trades=17395071 vol=$394591.2M tps=6168.5 err=0
+  [2880s] trades=17744303 vol=$434626.4M tps=6161.2 err=0
+  [2940s] trades=18092594 vol=$489724.9M tps=6153.9 err=0
+[3000s] Trades: 18440495 | Vol: $546025274089 | TPS: 6146.8 | Errors: 0
+  [3000s] trades=18440598 vol=$546035.6M tps=6146.9 err=0
+  [3060s] trades=18786745 vol=$599908.8M tps=6139.5 err=0
+  [3120s] trades=19132609 vol=$683944.8M tps=6132.2 err=0
+  [3180s] trades=19478434 vol=$843551.5M tps=6125.3 err=0
+  [3240s] trades=19824198 vol=$1089868.3M tps=6118.6 err=0
+  [3300s] trades=20166180 vol=$1389116.6M tps=6111.0 err=0
+  [3360s] trades=20508803 vol=$1662021.0M tps=6103.8 err=0
+  [3420s] trades=20849721 vol=$1883487.0M tps=6096.4 err=0
+  [3480s] trades=21189415 vol=$2238585.9M tps=6088.9 err=0
+  [3540s] trades=21525320 vol=$2996882.4M tps=6080.6 err=0
+[3600s] Trades: 21860173 | Vol: $3459168045138 | TPS: 6072.3 | Errors: 0
+
+════════════════════════════════════════════════════════════════════════
+  PRESSURE TEST RESULTS — 3600.0s, 1000 bots, 3 engines
+════════════════════════════════════════════════════════════════════════
+  Total Trades:   21860173
+  Total Volume:   $3459168045138.37
+  Total Errors:   0
+  Avg TPS:        6072.3
+  Tick interval:  50ms
+  Engines:        3
+
+────────────────────────────────────────────────────────────────────────
+  STRATEGY BREAKDOWN
+────────────────────────────────────────────────────────────────────────
+  DCA              200 bots | 3467055 trades | avg PnL: $62040821.98
+  Grid             200 bots | 30499 trades | avg PnL: $715144.60
+  Trend            200 bots | 1370752 trades | avg PnL: $65050995.01
+  Momentum         200 bots | 9105550 trades | avg PnL: $7333633.03
+  Mean Reversion   200 bots | 7886317 trades | avg PnL: $3788621.77
+
+────────────────────────────────────────────────────────────────────────
+  AGGREGATE
+────────────────────────────────────────────────────────────────────────
+  Profitable:     661/1000 (66.1%)
+  Aggregate PnL:  $27785843276.33
+  Aggregate ROI:   277858.43%
+
+════════════════════════════════════════════════════════════════════════
+  Completed: 2026-07-21T10:14:49.038Z
+════════════════════════════════════════════════════════════════════════
+
+Results written to: /workspace/tradeflow/src/engine/pressure-results.txt
+
+[10:14:49] ═══ PRESSURE TEST FINISHED ═══

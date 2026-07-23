@@ -1,0 +1,113 @@
+{
+  "app": {
+    "name": "TradeFlow",
+    "tagline": "Smart Trading Companion"
+  },
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "autopilot": "Autopilot",
+    "invest": "Invest",
+    "myBots": "My Bots",
+    "strategies": "Strategies",
+    "backtester": "Backtester",
+    "alerts": "Alerts",
+    "risk": "Risk Manager",
+    "analytics": "Analytics",
+    "copyTrading": "Copy Trading",
+    "community": "Community",
+    "connections": "Connections",
+    "pricing": "Pricing",
+    "security": "Security",
+    "settings": "Settings",
+    "help": "Help",
+    "scheduler": "Scheduler",
+    "referrals": "Referrals",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
+  },
+  "common": {
+    "save": "Save Changes",
+    "saved": "Saved!",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "loading": "Loading…",
+    "error": "Error",
+    "success": "Success",
+    "confirm": "Confirm",
+    "back": "Go Back",
+    "search": "Search…",
+    "filter": "Filter",
+    "sort": "Sort",
+    "viewAll": "View All",
+    "learnMore": "Learn More",
+    "open": "Open",
+    "retry": "Retry",
+    "noResults": "No results found"
+  },
+  "disclaimer": {
+    "title": "Not Financial Advice",
+    "body": "TradeFlow is a demo/educational tool only. Trading strategies, P&L calculations, and portfolio data are simulated or for demonstration purposes. Nothing on this platform constitutes financial advice. Past performance does not guarantee future results.",
+    "understand": "I Understand",
+    "footer": "TradeFlow is a demo trading platform for educational purposes only. Not financial advice."
+  },
+  "home": {
+    "title": "TradeFlow",
+    "subtitle": "AI-Powered Crypto Trading",
+    "startTrading": "Start Trading",
+    "learnMore": "Learn More",
+    "livePrices": "Live Prices",
+    "features": "Features",
+    "strategies": "Strategies",
+    "howItWorks": "How It Works"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Configure trading parameters, API keys, and risk limits",
+    "riskLimits": "Risk Limits",
+    "apiConnections": "API Connections",
+    "notifications": "Notifications",
+    "tradingMode": "Trading Mode",
+    "telegramAlerts": "Telegram Alerts",
+    "dangerZone": "Danger Zone",
+    "darkMode": "Dark Mode",
+    "paperTrading": "Paper Trading",
+    "demoMode": "Demo Mode",
+    "pushNotifications": "Push Notifications",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated: {{date}}",
+    "collect": "Information We Collect",
+    "usage": "How We Use Your Information",
+    "storage": "Data Storage & Security",
+    "thirdParty": "Third-Party Services",
+    "rights": "Your Rights",
+    "contact": "Contact Us"
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "lastUpdated": "Last updated: {{date}}",
+    "service": "Service Description",
+    "notAdvice": "Not Financial Advice",
+    "responsibilities": "User Responsibilities",
+    "risk": "Risk Disclosure",
+    "liability": "Limitation of Liability",
+    "prohibited": "Prohibited Uses",
+    "ip": "Intellectual Property"
+  },
+  "errors": {
+    "networkError": "Network error. Check your connection.",
+    "serverError": "Server error. Please try again later.",
+    "notFound": "Page not found",
+    "unauthorized": "Please sign in to continue",
+    "forbidden": "You don't have permission to access this"
+  },
+  "footer": {
+    "disclaimer": "TradeFlow is a demo trading platform for educational purposes only. Not financial advice. Past performance does not guarantee future results."
+  }
+}

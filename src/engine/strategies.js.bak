@@ -1,0 +1,248 @@
+/**
+ * Trading Strategies — each strategy decides what trade (if any) to make
+ * given current price data, bot state, and available balance.
+ *
+ * Every strategy returns { action, coin, amount, price, reason } or null (no trade).
+ */
+
+/** DCA: buy a fixed dollar amount every N ticks regardless of price */
+export function dcaStrategy({ prices, bot, tickCount, balance }) {
+  const interval = bot.params?.interval || 10; // ticks between buys
+  const buyAmount = bot.params?.buyAmount || 50; // dollars per buy
+
+  if (tickCount % interval !== 0) return null;
+  if (balance < buyAmount) return null;
+
+  const price = prices[bot.coin]?.price;
+  if (!price || price <= 0) return null;
+
+  return {
+    action: 'buy',
+    coin: bot.coin,
+    amount: buyAmount / price, // coin units
+    price,
+    cost: buyAmount,
+    reason: `DCA: buying $${buyAmount} of ${bot.coin}`,
+  };
+}
+
+/** Grid: buy at grid levels below current price, sell at levels above */
+export function gridStrategy({ prices, bot, state, balance }) {
+  const price = prices[bot.coin]?.price;
+  if (!price || price <= 0) return null;
+
+  const gridSpacing = bot.params?.gridSpacing || 0.02; // 2% between levels
+  const orderSize = bot.params?.orderSize || 100; // dollars per grid order
+
+  // Initialize grid state on first run
+  if (!state.gridLevels || !state.basePrice) {
+    return { _setState: { gridLevels: true, basePrice: price, lastAction: null } };
+  }
+
+  const basePrice = state.basePrice;
+  const levelsFromBase = Math.floor(Math.log(price / basePrice) / Math.log(1 + gridSpacing));
+
+  // Buy if price dropped to a new grid level below
+  if (levelsFromBase < (state.lastBuyLevel ?? 0) && balance >= orderSize) {
+    return {
+      action: 'buy',
+      coin: bot.coin,
+      amount: orderSize / price,
+      price,
+      cost: orderSize,
+      reason: `Grid buy at level ${levelsFromBase}`,
+      _setState: { lastBuyLevel: levelsFromBase },
+    };
+  }
+
+  // Sell if price rose to a grid level above (and we have holdings)
+  const holdings = state.holdings || 0;
+  if (levelsFromBase > (state.lastSellLevel ?? 0) && holdings > 0.0001) {
+    const sellAmount = Math.min(holdings, orderSize / price);
+    return {
+      action: 'sell',
+      coin: bot.coin,
+      amount: sellAmount,
+      price,
+      revenue: sellAmount * price,
+      reason: `Grid sell at level ${levelsFromBase}`,
+      _setState: { lastSellLevel: levelsFromBase },
+    };
+  }
+
+  return null;
+}
+
+/** Trend: follow momentum using short/long moving averages */
+export function trendStrategy({ prices, bot, state, balance }) {
+  const price = prices[bot.coin]?.price;
+  if (!price || price <= 0) return null;
+
+  const history = prices[bot.coin]?.history || [];
+  const shortWindow = bot.params?.shortWindow || 5;
+  const longWindow = bot.params?.longWindow || 20;
+  const tradeSize = bot.params?.tradeSize || 150;
+
+  if (history.length < longWindow) {
+    return { _setState: { priceHistory: [...(state.priceHistory || []), price].slice(-longWindow) } };
+  }
+
+  const priceHistory = [...(state.priceHistory || []), price].slice(-longWindow);
+  const shortMA = priceHistory.slice(-shortWindow).reduce((a, b) => a + b, 0) / shortWindow;
+  const longMA = priceHistory.reduce((a, b) => a + b, 0) / priceHistory.length;
+
+  const prevShortMA = state.prevShortMA ?? shortMA;
+  const prevLongMA = state.prevLongMA ?? longMA;
+
+  const newState = { priceHistory, prevShortMA: shortMA, prevLongMA: longMA };
+
+  // Buy signal: short MA crosses above long MA
+  if (prevShortMA <= prevLongMA && shortMA > longMA && balance >= tradeSize) {
+    return {
+      action: 'buy',
+      coin: bot.coin,
+      amount: tradeSize / price,
+      price,
+      cost: tradeSize,
+      reason: `Trend buy: short MA (${shortMA.toFixed(2)}) crossed above long MA (${longMA.toFixed(2)})`,
+      _setState: newState,
+    };
+  }
+
+  // Sell signal: short MA crosses below long MA
+  const holdings = state.holdings || 0;
+  if (prevShortMA >= prevLongMA && shortMA < longMA && holdings > 0.0001) {
+    const sellAmount = Math.min(holdings, tradeSize / price);
+    return {
+      action: 'sell',
+      coin: bot.coin,
+      amount: sellAmount,
+      price,
+      revenue: sellAmount * price,
+      reason: `Trend sell: short MA (${shortMA.toFixed(2)}) crossed below long MA (${longMA.toFixed(2)})`,
+      _setState: newState,
+    };
+  }
+
+  return { _setState: newState };
+}
+
+/** Momentum: buy when recent returns are strong, sell when weak */
+export function momentumStrategy({ prices, bot, state, balance }) {
+  const price = prices[bot.coin]?.price;
+  if (!price || price <= 0) return null;
+
+  const lookback = bot.params?.lookback || 10;
+  const threshold = bot.params?.threshold || 0.03; // 3% momentum threshold
+  const tradeSize = bot.params?.tradeSize || 200;
+
+  const priceHistory = [...(state.priceHistory || []), price].slice(-lookback - 1);
+
+  if (priceHistory.length < lookback + 1) {
+    return { _setState: { priceHistory } };
+  }
+
+  const oldPrice = priceHistory[0];
+  const momentum = (price - oldPrice) / oldPrice;
+
+  const newState = { priceHistory };
+
+  // Strong positive momentum: buy
+  if (momentum > threshold && balance >= tradeSize) {
+    return {
+      action: 'buy',
+      coin: bot.coin,
+      amount: tradeSize / price,
+      price,
+      cost: tradeSize,
+      reason: `Momentum buy: ${(momentum * 100).toFixed(1)}% gain over ${lookback} ticks`,
+      _setState: newState,
+    };
+  }
+
+  // Strong negative momentum: sell
+  const holdings = state.holdings || 0;
+  if (momentum < -threshold && holdings > 0.0001) {
+    const sellAmount = Math.min(holdings, tradeSize / price);
+    return {
+      action: 'sell',
+      coin: bot.coin,
+      amount: sellAmount,
+      price,
+      revenue: sellAmount * price,
+      reason: `Momentum sell: ${(momentum * 100).toFixed(1)}% loss over ${lookback} ticks`,
+      _setState: newState,
+    };
+  }
+
+  return { _setState: newState };
+}
+
+/** Mean Reversion: buy dips (price below average), sell rallies (price above average) */
+export function meanReversionStrategy({ prices, bot, state, balance }) {
+  const price = prices[bot.coin]?.price;
+  if (!price || price <= 0) return null;
+
+  const window = bot.params?.window || 15;
+  const deviation = bot.params?.deviation || 0.025; // 2.5% deviation from mean
+  const tradeSize = bot.params?.tradeSize || 120;
+
+  const priceHistory = [...(state.priceHistory || []), price].slice(-window);
+
+  if (priceHistory.length < window) {
+    return { _setState: { priceHistory } };
+  }
+
+  const avg = priceHistory.reduce((a, b) => a + b, 0) / priceHistory.length;
+  const diff = (price - avg) / avg;
+
+  const newState = { priceHistory };
+
+  // Price significantly below average: buy
+  if (diff < -deviation && balance >= tradeSize) {
+    return {
+      action: 'buy',
+      coin: bot.coin,
+      amount: tradeSize / price,
+      price,
+      cost: tradeSize,
+      reason: `Mean rev buy: price ${(diff * 100).toFixed(1)}% below avg ($${avg.toFixed(2)})`,
+      _setState: newState,
+    };
+  }
+
+  // Price significantly above average: sell
+  const holdings = state.holdings || 0;
+  if (diff > deviation && holdings > 0.0001) {
+    const sellAmount = Math.min(holdings, tradeSize / price);
+    return {
+      action: 'sell',
+      coin: bot.coin,
+      amount: sellAmount,
+      price,
+      revenue: sellAmount * price,
+      reason: `Mean rev sell: price ${(diff * 100).toFixed(1)}% above avg ($${avg.toFixed(2)})`,
+      _setState: newState,
+    };
+  }
+
+  return { _setState: newState };
+}
+
+/** Strategy registry */
+export const STRATEGIES = {
+  dca: { name: 'DCA', fn: dcaStrategy, description: 'Dollar-cost average at fixed intervals' },
+  grid: { name: 'Grid', fn: gridStrategy, description: 'Buy/sell at predefined price grid levels' },
+  trend: { name: 'Trend', fn: trendStrategy, description: 'Follow MA crossover momentum' },
+  momentum: { name: 'Momentum', fn: momentumStrategy, description: 'Buy winners, sell losers' },
+  meanReversion: { name: 'Mean Reversion', fn: meanReversionStrategy, description: 'Buy dips, sell rallies' },
+};
+
+/** Default bot configs for each strategy */
+export const DEFAULT_BOT_CONFIGS = {
+  dca: { interval: 8, buyAmount: 50 },
+  grid: { gridSpacing: 0.02, orderSize: 100 },
+  trend: { shortWindow: 5, longWindow: 20, tradeSize: 150 },
+  momentum: { lookback: 10, threshold: 0.03, tradeSize: 200 },
+  meanReversion: { window: 15, deviation: 0.025, tradeSize: 120 },
+};

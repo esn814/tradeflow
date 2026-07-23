@@ -1,0 +1,772 @@
+{
+  "timestamp": "2026-07-22T12:09:01.988Z",
+  "totalSeconds": 55.6,
+  "totalNavigations": 132,
+  "jsErrors": 15,
+  "navFailures": 0,
+  "uniqueJSErrors": [
+    "Failed to load resource: net::ERR_FAILED",
+    "WebSocket connection to 'wss://data-api.crossverse.app/ws' failed: Error during WebSocket handshake: Unexpected response code: 404",
+    "Failed to load resource: the server responded with a status of 404 ()"
+  ],
+  "timings": [
+    {
+      "round": 1,
+      "path": "/",
+      "ms": 751
+    },
+    {
+      "round": 1,
+      "path": "/dashboard",
+      "ms": 116
+    },
+    {
+      "round": 1,
+      "path": "/strategies",
+      "ms": 100
+    },
+    {
+      "round": 1,
+      "path": "/backtester",
+      "ms": 95
+    },
+    {
+      "round": 1,
+      "path": "/analytics",
+      "ms": 129
+    },
+    {
+      "round": 1,
+      "path": "/connections",
+      "ms": 102
+    },
+    {
+      "round": 1,
+      "path": "/copy-trading",
+      "ms": 95
+    },
+    {
+      "round": 1,
+      "path": "/risk-manager",
+      "ms": 103
+    },
+    {
+      "round": 1,
+      "path": "/alerts",
+      "ms": 101
+    },
+    {
+      "round": 1,
+      "path": "/scheduler",
+      "ms": 108
+    },
+    {
+      "round": 1,
+      "path": "/settings",
+      "ms": 106
+    },
+    {
+      "round": 1,
+      "path": "/automated-trading",
+      "ms": 106
+    },
+    {
+      "round": 1,
+      "path": "/autopilot",
+      "ms": 111
+    },
+    {
+      "round": 1,
+      "path": "/bridge",
+      "ms": 103
+    },
+    {
+      "round": 1,
+      "path": "/cross-chain-arbitrage",
+      "ms": 100
+    },
+    {
+      "round": 1,
+      "path": "/cross-dex-arbitrage",
+      "ms": 99
+    },
+    {
+      "round": 1,
+      "path": "/my-bots",
+      "ms": 98
+    },
+    {
+      "round": 1,
+      "path": "/invest",
+      "ms": 102
+    },
+    {
+      "round": 1,
+      "path": "/pricing",
+      "ms": 99
+    },
+    {
+      "round": 1,
+      "path": "/help",
+      "ms": 100
+    },
+    {
+      "round": 1,
+      "path": "/security",
+      "ms": 100
+    },
+    {
+      "round": 1,
+      "path": "/referrals",
+      "ms": 99
+    },
+    {
+      "round": 2,
+      "path": "/",
+      "ms": 15
+    },
+    {
+      "round": 2,
+      "path": "/dashboard",
+      "ms": 97
+    },
+    {
+      "round": 2,
+      "path": "/strategies",
+      "ms": 98
+    },
+    {
+      "round": 2,
+      "path": "/backtester",
+      "ms": 97
+    },
+    {
+      "round": 2,
+      "path": "/analytics",
+      "ms": 19
+    },
+    {
+      "round": 2,
+      "path": "/connections",
+      "ms": 17
+    },
+    {
+      "round": 2,
+      "path": "/copy-trading",
+      "ms": 14
+    },
+    {
+      "round": 2,
+      "path": "/risk-manager",
+      "ms": 15
+    },
+    {
+      "round": 2,
+      "path": "/alerts",
+      "ms": 24
+    },
+    {
+      "round": 2,
+      "path": "/scheduler",
+      "ms": 16
+    },
+    {
+      "round": 2,
+      "path": "/settings",
+      "ms": 21
+    },
+    {
+      "round": 2,
+      "path": "/automated-trading",
+      "ms": 17
+    },
+    {
+      "round": 2,
+      "path": "/autopilot",
+      "ms": 18
+    },
+    {
+      "round": 2,
+      "path": "/bridge",
+      "ms": 16
+    },
+    {
+      "round": 2,
+      "path": "/cross-chain-arbitrage",
+      "ms": 16
+    },
+    {
+      "round": 2,
+      "path": "/cross-dex-arbitrage",
+      "ms": 15
+    },
+    {
+      "round": 2,
+      "path": "/my-bots",
+      "ms": 16
+    },
+    {
+      "round": 2,
+      "path": "/invest",
+      "ms": 17
+    },
+    {
+      "round": 2,
+      "path": "/pricing",
+      "ms": 18
+    },
+    {
+      "round": 2,
+      "path": "/help",
+      "ms": 15
+    },
+    {
+      "round": 2,
+      "path": "/security",
+      "ms": 16
+    },
+    {
+      "round": 2,
+      "path": "/referrals",
+      "ms": 16
+    },
+    {
+      "round": 3,
+      "path": "/",
+      "ms": 21
+    },
+    {
+      "round": 3,
+      "path": "/dashboard",
+      "ms": 20
+    },
+    {
+      "round": 3,
+      "path": "/strategies",
+      "ms": 16
+    },
+    {
+      "round": 3,
+      "path": "/backtester",
+      "ms": 19
+    },
+    {
+      "round": 3,
+      "path": "/analytics",
+      "ms": 17
+    },
+    {
+      "round": 3,
+      "path": "/connections",
+      "ms": 16
+    },
+    {
+      "round": 3,
+      "path": "/copy-trading",
+      "ms": 24
+    },
+    {
+      "round": 3,
+      "path": "/risk-manager",
+      "ms": 19
+    },
+    {
+      "round": 3,
+      "path": "/alerts",
+      "ms": 19
+    },
+    {
+      "round": 3,
+      "path": "/scheduler",
+      "ms": 22
+    },
+    {
+      "round": 3,
+      "path": "/settings",
+      "ms": 18
+    },
+    {
+      "round": 3,
+      "path": "/automated-trading",
+      "ms": 16
+    },
+    {
+      "round": 3,
+      "path": "/autopilot",
+      "ms": 18
+    },
+    {
+      "round": 3,
+      "path": "/bridge",
+      "ms": 15
+    },
+    {
+      "round": 3,
+      "path": "/cross-chain-arbitrage",
+      "ms": 18
+    },
+    {
+      "round": 3,
+      "path": "/cross-dex-arbitrage",
+      "ms": 21
+    },
+    {
+      "round": 3,
+      "path": "/my-bots",
+      "ms": 16
+    },
+    {
+      "round": 3,
+      "path": "/invest",
+      "ms": 18
+    },
+    {
+      "round": 3,
+      "path": "/pricing",
+      "ms": 17
+    },
+    {
+      "round": 3,
+      "path": "/help",
+      "ms": 16
+    },
+    {
+      "round": 3,
+      "path": "/security",
+      "ms": 25
+    },
+    {
+      "round": 3,
+      "path": "/referrals",
+      "ms": 15
+    },
+    {
+      "ctx": 0,
+      "round": 0,
+      "path": "/",
+      "ms": 681
+    },
+    {
+      "ctx": 0,
+      "round": 0,
+      "path": "/dashboard",
+      "ms": 106
+    },
+    {
+      "ctx": 0,
+      "round": 0,
+      "path": "/strategies",
+      "ms": 106
+    },
+    {
+      "ctx": 0,
+      "round": 0,
+      "path": "/backtester",
+      "ms": 110
+    },
+    {
+      "ctx": 0,
+      "round": 0,
+      "path": "/analytics",
+      "ms": 177
+    },
+    {
+      "ctx": 0,
+      "round": 1,
+      "path": "/",
+      "ms": 24
+    },
+    {
+      "ctx": 0,
+      "round": 1,
+      "path": "/dashboard",
+      "ms": 102
+    },
+    {
+      "ctx": 0,
+      "round": 1,
+      "path": "/strategies",
+      "ms": 103
+    },
+    {
+      "ctx": 0,
+      "round": 1,
+      "path": "/backtester",
+      "ms": 95
+    },
+    {
+      "ctx": 0,
+      "round": 1,
+      "path": "/analytics",
+      "ms": 19
+    },
+    {
+      "ctx": 0,
+      "round": 2,
+      "path": "/",
+      "ms": 18
+    },
+    {
+      "ctx": 0,
+      "round": 2,
+      "path": "/dashboard",
+      "ms": 19
+    },
+    {
+      "ctx": 0,
+      "round": 2,
+      "path": "/strategies",
+      "ms": 13
+    },
+    {
+      "ctx": 0,
+      "round": 2,
+      "path": "/backtester",
+      "ms": 14
+    },
+    {
+      "ctx": 0,
+      "round": 2,
+      "path": "/analytics",
+      "ms": 21
+    },
+    {
+      "ctx": 1,
+      "round": 0,
+      "path": "/connections",
+      "ms": 751
+    },
+    {
+      "ctx": 1,
+      "round": 0,
+      "path": "/copy-trading",
+      "ms": 104
+    },
+    {
+      "ctx": 1,
+      "round": 0,
+      "path": "/risk-manager",
+      "ms": 98
+    },
+    {
+      "ctx": 1,
+      "round": 0,
+      "path": "/alerts",
+      "ms": 95
+    },
+    {
+      "ctx": 1,
+      "round": 0,
+      "path": "/scheduler",
+      "ms": 165
+    },
+    {
+      "ctx": 1,
+      "round": 1,
+      "path": "/connections",
+      "ms": 106
+    },
+    {
+      "ctx": 1,
+      "round": 1,
+      "path": "/copy-trading",
+      "ms": 110
+    },
+    {
+      "ctx": 1,
+      "round": 1,
+      "path": "/risk-manager",
+      "ms": 101
+    },
+    {
+      "ctx": 1,
+      "round": 1,
+      "path": "/alerts",
+      "ms": 100
+    },
+    {
+      "ctx": 1,
+      "round": 1,
+      "path": "/scheduler",
+      "ms": 24
+    },
+    {
+      "ctx": 1,
+      "round": 2,
+      "path": "/connections",
+      "ms": 32
+    },
+    {
+      "ctx": 1,
+      "round": 2,
+      "path": "/copy-trading",
+      "ms": 30
+    },
+    {
+      "ctx": 1,
+      "round": 2,
+      "path": "/risk-manager",
+      "ms": 20
+    },
+    {
+      "ctx": 1,
+      "round": 2,
+      "path": "/alerts",
+      "ms": 21
+    },
+    {
+      "ctx": 1,
+      "round": 2,
+      "path": "/scheduler",
+      "ms": 19
+    },
+    {
+      "ctx": 2,
+      "round": 0,
+      "path": "/settings",
+      "ms": 761
+    },
+    {
+      "ctx": 2,
+      "round": 0,
+      "path": "/automated-trading",
+      "ms": 103
+    },
+    {
+      "ctx": 2,
+      "round": 0,
+      "path": "/autopilot",
+      "ms": 95
+    },
+    {
+      "ctx": 2,
+      "round": 0,
+      "path": "/bridge",
+      "ms": 96
+    },
+    {
+      "ctx": 2,
+      "round": 0,
+      "path": "/cross-chain-arbitrage",
+      "ms": 161
+    },
+    {
+      "ctx": 2,
+      "round": 1,
+      "path": "/settings",
+      "ms": 114
+    },
+    {
+      "ctx": 2,
+      "round": 1,
+      "path": "/automated-trading",
+      "ms": 102
+    },
+    {
+      "ctx": 2,
+      "round": 1,
+      "path": "/autopilot",
+      "ms": 93
+    },
+    {
+      "ctx": 2,
+      "round": 1,
+      "path": "/bridge",
+      "ms": 100
+    },
+    {
+      "ctx": 2,
+      "round": 1,
+      "path": "/cross-chain-arbitrage",
+      "ms": 20
+    },
+    {
+      "ctx": 2,
+      "round": 2,
+      "path": "/settings",
+      "ms": 19
+    },
+    {
+      "ctx": 2,
+      "round": 2,
+      "path": "/automated-trading",
+      "ms": 28
+    },
+    {
+      "ctx": 2,
+      "round": 2,
+      "path": "/autopilot",
+      "ms": 21
+    },
+    {
+      "ctx": 2,
+      "round": 2,
+      "path": "/bridge",
+      "ms": 19
+    },
+    {
+      "ctx": 2,
+      "round": 2,
+      "path": "/cross-chain-arbitrage",
+      "ms": 18
+    },
+    {
+      "ctx": 3,
+      "round": 0,
+      "path": "/cross-dex-arbitrage",
+      "ms": 698
+    },
+    {
+      "ctx": 3,
+      "round": 0,
+      "path": "/my-bots",
+      "ms": 99
+    },
+    {
+      "ctx": 3,
+      "round": 0,
+      "path": "/invest",
+      "ms": 109
+    },
+    {
+      "ctx": 3,
+      "round": 0,
+      "path": "/pricing",
+      "ms": 99
+    },
+    {
+      "ctx": 3,
+      "round": 0,
+      "path": "/help",
+      "ms": 166
+    },
+    {
+      "ctx": 3,
+      "round": 1,
+      "path": "/cross-dex-arbitrage",
+      "ms": 118
+    },
+    {
+      "ctx": 3,
+      "round": 1,
+      "path": "/my-bots",
+      "ms": 114
+    },
+    {
+      "ctx": 3,
+      "round": 1,
+      "path": "/invest",
+      "ms": 97
+    },
+    {
+      "ctx": 3,
+      "round": 1,
+      "path": "/pricing",
+      "ms": 98
+    },
+    {
+      "ctx": 3,
+      "round": 1,
+      "path": "/help",
+      "ms": 24
+    },
+    {
+      "ctx": 3,
+      "round": 2,
+      "path": "/cross-dex-arbitrage",
+      "ms": 20
+    },
+    {
+      "ctx": 3,
+      "round": 2,
+      "path": "/my-bots",
+      "ms": 19
+    },
+    {
+      "ctx": 3,
+      "round": 2,
+      "path": "/invest",
+      "ms": 21
+    },
+    {
+      "ctx": 3,
+      "round": 2,
+      "path": "/pricing",
+      "ms": 19
+    },
+    {
+      "ctx": 3,
+      "round": 2,
+      "path": "/help",
+      "ms": 20
+    },
+    {
+      "ctx": 4,
+      "round": 0,
+      "path": "/security",
+      "ms": 678
+    },
+    {
+      "ctx": 4,
+      "round": 0,
+      "path": "/referrals",
+      "ms": 103
+    },
+    {
+      "ctx": 4,
+      "round": 1,
+      "path": "/security",
+      "ms": 99
+    },
+    {
+      "ctx": 4,
+      "round": 1,
+      "path": "/referrals",
+      "ms": 105
+    },
+    {
+      "ctx": 4,
+      "round": 2,
+      "path": "/security",
+      "ms": 180
+    },
+    {
+      "ctx": 4,
+      "round": 2,
+      "path": "/referrals",
+      "ms": 106
+    }
+  ],
+  "memory": [
+    {
+      "page": "/",
+      "usedJSHeapSize": 10000000,
+      "totalJSHeapSize": 10000000,
+      "jsHeapSizeLimit": 3760000000
+    },
+    {
+      "page": "/dashboard",
+      "usedJSHeapSize": 10000000,
+      "totalJSHeapSize": 10000000,
+      "jsHeapSizeLimit": 3760000000
+    },
+    {
+      "page": "/strategies",
+      "usedJSHeapSize": 10000000,
+      "totalJSHeapSize": 10000000,
+      "jsHeapSizeLimit": 3760000000
+    },
+    {
+      "page": "/backtester",
+      "usedJSHeapSize": 10000000,
+      "totalJSHeapSize": 10000000,
+      "jsHeapSizeLimit": 3760000000
+    },
+    {
+      "page": "/analytics",
+      "usedJSHeapSize": 10000000,
+      "totalJSHeapSize": 10000000,
+      "jsHeapSizeLimit": 3760000000
+    }
+  ]
+}

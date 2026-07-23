@@ -1,0 +1,27 @@
+╔══════════════════════════════════════════════════════════════════╗
+║  HARD STRESS TEST: 5000 BOTS × 1800s (30 min)              ║
+║  Simulated prices (Brownian motion) — zero network load        ║
+╚══════════════════════════════════════════════════════════════════╝
+
+Tick interval: 100ms | Strategies: 5 | Coins: 8
+Starting balance per bot: $10,000 | Total capital: $50,000,000
+Mode: useSimulator=TRUE → PriceSimulator (Brownian motion)
+
+✓ Spawned 5000 bots. Running...
+
+
+(simulation in progress...)
+[60s] Ticks: 598 | Trades: 822988 | Vol: $385.5M | TPS: 14203.0 | Errors: 0
+[120s] Ticks: 1197 | Trades: 1682835 | Vol: $975.3M | TPS: 13841.3 | Errors: 0
+[180s] Ticks: 1795 | Trades: 2529559 | Vol: $1596.0M | TPS: 14179.8 | Errors: 0
+[240s] Ticks: 2394 | Trades: 3362278 | Vol: $2265.2M | TPS: 14616.0 | Errors: 0
+[300s] Ticks: 2993 | Trades: 4216727 | Vol: $3112.6M | TPS: 14591.6 | Errors: 0
+[360s] Ticks: 3592 | Trades: 5070956 | Vol: $3972.0M | TPS: 14903.2 | Errors: 0
+[420s] Ticks: 4190 | Trades: 5887326 | Vol: $4806.2M | TPS: 13428.9 | Errors: 0
+[480s] Ticks: 4789 | Trades: 6740053 | Vol: $5642.7M | TPS: 14355.2 | Errors: 0
+[540s] Ticks: 5387 | Trades: 7568133 | Vol: $6597.9M | TPS: 13690.8 | Errors: 0
+[600s] Ticks: 5986 | Trades: 8422958 | Vol: $7641.4M | TPS: 14189.5 | Errors: 0
+[660s] Ticks: 6585 | Trades: 9258303 | Vol: $8850.5M | TPS: 13504.2 | Errors: 0
+[720s] Ticks: 7184 | Trades: 10081904 | Vol: $10183.9M | TPS: 13877.8 | Errors: 0
+[780s] Ticks: 7783 | Trades: 10909596 | Vol: $11395.1M | TPS: 13953.0 | Errors: 0
+[840s] Ticks: 8381 | Trades: 11739082 | Vol: $12655.3M | TPS: 13816.6 | Errors: 0
