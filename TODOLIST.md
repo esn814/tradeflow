@@ -108,7 +108,8 @@
 - [x] Server CI tests — 18 tests (11 DB + 7 auth), vitest.config.server.js, CI workflow updated with server test step
 
 ### Step 5: Features (~20h)
-- [ ] Verify trading strategies produce real results (not mockups)
+- [ ] Real exchange integration — API key auth, order placement, position tracking (~40-60h, separate project)
+- [ ] Label all strategies/bots as "Demo/Simulation" in UI until real integration is done
 - [ ] Onboarding flow improvements
 - [ ] API documentation (OpenAPI/Swagger)
 - [ ] Staging environment
