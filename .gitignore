@@ -30,3 +30,6 @@ server/tradeflow.db
 *.apk
 *.bin
 tradeflow-backup-*.tar.gz
+
+# Server backups
+server/data/backups/

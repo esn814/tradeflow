@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import { getDb } from './db.js';
-import authRouter from './auth.js';
+import authRouter, { authMiddleware } from './auth.js';
 import botsRouter from './routes/bots.js';
 import tradesRouter from './routes/trades.js';
 import alertsRouter from './routes/alerts.js';
@@ -12,6 +12,7 @@ import copyTradingRouter from './routes/copy-trading.js';
 import pushRouter from './routes/push.js';
 import socialRouter from './routes/social.js';
 import { startAlertChecker } from './services/alertChecker.js';
+import { startBackupScheduler, createBackup, listBackups } from './backup.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -86,6 +87,25 @@ app.use('/api/copy-trading', writeLimiter, copyTradingRouter);
 app.use('/api/push', writeLimiter, pushRouter);
 app.use('/api/social', socialRouter);
 
+// Backup endpoints — manual trigger + list
+app.get('/api/backup', authMiddleware, (req, res) => {
+  try {
+    const backups = listBackups();
+    res.json({ backups, count: backups.length });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to list backups' });
+  }
+});
+app.post('/api/backup', authMiddleware, (req, res) => {
+  try {
+    const result = createBackup();
+    if (result.ok) res.json(result);
+    else res.status(500).json(result);
+  } catch (err) {
+    res.status(500).json({ error: 'Backup failed' });
+  }
+});
+
 // Global error handler
 app.use((err, req, res, _next) => {
   console.error('Unhandled error:', err);
@@ -95,6 +115,7 @@ app.use((err, req, res, _next) => {
 const server = app.listen(PORT, () => {
   console.log(`TradeFlow API v1.1 running on port ${PORT}`);
   startAlertChecker(60_000); // check alerts every 60s
+  startBackupScheduler(); // daily SQLite backups with 7-day retention
 });
 
 // Graceful shutdown — close DB and server on SIGTERM/SIGINT
