@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { authMiddleware } from '../auth.js';
 import { getDb } from '../db.js';
 import { sanitize } from '../middleware/validate.js';
+import { validateBody } from '../middleware/validateZod.js';
+import { createAlertSchema, updateAlertSchema } from '../schemas.js';
 
 const router = Router();
 router.use(authMiddleware);
@@ -18,7 +20,7 @@ router.get('/', (req, res) => {
   } catch (err) { console.error(err); res.status(500).json({ error: 'Failed to fetch alerts' }); }
 });
 
-router.post('/', (req, res) => {
+router.post('/', validateBody(createAlertSchema), (req, res) => {
   try {
     const { type, asset, condition, value, meta } = req.body;
     const result = getDb().prepare(`
@@ -28,7 +30,7 @@ router.post('/', (req, res) => {
   } catch (err) { console.error(err); res.status(500).json({ error: 'Failed to create alert' }); }
 });
 
-router.put('/:id', (req, res) => {
+router.put('/:id', validateBody(updateAlertSchema), (req, res) => {
   try {
     const { type, asset, condition, value, active, triggered, meta } = req.body;
     const result = getDb().prepare(`

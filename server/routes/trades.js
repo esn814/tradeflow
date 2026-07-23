@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { authMiddleware } from '../auth.js';
 import { getDb } from '../db.js';
 import { sanitize } from '../middleware/validate.js';
+import { validateBody } from '../middleware/validateZod.js';
+import { createTradeSchema } from '../schemas.js';
 
 const router = Router();
 router.use(authMiddleware);
@@ -44,7 +46,7 @@ router.get('/summary', (req, res) => {
   } catch (err) { console.error(err); res.status(500).json({ error: 'Failed to compute summary' }); }
 });
 
-router.post('/', (req, res) => {
+router.post('/', validateBody(createTradeSchema), (req, res) => {
   try {
     const { id, botId, pair, side, price, qty, pnl, status, sl, tp, strategy, meta, time } = req.body;
     const tradeId = id || `trade-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;

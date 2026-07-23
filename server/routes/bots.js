@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { authMiddleware } from '../auth.js';
 import { getDb } from '../db.js';
 import { sanitize } from '../middleware/validate.js';
+import { validateBody } from '../middleware/validateZod.js';
+import { createBotSchema, updateBotSchema } from '../schemas.js';
 
 const router = Router();
 router.use(authMiddleware);
@@ -19,7 +21,7 @@ router.get('/', (req, res) => {
   } catch (err) { console.error(err); res.status(500).json({ error: 'Failed to fetch bots' }); }
 });
 
-router.post('/', (req, res) => {
+router.post('/', validateBody(createBotSchema), (req, res) => {
   try {
     const { id, name, type, coin, invested, currentValue, status, strategy, config } = req.body;
     if (!id) return res.status(400).json({ error: 'Bot id is required' });
@@ -38,7 +40,7 @@ router.post('/', (req, res) => {
   } catch (err) { console.error(err); res.status(500).json({ error: 'Failed to create bot' }); }
 });
 
-router.put('/:id', (req, res) => {
+router.put('/:id', validateBody(updateBotSchema), (req, res) => {
   try {
     const { name, type, coin, invested, currentValue, status, strategy, config } = req.body;
     const now = new Date().toISOString();
