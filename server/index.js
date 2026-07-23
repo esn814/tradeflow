@@ -1,7 +1,11 @@
+import config, { logConfig } from './config.js'; // validates env vars on import — exits if invalid
+import { logger } from './logger.js';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import pinoHttp from 'pino-http';
+import * as Sentry from '@sentry/node';
 import rateLimit from 'express-rate-limit';
 import { getDb } from './db.js';
 import authRouter, { authMiddleware } from './auth.js';
@@ -17,12 +21,22 @@ import { startAlertChecker } from './services/alertChecker.js';
 import { startBackupScheduler, createBackup, listBackups } from './backup.js';
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = config.PORT;
+
+// ── Sentry (must be before all middleware) ─────────────────────
+if (config.SENTRY_DSN) {
+  Sentry.init({
+    dsn: config.SENTRY_DSN,
+    environment: config.NODE_ENV,
+    tracesSampleRate: config.NODE_ENV === 'production' ? 0.1 : 1.0,
+  });
+  app.use(Sentry.setupExpressRequestHandler());
+}
 
 // Trust reverse proxy (Render, Cloudflare) for correct rate-limit IPs and proto
 app.set('trust proxy', 1);
 
-// ── FIX #2: Security headers (HSTS, X-Frame-Options, X-Content-Type-Options, etc.) ──
+// ── Security headers (HSTS, X-Frame-Options, X-Content-Type-Options, etc.) ──
 app.use(helmet({
   contentSecurityPolicy: false, // CSP is in HTML meta tag
   hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
@@ -33,8 +47,8 @@ const DEFAULT_ORIGINS = [
   'http://localhost:5173',
   'https://tradeflow.cloud.hyperpaxeer.com',
 ];
-const ALLOWED_ORIGINS = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(',').map(o => o.trim())
+const ALLOWED_ORIGINS = config.CORS_ORIGINS
+  ? config.CORS_ORIGINS.split(',').map(o => o.trim())
   : DEFAULT_ORIGINS;
 app.use(cors({
   origin: (origin, cb) => {
@@ -46,8 +60,10 @@ app.use(cors({
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 
+// ── Structured request logging (pino-http) ────────────────────
+app.use(pinoHttp({ logger, autoLogging: { ignore: (req) => req.url === '/api/health' } }));
+
 // ── Rate Limiting ──────────────────────────────────────────────
-// Global: 100 requests per 15 minutes per IP
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -57,7 +73,6 @@ const globalLimiter = rateLimit({
 });
 app.use('/api/', globalLimiter);
 
-// Auth endpoints: stricter — 20 requests per 15 minutes
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
@@ -67,7 +82,6 @@ const authLimiter = rateLimit({
 });
 app.use('/api/auth', authLimiter);
 
-// Write endpoints: 30 requests per 15 minutes
 const writeLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 30,
@@ -76,7 +90,7 @@ const writeLimiter = rateLimit({
   message: { error: 'Too many write requests, please try again later' },
 });
 
-// Health check — FIX #10: no uptime disclosure
+// Health check — no uptime disclosure
 app.get('/api/health', (req, res) => {
   try {
     getDb().prepare('SELECT 1').get();
@@ -86,7 +100,6 @@ app.get('/api/health', (req, res) => {
   }
 });
 
-// FIX #10: Trade-specific limiter — 10 writes per minute
 const tradeLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 10,
@@ -95,7 +108,6 @@ const tradeLimiter = rateLimit({
   message: { error: 'Too many trade requests. Slow down.' },
 });
 
-// FIX #10: Backup limiter — 2 per hour
 const backupLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 2,
@@ -115,12 +127,12 @@ app.use('/api/copy-trading', writeLimiter, copyTradingRouter);
 app.use('/api/push', writeLimiter, pushRouter);
 app.use('/api/social', socialRouter);
 
-// Backup endpoints — FIX #11: no path disclosure, rate limited
+// Backup endpoints — no path disclosure, rate limited
 app.get('/api/backup', authMiddleware, (req, res) => {
   try {
     const backups = listBackups();
     res.json({ backups, count: backups.length });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Failed to list backups' });
   }
 });
@@ -128,42 +140,45 @@ app.post('/api/backup', backupLimiter, authMiddleware, (req, res) => {
   try {
     const result = createBackup();
     if (result.ok) {
-      // FIX #11: don't expose server filesystem path
       res.json({ ok: result.ok, sizeMB: result.sizeMB });
     } else {
       res.status(500).json({ error: 'Backup failed' });
     }
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Backup failed' });
   }
 });
 
+// Sentry error handler (must be after routes, before custom error handler)
+if (config.SENTRY_DSN) {
+  app.use(Sentry.setupExpressErrorHandler());
+}
+
 // Global error handler
 app.use((err, req, res, _next) => {
-  console.error('Unhandled error:', err);
+  logger.error({ err, reqId: req.id }, 'Unhandled error');
   res.status(500).json({ error: 'Internal server error' });
 });
 
 const server = app.listen(PORT, () => {
-  console.log(`TradeFlow API v1.1 running on port ${PORT}`);
-  startAlertChecker(60_000); // check alerts every 60s
-  startBackupScheduler(); // daily SQLite backups with 7-day retention
+  logConfig(logger);
+  logger.info({ port: PORT }, `TradeFlow API v1.1 running on port ${PORT}`);
+  startAlertChecker(60_000);
+  startBackupScheduler();
 });
 
-// Graceful shutdown — close DB and server on SIGTERM/SIGINT
+// Graceful shutdown
 function shutdown(signal) {
-  console.log(`${signal} received — shutting down gracefully`);
-  // Final backup before shutdown
+  logger.info({ signal }, 'Shutting down gracefully');
   try { createBackup(); } catch {}
   server.close(() => {
     try {
       const db = getDb();
       if (db && db.open) db.close();
     } catch {}
-    console.log('Server closed');
+    logger.info('Server closed');
     process.exit(0);
   });
-  // Force exit after 10s if graceful shutdown hangs
   setTimeout(() => { process.exit(1); }, 10_000).unref();
 }
 process.on('SIGTERM', () => shutdown('SIGTERM'));
