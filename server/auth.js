@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { randomBytes } from 'crypto';
 import jwt from 'jsonwebtoken';
-import { upsertUser } from './db.js';
+import { getDb, upsertUser } from './db.js';
 
 // ── FIX #4: Require JWT_SECRET — no file-based fallback ──
 if (!process.env.JWT_SECRET) {
@@ -13,7 +13,7 @@ export const JWT_SECRET = process.env.JWT_SECRET;
 // ── FIX #7: Explicit algorithm ──
 const JWT_ALGORITHM = 'HS256';
 
-// ── FIX #5: Short-lived JWT (30min) + refresh token (7d) ──
+// ── FIX #5: Short-lived JWT + refresh token (7d) ──
 const JWT_EXPIRY = '5m';
 const REFRESH_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
@@ -22,7 +22,7 @@ const SIWE_DOMAIN = process.env.SIWE_DOMAIN || 'tradeflow.cloud.hyperpaxeer.com'
 
 // ── In-memory nonce store (short-lived, no persistence needed) ──
 const nonces = new Map();
-const MAX_NONCES = 10_000; // FIX #12: cap nonce map growth
+const MAX_NONCES = 10_000;
 
 // Clean up old nonces every 5 minutes
 setInterval(() => {
@@ -32,15 +32,30 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000);
 
-// ── In-memory refresh token store ──
-const refreshTokens = new Map();
+// ── Refresh token persistence in SQLite (survives restarts) ──
+function storeRefreshToken(token, userId, address) {
+  const db = getDb();
+  db.prepare(
+    'INSERT INTO refresh_tokens (token, user_id, address, expires_at) VALUES (?, ?, ?, ?)'
+  ).run(token, userId, address, Date.now() + REFRESH_TTL_MS);
+}
+
+function getRefreshToken(token) {
+  const db = getDb();
+  return db.prepare('SELECT * FROM refresh_tokens WHERE token = ?').get(token);
+}
+
+function deleteRefreshToken(token) {
+  const db = getDb();
+  db.prepare('DELETE FROM refresh_tokens WHERE token = ?').run(token);
+}
 
 // Clean up expired refresh tokens every 5 minutes
 setInterval(() => {
-  const now = Date.now();
-  for (const [k, v] of refreshTokens) {
-    if (v.expiresAt < now) refreshTokens.delete(k);
-  }
+  try {
+    const db = getDb();
+    db.prepare('DELETE FROM refresh_tokens WHERE expires_at < ?').run(Date.now());
+  } catch {}
 }, 5 * 60 * 1000);
 
 const router = Router();
@@ -94,13 +109,9 @@ router.post('/verify', async (req, res) => {
       { algorithm: JWT_ALGORITHM, expiresIn: JWT_EXPIRY }
     );
 
-    // FIX #5: Issue refresh token as httpOnly cookie
+    // Issue refresh token — persisted in SQLite (survives restarts)
     const refreshToken = randomBytes(32).toString('hex');
-    refreshTokens.set(refreshToken, {
-      userId: user.id,
-      address: user.address,
-      expiresAt: Date.now() + REFRESH_TTL_MS,
-    });
+    storeRefreshToken(refreshToken, user.id, user.address);
 
     res.cookie('tf_rt', refreshToken, {
       httpOnly: true,
@@ -128,16 +139,16 @@ router.post('/refresh', (req, res) => {
     return res.status(401).json({ error: 'Authentication required' });
   }
 
-  const data = refreshTokens.get(refreshToken);
-  if (!data || data.expiresAt < Date.now()) {
-    refreshTokens.delete(refreshToken);
+  const data = getRefreshToken(refreshToken);
+  if (!data || data.expires_at < Date.now()) {
+    if (data) deleteRefreshToken(refreshToken);
     res.clearCookie('tf_rt', { path: '/api/auth' });
     return res.status(401).json({ error: 'Authentication required' });
   }
 
   // Issue new short-lived JWT
   const token = jwt.sign(
-    { userId: data.userId, address: data.address },
+    { userId: data.user_id, address: data.address },
     JWT_SECRET,
     { algorithm: JWT_ALGORITHM, expiresIn: JWT_EXPIRY }
   );
@@ -149,7 +160,7 @@ router.post('/refresh', (req, res) => {
 router.post('/logout', (req, res) => {
   const refreshToken = req.cookies?.tf_rt;
   if (refreshToken) {
-    refreshTokens.delete(refreshToken);
+    deleteRefreshToken(refreshToken);
   }
   res.clearCookie('tf_rt', { path: '/api/auth' });
   res.json({ ok: true });
