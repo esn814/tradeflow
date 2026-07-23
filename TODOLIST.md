@@ -75,15 +75,15 @@
 
 ## 🔲 Improvement Roadmap (from security + quality audit)
 
-### Step 1: Quick Wins (~4h total)
-- [ ] Move `playwright` to devDependencies (200MB production bloat)
-- [ ] Complete `.env.example` with all 9 env vars
-- [ ] Memoize AuthContext value (prevent unnecessary re-renders)
-- [ ] Add backup on graceful shutdown
-- [ ] Add composite DB indexes (trades, alerts)
-- [ ] Add Prettier formatter
-- [ ] Fix Dashboard hardcoded demo data
-- [ ] Document uptime monitoring setup
+### Step 1: Quick Wins (~4h total) — DONE
+- [x] Move `playwright` to devDependencies (200MB production bloat)
+- [x] Complete `.env.example` with all 9 env vars
+- [x] Memoize AuthContext value (prevent unnecessary re-renders)
+- [x] Add backup on graceful shutdown
+- [x] Add composite DB indexes (trades, alerts)
+- [x] Add Prettier formatter
+- [x] Fix Dashboard hardcoded demo data
+- [x] Document uptime monitoring setup (MONITORING.md)
 
 ### Step 2: Critical Infrastructure (~20h)
 - [ ] DB migration system (schema evolution blocked without it)
