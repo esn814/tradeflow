@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, useMemo } from 'react';
 import { BOTS_DEFAULTS, useBotsActions } from './slices/botsSlice';
 import { ALERTS_DEFAULTS, useAlertsActions } from './slices/alertsSlice';
 import { TRADES_DEFAULTS, useTradesActions } from './slices/tradesSlice';
@@ -80,7 +80,7 @@ export function AppStoreProvider({ children }) {
   const settingsActions = useSettingsActions(store, setStore);
   const copyTradingActions = useCopyTradingActions(store, setStore);
 
-  const value = {
+  const value = useMemo(() => ({
     ...store,
     ...botsActions,
     ...alertsActions,
@@ -88,7 +88,7 @@ export function AppStoreProvider({ children }) {
     ...schedulesActions,
     ...settingsActions,
     ...copyTradingActions,
-  };
+  }), [store, botsActions, alertsActions, tradesActions, schedulesActions, settingsActions, copyTradingActions]);
 
   return <AppStoreContext.Provider value={value}>{children}</AppStoreContext.Provider>;
 }
