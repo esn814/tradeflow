@@ -25,6 +25,16 @@ function formatStrategy(r, liked = false, forked = false) {
   };
 }
 
+// Reusable query: fetch strategy with author address
+function getStrategyWithAuthor(id) {
+  return getDb().prepare(`
+    SELECT s.*, u.address as author_address
+    FROM shared_strategies s
+    INNER JOIN users u ON u.id = s.author_id
+    WHERE s.id = ?
+  `).get(id);
+}
+
 // GET /api/social/leaderboard — top traders by P&L
 router.get('/leaderboard', (req, res) => {
   try {
@@ -120,9 +130,7 @@ router.get('/strategies', (req, res) => {
     `).get(...params);
     
     const rows = getDb().prepare(`
-      SELECT 
-        s.*,
-        u.address as author_address
+      SELECT s.*, u.address as author_address
       FROM shared_strategies s
       INNER JOIN users u ON u.id = s.author_id
       ${whereClause}
@@ -131,21 +139,7 @@ router.get('/strategies', (req, res) => {
     `).all(...params, limitNum, offset);
     
     res.json({
-      strategies: rows.map(r => ({
-        id: r.id,
-        authorId: r.author_id,
-        authorAddress: r.author_address,
-        name: r.name,
-        description: r.description,
-        strategyType: r.strategy_type,
-        params: r.params ? JSON.parse(r.params) : {},
-        riskLevel: r.risk_level,
-        tags: r.tags ? r.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
-        likes: r.likes,
-        forks: r.forks,
-        publishedAt: r.published_at,
-        updatedAt: r.updated_at,
-      })),
+      strategies: rows.map(r => formatStrategy(r)),
       total: countRow.total,
       page: pageNum,
       limit: limitNum,
@@ -168,21 +162,7 @@ router.get('/strategies/my', authMiddleware, (req, res) => {
       ORDER BY s.published_at DESC
     `).all(req.userId);
     
-    res.json(rows.map(r => ({
-      id: r.id,
-      authorId: r.author_id,
-      authorAddress: r.author_address,
-      name: r.name,
-      description: r.description,
-      strategyType: r.strategy_type,
-      params: r.params ? JSON.parse(r.params) : {},
-      riskLevel: r.risk_level,
-      tags: r.tags ? r.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
-      likes: r.likes,
-      forks: r.forks,
-      publishedAt: r.published_at,
-      updatedAt: r.updated_at,
-    })));
+    res.json(rows.map(r => formatStrategy(r)));
   } catch (err) {
     console.error('My strategies error:', err);
     res.status(500).json({ error: 'Failed to fetch your strategies' });
@@ -208,28 +188,8 @@ router.post('/strategies', authMiddleware, (req, res) => {
       Array.isArray(tags) ? tags.join(', ') : (tags || '')
     );
     
-    const strategy = getDb().prepare(`
-      SELECT s.*, u.address as author_address
-      FROM shared_strategies s
-      INNER JOIN users u ON u.id = s.author_id
-      WHERE s.id = ?
-    `).get(result.lastInsertRowid);
-    
-    res.status(201).json({
-      id: strategy.id,
-      authorId: strategy.author_id,
-      authorAddress: strategy.author_address,
-      name: strategy.name,
-      description: strategy.description,
-      strategyType: strategy.strategy_type,
-      params: strategy.params ? JSON.parse(strategy.params) : {},
-      riskLevel: strategy.risk_level,
-      tags: strategy.tags ? strategy.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
-      likes: strategy.likes,
-      forks: strategy.forks,
-      publishedAt: strategy.published_at,
-      updatedAt: strategy.updated_at,
-    });
+    const strategy = getStrategyWithAuthor(result.lastInsertRowid);
+    res.status(201).json(formatStrategy(strategy));
   } catch (err) {
     if (err.message?.includes('UNIQUE constraint failed')) {
       return res.status(409).json({ error: 'You already have a strategy with this name' });
@@ -242,13 +202,7 @@ router.post('/strategies', authMiddleware, (req, res) => {
 // GET /api/social/strategies/:id — get single strategy
 router.get('/strategies/:id', (req, res) => {
   try {
-    const strategy = getDb().prepare(`
-      SELECT s.*, u.address as author_address
-      FROM shared_strategies s
-      INNER JOIN users u ON u.id = s.author_id
-      WHERE s.id = ?
-    `).get(req.params.id);
-    
+    const strategy = getStrategyWithAuthor(req.params.id);
     if (!strategy) return res.status(404).json({ error: 'Strategy not found' });
     
     // Check if current user (if authenticated) has liked/forked
@@ -301,28 +255,8 @@ router.put('/strategies/:id', authMiddleware, (req, res) => {
       req.params.id
     );
     
-    const updated = getDb().prepare(`
-      SELECT s.*, u.address as author_address
-      FROM shared_strategies s
-      INNER JOIN users u ON u.id = s.author_id
-      WHERE s.id = ?
-    `).get(req.params.id);
-    
-    res.json({
-      id: updated.id,
-      authorId: updated.author_id,
-      authorAddress: updated.author_address,
-      name: updated.name,
-      description: updated.description,
-      strategyType: updated.strategy_type,
-      params: updated.params ? JSON.parse(updated.params) : {},
-      riskLevel: updated.risk_level,
-      tags: updated.tags ? updated.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
-      likes: updated.likes,
-      forks: updated.forks,
-      publishedAt: updated.published_at,
-      updatedAt: updated.updated_at,
-    });
+    const updated = getStrategyWithAuthor(req.params.id);
+    res.json(formatStrategy(updated));
   } catch (err) {
     if (err.message?.includes('UNIQUE constraint failed')) {
       return res.status(409).json({ error: 'You already have a strategy with this name' });
@@ -403,28 +337,8 @@ router.post('/strategies/:id/fork', authMiddleware, (req, res) => {
       strategy.tags
     );
     
-    const forked = getDb().prepare(`
-      SELECT s.*, u.address as author_address
-      FROM shared_strategies s
-      INNER JOIN users u ON u.id = s.author_id
-      WHERE s.id = ?
-    `).get(result.lastInsertRowid);
-    
-    res.status(201).json({
-      id: forked.id,
-      authorId: forked.author_id,
-      authorAddress: forked.author_address,
-      name: forked.name,
-      description: forked.description,
-      strategyType: forked.strategy_type,
-      params: forked.params ? JSON.parse(forked.params) : {},
-      riskLevel: forked.risk_level,
-      tags: forked.tags ? forked.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
-      likes: forked.likes,
-      forks: forked.forks,
-      publishedAt: forked.published_at,
-      updatedAt: forked.updated_at,
-    });
+    const forked = getStrategyWithAuthor(result.lastInsertRowid);
+    res.status(201).json(formatStrategy(forked));
   } catch (err) {
     console.error('Fork strategy error:', err);
     res.status(500).json({ error: 'Failed to fork strategy' });
