@@ -104,7 +104,7 @@
 - [x] Test coverage — 56 unit tests across 3 files: marketData (SMA/RSI/Bollinger/position sizing/Kelly/ATR/Sortino/Calmar), Zod schemas (bot/trade/alert/strategy/settings), validateBody middleware
 - [x] Refactor social.js monolith — extracted getStrategyWithAuthor helper, replaced 5 inline format mappings with formatStrategy() calls (434→348 lines)
 - [x] Zod request validation — schemas.js (117 lines) + validateZod.js middleware, wired into bots/trades/alerts POST+PUT routes
-- [ ] Split Connections.jsx (452 lines, 12 useState hooks)
+- [x] Split Connections.jsx (452→85 lines) — extracted useWallets + useExchanges hooks, WalletSection + ExchangeSection components
 - [ ] Server CI tests
 
 ### Step 5: Features (~20h)
