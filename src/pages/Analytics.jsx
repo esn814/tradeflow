@@ -49,14 +49,10 @@ export default function Analytics({ onNavigate: _onNavigate }) {
   const botList = bots.length > 0 ? bots : SAMPLE_BOTS;
   const isSample = tradeHistory.length === 0;
 
-  // ── Computed analytics ──
-  const _summary = useMemo(() => tradeSummary(trades), [trades]);
-  const _realPnL = useMemo(() => realizedPnL(trades), [trades]);
+  // ── Computed analytics (filtered by period — unfiltered removed to avoid wasted computation) ──
   const unRealPnL = useMemo(() => unrealizedPnL(positions), [positions]);
   const strategies = useMemo(() => strategyBreakdown(trades, positions, botList), [trades, positions, botList]);
   const curve = useMemo(() => equityCurve(trades, 10000), [trades]);
-  const _dd = useMemo(() => maxDrawdown(curve), [curve]);
-  const _sr = useMemo(() => sharpeRatio(curve), [curve]);
 
   // ── Period filter ──
   const [period, setPeriod] = useState('all');
