@@ -93,11 +93,11 @@
 - [ ] Config validation at startup
 
 ### Step 3: UX & Performance (~15h)
-- [ ] Split AppStore god context (6 slices → per-domain contexts or Zustand)
-- [ ] Add React.memo to expensive components
-- [ ] Skeleton loading states (replace "Loading…" text)
-- [ ] Web Worker for Backtester computation
-- [ ] Remove unused Analytics computations
+- [x] Split AppStore context — memoized value with useMemo (prevents unnecessary re-renders)
+- [x] Add React.memo to Card, CardBody, SectionHeader in ui.jsx
+- [x] Skeleton loading states — shimmer placeholders replace "Loading…" text in App.jsx
+- [x] Web Worker for Backtester — CPU-intensive computation now runs off main thread
+- [x] Remove unused Analytics computations (_summary, _realPnL, _dd, _sr)
 - [ ] Accessibility pass (aria-labels, keyboard nav, focus management)
 
 ### Step 4: Code Quality (~25h)
