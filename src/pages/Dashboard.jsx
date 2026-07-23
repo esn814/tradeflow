@@ -21,7 +21,7 @@ const DEFAULT_POSITIONS = [
 
 export default function Dashboard({ onNavigate }) {
   const { simple, demoMode, virtualBalance } = useMode();
-  const { activeBots, winRate } = useAppStore();
+  const { activeBots, winRate, trades } = useAppStore();
   const [range, setRange] = useState('90');
   const { prices, connected: wsConnected } = useLiveStream(['btc', 'eth', 'sol', 'pax'], 30000);
   const { balances: walletBalances, connected: walletConnected } = useWalletPortfolio();
@@ -267,24 +267,19 @@ export default function Dashboard({ onNavigate }) {
             <CardBody>
               <SectionHeader icon={Clock} title="Recent Activity" />
               <div className="space-y-3">
-                {[
-                  { text: 'BTC Accumulator bought 0.05 BTC at $64,200', time: '2 min ago', buy: true },
-                  { text: 'Smart DCA triggered buy on ETH at $3,145', time: '8 min ago', buy: true },
-                  { text: 'Grid Bot sold 5 SOL at $158.40', time: '15 min ago', buy: false },
-                  { text: 'Mean Reversion bought 100 PAX at $12.60', time: '32 min ago', buy: true },
-                  { text: 'BTC Accumulator sold 0.02 BTC at $65,100', time: '1h ago', buy: false },
-                  { text: 'Smart DCA bought 0.8 ETH at $3,120', time: '2h ago', buy: true },
-                  { text: 'Grid Bot bought 8 SOL at $155.20', time: '3h ago', buy: true },
-                  { text: 'Mean Reversion sold 50 PAX at $13.10', time: '4h ago', buy: false },
-                ].map((a, i) => (
-                  <div key={i} className="flex items-center gap-3 p-2 rounded-lg hover:bg-[var(--color-surface-2)]/50 transition-colors">
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center ${a.buy ? 'bg-[var(--color-success-18)]' : 'bg-[var(--color-danger-18)]'}`}>
-                      {a.buy ? <ArrowUpRight size={13} className="text-[var(--color-success)]" /> : <ArrowDownRight size={13} className="text-[var(--color-danger)]" />}
+                {trades && trades.length > 0 ? (
+                  trades.slice(0, 8).map((t, i) => (
+                    <div key={t.id || i} className="flex items-center gap-3 p-2 rounded-lg hover:bg-[var(--color-surface-2)]/50 transition-colors">
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center ${t.side === 'buy' ? 'bg-[var(--color-success-18)]' : 'bg-[var(--color-danger-18)]'}`}>
+                        {t.side === 'buy' ? <ArrowUpRight size={13} className="text-[var(--color-success)]" /> : <ArrowDownRight size={13} className="text-[var(--color-danger)]" />}
+                      </div>
+                      <span className="text-xs text-[var(--color-text-secondary)] flex-1">{t.coin || 'Unknown'} {t.side === 'buy' ? 'bought' : 'sold'} {t.amount || ''} {t.price ? `at ${t.price}` : ''}</span>
+                      <span className="text-[10px] text-[var(--color-text-muted)] whitespace-nowrap">{t.createdAt ? new Date(t.createdAt).toLocaleDateString() : ''}</span>
                     </div>
-                    <span className="text-xs text-[var(--color-text-secondary)] flex-1">{a.text}</span>
-                    <span className="text-[10px] text-[var(--color-text-muted)] whitespace-nowrap">{a.time}</span>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="text-xs text-[var(--color-text-muted)] text-center py-4">No recent activity</p>
+                )}
               </div>
             </CardBody>
           </Card>

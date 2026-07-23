@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { SiweMessage } from 'siwe';
 import { verifySiwe, restoreSession, logout as apiLogout, getWalletAddress } from '../services/apiClient';
 
@@ -198,7 +198,7 @@ export function AuthProvider({ children }) {
     };
   }, [session, signOut]);
 
-  const value = {
+  const value = useMemo(() => ({
     isAuthenticated,
     address,
     chainId,
@@ -210,7 +210,7 @@ export function AuthProvider({ children }) {
     signInDemo,
     signOut,
     clearError,
-  };
+  }), [isAuthenticated, address, chainId, session, isSigningIn, isRestoring, error, signIn, signInDemo, signOut, clearError]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

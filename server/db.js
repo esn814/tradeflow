@@ -185,6 +185,10 @@ export function getDb() {
     CREATE INDEX IF NOT EXISTS idx_strategy_forks_user ON strategy_forks(user_id);
     CREATE INDEX IF NOT EXISTS idx_strategy_likes_strategy ON strategy_likes(strategy_id);
     CREATE INDEX IF NOT EXISTS idx_strategy_likes_user ON strategy_likes(user_id);
+
+    -- Composite indexes for common query patterns (Quick Win #5)
+    CREATE INDEX IF NOT EXISTS idx_trades_user_created ON trades(user_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_alerts_user_active ON alerts(user_id, active);
   `);
 
   return _db;

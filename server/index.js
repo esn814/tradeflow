@@ -153,6 +153,8 @@ const server = app.listen(PORT, () => {
 // Graceful shutdown — close DB and server on SIGTERM/SIGINT
 function shutdown(signal) {
   console.log(`${signal} received — shutting down gracefully`);
+  // Final backup before shutdown
+  try { createBackup(); } catch {}
   server.close(() => {
     try {
       const db = getDb();
