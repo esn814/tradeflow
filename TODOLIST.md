@@ -101,7 +101,7 @@
 - [ ] Accessibility pass (aria-labels, keyboard nav, focus management)
 
 ### Step 4: Code Quality (~25h)
-- [ ] Test coverage (trade P&L calc, auth flow, bot CRUD, server routes)
+- [x] Test coverage — 56 unit tests across 3 files: marketData (SMA/RSI/Bollinger/position sizing/Kelly/ATR/Sortino/Calmar), Zod schemas (bot/trade/alert/strategy/settings), validateBody middleware
 - [x] Refactor social.js monolith — extracted getStrategyWithAuthor helper, replaced 5 inline format mappings with formatStrategy() calls (434→348 lines)
 - [x] Zod request validation — schemas.js (117 lines) + validateZod.js middleware, wired into bots/trades/alerts POST+PUT routes
 - [ ] Split Connections.jsx (452 lines, 12 useState hooks)
