@@ -105,7 +105,7 @@
 - [x] Refactor social.js monolith — extracted getStrategyWithAuthor helper, replaced 5 inline format mappings with formatStrategy() calls (434→348 lines)
 - [x] Zod request validation — schemas.js (117 lines) + validateZod.js middleware, wired into bots/trades/alerts POST+PUT routes
 - [x] Split Connections.jsx (452→85 lines) — extracted useWallets + useExchanges hooks, WalletSection + ExchangeSection components
-- [ ] Server CI tests
+- [x] Server CI tests — 18 tests (11 DB + 7 auth), vitest.config.server.js, CI workflow updated with server test step
 
 ### Step 5: Features (~20h)
 - [ ] Verify trading strategies produce real results (not mockups)
