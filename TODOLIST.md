@@ -10,91 +10,121 @@
 - [x] 24 routed pages: Home, Autopilot, Dashboard, Invest, MyBots, Strategies, Backtester, Alerts, RiskManager, Connections, Pricing, Security, Settings, Help, Scheduler, Referrals, Analytics, CopyTrading, CrossDexArbitrage, CrossChainArbitrage, AutomatedTrading, Community, Privacy, Terms
 - [x] Sidebar navigation with 4 groups (Overview, Trading, Tools, Account)
 - [x] Onboarding wizard (4-step: experience, amount, hands-on, strategy recommendation)
-- [x] Error boundary + Bug report component with auto-diagnostics (console logs, network errors, screenshots)
+- [x] Error boundary + Bug report component with auto-diagnostics
 - [x] Multi-wallet support (MetaMask, Coinbase, WalletConnect, Phantom)
 - [x] Paxeer chain integration (chain ID 125)
-- [x] i18n framework (i18next + react-i18next, English translations, 10+ sections)
-- [x] Financial disclaimer component (first-visit banner + collapsed footer, localStorage persistence)
+- [x] i18n framework (i18next + react-i18next, English translations)
+- [x] Financial disclaimer component
 - [x] Privacy policy page (/privacy — 6 sections)
 - [x] Terms of service page (/terms — 7 sections)
 
-### Authentication & Security
-- [x] SIWE authentication (nonce + verify + JWT 7-day expiry)
-- [x] Route guards — RequireAuth wraps 17/24 routes (soft guard: auto-demo mode)
-- [x] Security hardening — removed hardcoded fake data, random 32-byte device seed, CSP with 9+ API domains
-- [x] Input validation middleware (sanitize HTML, requireFields, validateNumber, validateEnum)
+### Authentication & Security (comprehensive hardening — 2026-07-23)
+- [x] SIWE authentication with cryptographic nonces (128-bit, 5-min expiry)
+- [x] SIWE domain binding verification (prevents cross-domain replay)
+- [x] JWT in memory only — never localStorage (XSS can't exfiltrate)
+- [x] JWT 5-min expiry + httpOnly refresh token cookie (7-day)
+- [x] Auto-refresh on 401 — transparent to users
+- [x] JWT algorithm HS256 explicitly (prevents algorithm confusion)
+- [x] Nonce TOCTOU race condition fixed (atomic check-and-delete)
+- [x] JWT_SECRET env var required at startup (no file fallback)
+- [x] helmet — HSTS preload, X-Frame-Options, X-Content-Type-Options, COOP, CORP
+- [x] CSP unsafe-inline removed from script-src (all scripts externalized)
+- [x] 3-tier rate limiting (global, auth, trade 10/min, backup 2/hr)
+- [x] No uptime/path disclosure in API responses
+- [x] debug.keystore removed from repo, *.keystore and .env gitignored
+- [x] Route guards — RequireAuth wraps 17/24 routes
+- [x] Input validation middleware (sanitize, requireFields, validateNumber, validateEnum)
 
 ### Features
-- [x] P&L Analytics — 8 utility functions (realized/unrealized, equity curve, Sharpe, drawdown, strategy breakdown)
-- [x] Analytics page with period filter, KPI cards, equity curve chart, per-strategy table
-- [x] Real portfolio tracking — PaxScan API, native PAX + ERC-20, USD price enrichment, 60s polling
-- [x] Copy Trading — 6 sample traders, follow/unfollow, risk filters, trader discovery
+- [x] P&L Analytics — 8 utility functions, equity curve, Sharpe ratio, max drawdown
+- [x] Real portfolio tracking — PaxScan API, native PAX + ERC-20, USD enrichment
+- [x] Copy Trading — 6 sample traders, follow/unfollow, risk filters
 - [x] Cross-chain bridge integration (Across + Stargate v2)
 - [x] Automated trading (DCA/Grid/Mean Reversion, stop-loss, take-profit)
-- [x] Cross-DEX arbitrage page
-- [x] Cross-chain arbitrage page
+- [x] Cross-DEX and cross-chain arbitrage pages
 - [x] Social features — leaderboard, shared strategies, publish/fork/like (9 API endpoints)
-- [x] Community page
-- [x] Referral program
-- [x] Scheduler (cron-based bot scheduling)
-- [x] Alerts system with live evaluation
+- [x] Community page, referral program, scheduler, alerts system
+- [x] Error reporting — console + network interceptor, screenshot capture
 
 ### Code Quality
-- [x] CSS color extraction — 103 colors → custom properties, 595 replacements across 34 files
-- [x] Autopilot decomposition — 679 lines → 190 + 8 sub-components in `src/components/autopilot/`
-- [x] Chart theme unification — `src/data/chartTheme.js` shared across 5 chart pages
-- [x] Chunk splitting — 44 optimized chunks via manualChunks (vendor-react, vendor-recharts, vendor-lucide, vendor-ethers 7 sub-chunks, vendor-noble-curves/hashes/siwe, vendor-html2canvas, vendor-capacitor, vendor-misc)
-- [x] Menu cleanup — removed Bridge + StressTest from routes/sidebar
-- [x] Service worker — network-first HTML, stale-while-revalidate static, API cache (100 entry limit), push notifications
+- [x] CSS color extraction — 103 colors → custom properties, 595 replacements
+- [x] Autopilot decomposition — 679 lines → 190 + 8 sub-components
+- [x] Chart theme unification — shared across 5 chart pages
+- [x] Chunk splitting — 18 optimized chunks via manualChunks
+- [x] Service worker — network-first HTML, stale-while-revalidate static, API cache
 
 ### Backend (Express 5 + SQLite)
-- [x] 13 database tables (users, bots, trades, alerts, schedules, settings, demo_trades, followed_traders, copy_trade_history, push_subscriptions, shared_strategies, strategy_forks, strategy_likes)
-- [x] SIWE auth + JWT sessions (server/auth.js)
-- [x] 8 route files (bots, trades, alerts, schedules, settings, copy-trading, social, push)
-- [x] 3-tier rate limiting (global 100/15min, auth 20/15min, write 30/15min)
-- [x] Input validation middleware (server/middleware/validate.js)
-- [x] Alert checker service (server/services/alertChecker.js — polls every 60s)
-- [x] Web push notifications (server/push-sender.js + vapid-keys.json)
-- [x] Frontend integration (apiClient.js — full REST client, storeSync.js — bidirectional 2s debounce sync)
+- [x] 13 database tables, SIWE auth + JWT + refresh tokens
+- [x] 8 route files, 3-tier rate limiting, alert checker, web push
+- [x] Database backups — daily VACUUM INTO, 7-day retention, GET/POST /api/backup
+- [x] helmet security headers, cookie-parser, graceful shutdown
 
 ### APK & Deployment
-- [x] Android APK (7.8MB debug, Capacitor 8, SDK 36, Gradle 8.14.3)
-- [x] APK download page with fetch+reblob (prevents Android unzip-instead-of-install)
-- [x] Install helper page with correct MIME reblob
-- [x] Web app deployed: https://tradeflow.cloud.hyperpaxeer.com
-- [x] Download page deployed: https://tradeflow-dl.cloud.hyperpaxeer.com
-- [x] APK helper deployed: https://tradeflow-apk.cloud.hyperpaxeer.com
-- [x] Staging environment: https://tradeflow-staging.cloud.hyperpaxeer.com
+- [x] 6.1MB signed release APK (was 7.8MB debug)
+- [x] 2048-bit RSA signing keystore
+- [x] Backend live on Render: https://tradeflow-api-i2o1.onrender.com
+- [x] Frontend on Paxeer Cloud: https://tradeflow.cloud.hyperpaxeer.com
+- [x] Download/APK helper/staging pages deployed
+- [x] GitHub Actions CI (lint → test → build)
 
-### Testing & CI
-- [x] 18/18 Vitest smoke tests
-- [x] 14/14 Playwright E2E tests (navigation, pages, disclaimer, mobile viewport, 404, sidebar, API health check)
-- [x] 0 lint warnings/errors (oxlint)
-- [x] GitHub Actions CI (lint → test → build on push/PR to main)
-- [x] Stress test: 500 bots, 5M trades, 0 errors
-- [x] Pressure test: 1000 bots, 3 engines, 22M trades, 0 errors
-- [x] Production hard stress: rapid nav, concurrent sessions, memory monitoring, rapid reload — all PASS
-
-### Accessibility & Responsiveness
-- [x] WCAG AA text contrast fix (#5a6580 → #94a3b8)
-- [x] ARIA on Toggle (role=switch, aria-checked), LinkCard (role=link, tabIndex=0, keyboard handler)
-- [x] Media queries at 768px and 640px
-- [x] Mobile sidebar with hamburger menu, backdrop, escape key
+### Testing
+- [x] 18/18 Vitest smoke tests, 14/14 Playwright E2E tests
+- [x] Stress test: 1000 bots, 22M trades, 0 errors
 
 ---
 
-## 🔲 Remaining Work
+## 🔲 Improvement Roadmap (from security + quality audit)
 
-### Medium Effort
-- [x] ~~Build release APK~~ — Generated 2048-bit RSA keystore (`tradeflow-release.jks`), updated signing config from debug to release, built 6.1MB signed release APK (down from 7.8MB debug), deployed to download page
-- [x] ~~Deploy backend to production~~ — Live on Render (free tier, Oregon): https://tradeflow-api-i2o1.onrender.com — Express 5 + SQLite + SIWE auth + JWT + rate limiting, auto-deploys on push to GitHub master
-- [x] ~~Database backup strategy~~ — Automated daily SQLite backups via `VACUUM INTO`, 7-day retention auto-cleanup, `GET/POST /api/backup` endpoints (auth required), scheduler runs at startup + every 24h, backups stored on Render persistent disk at `/app/data/backups/`
-- [ ] Real Android device testing — install on 2-3 physical devices, verify all flows + push notifications
+### Step 1: Quick Wins (~4h total)
+- [ ] Move `playwright` to devDependencies (200MB production bloat)
+- [ ] Complete `.env.example` with all 9 env vars
+- [ ] Memoize AuthContext value (prevent unnecessary re-renders)
+- [ ] Add backup on graceful shutdown
+- [ ] Add composite DB indexes (trades, alerts)
+- [ ] Add Prettier formatter
+- [ ] Fix Dashboard hardcoded demo data
+- [ ] Document uptime monitoring setup
 
-### Low Effort / Optional
-- [x] ~~Clean up orphaned files~~ — Deleted Bridge.jsx and StressTest.jsx (24 page files remain, all routed)
+### Step 2: Critical Infrastructure (~20h)
+- [ ] DB migration system (schema evolution blocked without it)
+- [ ] Persist refresh tokens in SQLite (lost on restart)
+- [ ] Server-side Sentry error tracking
+- [ ] Structured logging (pino — JSON, log levels, request IDs)
+- [ ] Config validation at startup
+
+### Step 3: UX & Performance (~15h)
+- [ ] Split AppStore god context (6 slices → per-domain contexts or Zustand)
+- [ ] Add React.memo to expensive components
+- [ ] Skeleton loading states (replace "Loading…" text)
+- [ ] Web Worker for Backtester computation
+- [ ] Remove unused Analytics computations
+- [ ] Accessibility pass (aria-labels, keyboard nav, focus management)
+
+### Step 4: Code Quality (~25h)
+- [ ] Test coverage (trade P&L calc, auth flow, bot CRUD, server routes)
+- [ ] Refactor social.js monolith (434 lines, 5x duplicated format logic)
+- [ ] Zod request validation on all write endpoints
+- [ ] Split Connections.jsx (452 lines, 12 useState hooks)
+- [ ] Server CI tests
+
+### Step 5: Features (~20h)
+- [ ] Verify trading strategies produce real results (not mockups)
+- [ ] Onboarding flow improvements
+- [ ] API documentation (OpenAPI/Swagger)
+- [ ] Staging environment
+
+### Step 6: Scale Prep (~15h)
+- [ ] SQLite → PostgreSQL migration (or Render Starter for spin-down)
+- [ ] Android CI pipeline
+- [ ] Backup restore function + off-site backup
+- [ ] Clean up Dockerfile vs render.yaml inconsistency
+
+---
+
+## 🔲 Remaining Original Work
+- [ ] Real Android device testing — install on 2-3 physical devices, verify all flows
 - [ ] Further index chunk splitting (currently 40KB)
-- [ ] Play Store listing (after release APK is built)
+- [ ] Play Store listing (after real device testing)
 
 ---
 
@@ -105,9 +135,11 @@
 | Smoke tests | 18/18 |
 | E2E tests | 14/14 |
 | Lint | 0 warnings, 0 errors |
-| Build time | ~567ms |
-| Chunks | 44 optimized |
+| Build time | ~1.0s |
+| Chunks | 18 optimized |
 | DB tables | 13 |
 | Route files | 8 |
-| APK size | 7.8MB (debug) |
+| APK size | 6.1MB (signed release) |
 | Stress test TPS | 6,072 (1000 bots, 3 engines) |
+| JWT expiry | 5 min (httpOnly refresh cookie) |
+| Rate limits | 100 global, 20 auth, 10 trade/min, 2 backup/hr |
