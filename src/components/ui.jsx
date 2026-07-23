@@ -1,20 +1,21 @@
+import { memo } from 'react';
 import { ChevronRight } from 'lucide-react';
 
 /* ── Reusable UI primitives for consistent, professional pages ── */
 
-export function Card({ children, className = '', hover = false, accent = false, ...props }) {
+export const Card = memo(function Card({ children, className = '', hover = false, accent = false, ...props }) {
   const base = accent
     ? 'bg-[var(--color-surface-1)] border border-[var(--color-accent)]/20 rounded-2xl'
     : 'bg-[var(--color-surface-1)] border border-[var(--color-border-default)] rounded-2xl';
   const effect = hover ? 'hover:border-[var(--color-border-card-hover)] hover:shadow-lg hover:shadow-black/20 hover:-translate-y-0.5 transition-all duration-200' : '';
   return <div className={`${base} ${effect} ${className}`} {...props}>{children}</div>;
-}
+});
 
-export function CardBody({ children, className = '' }) {
+export const CardBody = memo(function CardBody({ children, className = '' }) {
   return <div className={`p-5 sm:p-6 ${className}`}>{children}</div>;
-}
+});
 
-export function SectionHeader({ icon: Icon, title, badge, action, className = '' }) {
+export const SectionHeader = memo(function SectionHeader({ icon: Icon, title, badge, action, className = '' }) {
   return (
     <div className={`flex items-center justify-between mb-4 ${className}`}>
       <div className="flex items-center gap-2.5">
@@ -25,7 +26,7 @@ export function SectionHeader({ icon: Icon, title, badge, action, className = ''
       {action}
     </div>
   );
-}
+});
 
 export function Btn({ children, variant = 'primary', size = 'md', className = '', ...props }) {
   const variants = {

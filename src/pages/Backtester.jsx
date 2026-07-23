@@ -168,11 +168,17 @@ export default function Backtester({ onNavigate }) {
 
   const handleRun = () => {
     setRunning(true);
-    setTimeout(() => {
-      const res = runBacktest(data, strategy, { slippageBps, feeBps });
-      setResult(res);
+    const worker = new Worker('/backtest-worker.js');
+    worker.onmessage = (e) => {
+      setResult(e.data);
       setRunning(false);
-    }, 800);
+      worker.terminate();
+    };
+    worker.onerror = () => {
+      setRunning(false);
+      worker.terminate();
+    };
+    worker.postMessage({ data, strategy, slippageBps, feeBps });
   };
 
   return (

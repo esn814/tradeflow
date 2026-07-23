@@ -37,8 +37,30 @@ const Terms       = lazy(() => import('./pages/Terms'))
 
 function Loading() {
   return (
-    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'60vh', color:'var(--color-text-muted)', fontSize:14 }}>
-      Loading…
+    <div className="max-w-5xl mx-auto p-5 sm:p-6 space-y-4">
+      {/* Page header skeleton */}
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-8 h-8 rounded-lg bg-[var(--color-surface-2)] animate-pulse" />
+        <div className="h-5 w-40 rounded bg-[var(--color-surface-2)] animate-pulse" />
+      </div>
+      {/* Card skeletons */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="bg-[var(--color-surface-1)] border border-[var(--color-border-default)] rounded-2xl p-5">
+            <div className="h-3 w-20 rounded bg-[var(--color-surface-2)] animate-pulse mb-3" />
+            <div className="h-7 w-28 rounded bg-[var(--color-surface-2)] animate-pulse" />
+          </div>
+        ))}
+      </div>
+      {/* Content skeleton */}
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border-default)] rounded-2xl p-5">
+        <div className="h-3 w-32 rounded bg-[var(--color-surface-2)] animate-pulse mb-4" />
+        <div className="space-y-3">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="h-10 rounded bg-[var(--color-surface-2)] animate-pulse" style={{ width: `${100 - i * 10}%` }} />
+          ))}
+        </div>
+      </div>
     </div>
   )
 }
