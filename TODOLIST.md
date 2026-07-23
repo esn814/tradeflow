@@ -86,9 +86,9 @@
 ## 🔲 Remaining Work
 
 ### Medium Effort
-- [ ] Build release APK — generate signing keystore, add signingConfigs to build.gradle, assembleRelease
-- [ ] Deploy backend to production — VPS, systemd service, persistent JWT_SECRET, health monitoring
-- [ ] Database backup strategy — automated daily sqlite3 .backup, export API, retention policy
+- [x] ~~Build release APK~~ — Generated 2048-bit RSA keystore (`tradeflow-release.jks`), updated signing config from debug to release, built 6.1MB signed release APK (down from 7.8MB debug), deployed to download page
+- [x] ~~Deploy backend to production~~ — Live on Render (free tier, Oregon): https://tradeflow-api-i2o1.onrender.com — Express 5 + SQLite + SIWE auth + JWT + rate limiting, auto-deploys on push to GitHub master
+- [x] ~~Database backup strategy~~ — Automated daily SQLite backups via `VACUUM INTO`, 7-day retention auto-cleanup, `GET/POST /api/backup` endpoints (auth required), scheduler runs at startup + every 24h, backups stored on Render persistent disk at `/app/data/backups/`
 - [ ] Real Android device testing — install on 2-3 physical devices, verify all flows + push notifications
 
 ### Low Effort / Optional
