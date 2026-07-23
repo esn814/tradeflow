@@ -102,8 +102,8 @@
 
 ### Step 4: Code Quality (~25h)
 - [ ] Test coverage (trade P&L calc, auth flow, bot CRUD, server routes)
-- [ ] Refactor social.js monolith (434 lines, 5x duplicated format logic)
-- [ ] Zod request validation on all write endpoints
+- [x] Refactor social.js monolith — extracted getStrategyWithAuthor helper, replaced 5 inline format mappings with formatStrategy() calls (434→348 lines)
+- [x] Zod request validation — schemas.js (117 lines) + validateZod.js middleware, wired into bots/trades/alerts POST+PUT routes
 - [ ] Split Connections.jsx (452 lines, 12 useState hooks)
 - [ ] Server CI tests
 
