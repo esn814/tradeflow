@@ -23,6 +23,14 @@ dist-ssr
 *.sln
 *.sw?
 
+# Signing keystores
+*.keystore
+
+# Environment files
+.env
+.env.*
+!.env.example
+
 # Server data (SQLite DB, secrets)
 server/data/
 server/.jwt-secret

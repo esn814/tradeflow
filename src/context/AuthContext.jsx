@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { SiweMessage } from 'siwe';
+import { verifySiwe, restoreSession, logout as apiLogout, getWalletAddress } from '../services/apiClient';
 
 const AUTH_KEY = 'tradeflow-siwe-session';
-const NONCE_KEY = 'tradeflow-siwe-nonce';
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 const DEMO_SESSION = {
@@ -16,37 +16,40 @@ const DEMO_SESSION = {
   isDemo: true,
 };
 
+// FIX #1: Only persist metadata (address, chainId) — never the JWT or signature
 function loadSession() {
   try {
     const raw = localStorage.getItem(AUTH_KEY);
-    if (!raw) return { ...DEMO_SESSION };
+    if (!raw) return null;
     const session = JSON.parse(raw);
     // Expire stale sessions
     if (Date.now() - session.signedAt > SESSION_TTL_MS) {
       localStorage.removeItem(AUTH_KEY);
-      return { ...DEMO_SESSION };
+      return null;
     }
+    // FIX #1: Strip sensitive fields from any legacy stored session
+    delete session.signature;
+    delete session.message;
     return session;
-  } catch (e) { console.warn(e); return { ...DEMO_SESSION }; }
+  } catch { return null; }
 }
 
 function saveSession(session) {
   try {
-    localStorage.setItem(AUTH_KEY, JSON.stringify(session));
+    // FIX #1: Only store non-sensitive metadata
+    const safe = {
+      address: session.address,
+      chainId: session.chainId,
+      signedAt: session.signedAt,
+      domain: session.domain,
+      isDemo: session.isDemo || false,
+    };
+    localStorage.setItem(AUTH_KEY, JSON.stringify(safe));
   } catch (e) { console.warn(e); }
 }
 
 function clearSession() {
   localStorage.removeItem(AUTH_KEY);
-  localStorage.removeItem(NONCE_KEY);
-}
-
-function generateNonce() {
-  const arr = new Uint8Array(16);
-  crypto.getRandomValues(arr);
-  const nonce = Array.from(arr, b => b.toString(16).padStart(2, '0')).join('');
-  localStorage.setItem(NONCE_KEY, nonce);
-  return nonce;
 }
 
 const AuthContext = createContext(null);
@@ -54,6 +57,7 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(() => loadSession());
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(true);
   const [error, setError] = useState(null);
 
   // Derived state
@@ -61,9 +65,27 @@ export function AuthProvider({ children }) {
   const address = session?.address || null;
   const chainId = session?.chainId || null;
 
+  // FIX #1: On mount, try to restore session via httpOnly refresh token cookie
+  useEffect(() => {
+    (async () => {
+      const saved = loadSession();
+      if (saved && !saved.isDemo) {
+        const restored = await restoreSession();
+        if (restored) {
+          setSession(saved);
+        } else {
+          // Refresh token expired or invalid — clear stale metadata
+          clearSession();
+          setSession(null);
+        }
+      }
+      setIsRestoring(false);
+    })();
+  }, []);
+
   /**
    * Sign in with Ethereum.
-   * Expects an EIP-1193 provider (window.ethereum or a wallet-specific provider).
+   * FIX #1: JWT is stored in memory only via apiClient — never in localStorage.
    */
   const signIn = useCallback(async (provider) => {
     if (!provider) throw new Error('No wallet provider available');
@@ -77,8 +99,10 @@ export function AuthProvider({ children }) {
       const addr = accounts[0];
       const chain = parseInt(rawChainId, 16);
 
-      // 2. Build SIWE message
-      const nonce = generateNonce();
+      // 2. Get nonce from server (not client-generated)
+      const nonce = await (await import('../services/apiClient')).getNonce();
+
+      // 3. Build SIWE message
       const domain = window.location.host;
       const origin = window.location.origin;
       const statement = 'Sign in to TradeFlow — Automated Crypto Trading Platform';
@@ -94,20 +118,19 @@ export function AuthProvider({ children }) {
       });
       const messageBody = siweMessage.prepareMessage();
 
-      // 3. Request signature
+      // 4. Request signature from wallet
       const signature = await provider.request({
         method: 'personal_sign',
         params: [messageBody, addr],
       });
 
-      // 4. Build session (client-side verification — a production app would
-      //    also verify the signature server-side, but TradeFlow is client-only)
+      // 5. Verify with server — JWT stored in memory by apiClient
+      await verifySiwe(messageBody, signature);
+
+      // 6. Build session (no JWT, no signature stored)
       const newSession = {
         address: addr,
         chainId: chain,
-        message: messageBody,
-        signature,
-        nonce,
         signedAt: Date.now(),
         domain,
       };
@@ -129,9 +152,6 @@ export function AuthProvider({ children }) {
     const demoSession = {
       address: '0xDemo000000000000000000000000000000000000',
       chainId: 125,
-      message: 'Demo Mode — TradeFlow',
-      signature: 'demo-mode',
-      nonce: 'demo',
       signedAt: Date.now(),
       domain: window.location.host,
       isDemo: true,
@@ -141,8 +161,9 @@ export function AuthProvider({ children }) {
     return demoSession;
   }, []);
 
-  /** Sign out — clear session and nonce */
-  const signOut = useCallback(() => {
+  /** Sign out — revoke refresh token, clear memory + localStorage */
+  const signOut = useCallback(async () => {
+    await apiLogout(); // revoke refresh token cookie + clear in-memory JWT
     setSession(null);
     setError(null);
     clearSession();
@@ -163,7 +184,6 @@ export function AuthProvider({ children }) {
     const handleChain = (chainIdHex) => {
       const newChain = parseInt(chainIdHex, 16);
       if (newChain !== session.chainId) {
-        // Update session chain but keep auth
         const updated = { ...session, chainId: newChain };
         setSession(updated);
         saveSession(updated);
@@ -184,6 +204,7 @@ export function AuthProvider({ children }) {
     chainId,
     session,
     isSigningIn,
+    isRestoring,
     error,
     signIn,
     signInDemo,

@@ -1,27 +1,28 @@
 import { Router } from 'express';
 import { randomBytes } from 'crypto';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
 import jwt from 'jsonwebtoken';
 import { upsertUser } from './db.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const SECRET_PATH = join(__dirname, '.jwt-secret');
-
-function getSecret() {
-  if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
-  if (existsSync(SECRET_PATH)) return readFileSync(SECRET_PATH, 'utf8').trim();
-  const secret = randomBytes(32).toString('hex');
-  writeFileSync(SECRET_PATH, secret);
-  return secret;
+// ── FIX #4: Require JWT_SECRET — no file-based fallback ──
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET environment variable is required. Exiting.');
+  process.exit(1);
 }
+export const JWT_SECRET = process.env.JWT_SECRET;
 
-export const JWT_SECRET = getSecret();
-const JWT_EXPIRY = '7d';
+// ── FIX #7: Explicit algorithm ──
+const JWT_ALGORITHM = 'HS256';
 
-// In-memory nonce store (short-lived, no persistence needed)
+// ── FIX #5: Short-lived JWT (30min) + refresh token (7d) ──
+const JWT_EXPIRY = '30m';
+const REFRESH_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+// ── FIX #6: SIWE domain binding ──
+const SIWE_DOMAIN = process.env.SIWE_DOMAIN || 'tradeflow.cloud.hyperpaxeer.com';
+
+// ── In-memory nonce store (short-lived, no persistence needed) ──
 const nonces = new Map();
+const MAX_NONCES = 10_000; // FIX #12: cap nonce map growth
 
 // Clean up old nonces every 5 minutes
 setInterval(() => {
@@ -31,51 +32,83 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000);
 
+// ── In-memory refresh token store ──
+const refreshTokens = new Map();
+
+// Clean up expired refresh tokens every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, v] of refreshTokens) {
+    if (v.expiresAt < now) refreshTokens.delete(k);
+  }
+}, 5 * 60 * 1000);
+
 const router = Router();
 
-// POST /api/auth/nonce — generate a SIWE nonce
+// ─── POST /api/auth/nonce — generate a SIWE nonce ─────────────
 router.post('/nonce', (req, res) => {
+  if (nonces.size >= MAX_NONCES) {
+    return res.status(429).json({ error: 'Too many pending requests. Try again shortly.' });
+  }
   const nonce = randomBytes(16).toString('hex');
   nonces.set(nonce, { ts: Date.now() });
   res.json({ nonce });
 });
 
-// POST /api/auth/verify — verify SIWE signature, return JWT
+// ─── POST /api/auth/verify — verify SIWE signature, issue JWT ─
 router.post('/verify', async (req, res) => {
   try {
     const { message, signature } = req.body;
     if (!message || !signature) {
-      return res.status(400).json({ error: 'Missing message or signature' });
+      return res.status(400).json({ error: 'Authentication failed' });
     }
 
-    // Parse and verify the SIWE message
     const { SiweMessage } = await import('siwe');
     const siwe = new SiweMessage(message);
 
-    // Extract nonce from the message and verify it was issued by us
+    // FIX #8: Atomic check-and-delete BEFORE verification (prevents TOCTOU race)
     const nonceRecord = nonces.get(siwe.nonce);
     if (!nonceRecord) {
-      return res.status(400).json({ error: 'Invalid or expired nonce' });
+      return res.status(400).json({ error: 'Authentication failed' });
     }
-
-    // Verify the signature
-    const result = await siwe.verify({ signature });
-    if (!result.success) {
-      return res.status(401).json({ error: 'Signature verification failed' });
-    }
-
-    // Consume the nonce
     nonces.delete(siwe.nonce);
+
+    // FIX #6: Verify with domain binding
+    let result;
+    try {
+      result = await siwe.verify({ signature, domain: SIWE_DOMAIN });
+    } catch {
+      return res.status(401).json({ error: 'Authentication failed' });
+    }
+    if (!result.success) {
+      return res.status(401).json({ error: 'Authentication failed' });
+    }
 
     // Upsert user in DB
     const user = upsertUser(siwe.address);
 
-    // Issue JWT
+    // FIX #5 + #7: Short-lived JWT with explicit algorithm
     const token = jwt.sign(
       { userId: user.id, address: user.address },
       JWT_SECRET,
-      { expiresIn: JWT_EXPIRY }
+      { algorithm: JWT_ALGORITHM, expiresIn: JWT_EXPIRY }
     );
+
+    // FIX #5: Issue refresh token as httpOnly cookie
+    const refreshToken = randomBytes(32).toString('hex');
+    refreshTokens.set(refreshToken, {
+      userId: user.id,
+      address: user.address,
+      expiresAt: Date.now() + REFRESH_TTL_MS,
+    });
+
+    res.cookie('tf_rt', refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: REFRESH_TTL_MS,
+      path: '/api/auth',
+    });
 
     res.json({
       token,
@@ -88,21 +121,56 @@ router.post('/verify', async (req, res) => {
   }
 });
 
-// Middleware: verify JWT and attach user info to request
+// ─── POST /api/auth/refresh — exchange refresh token for new JWT ─
+router.post('/refresh', (req, res) => {
+  const refreshToken = req.cookies?.tf_rt;
+  if (!refreshToken) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
+  const data = refreshTokens.get(refreshToken);
+  if (!data || data.expiresAt < Date.now()) {
+    refreshTokens.delete(refreshToken);
+    res.clearCookie('tf_rt', { path: '/api/auth' });
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
+  // Issue new short-lived JWT
+  const token = jwt.sign(
+    { userId: data.userId, address: data.address },
+    JWT_SECRET,
+    { algorithm: JWT_ALGORITHM, expiresIn: JWT_EXPIRY }
+  );
+
+  res.json({ token, address: data.address });
+});
+
+// ─── POST /api/auth/logout — revoke refresh token ─────────────
+router.post('/logout', (req, res) => {
+  const refreshToken = req.cookies?.tf_rt;
+  if (refreshToken) {
+    refreshTokens.delete(refreshToken);
+  }
+  res.clearCookie('tf_rt', { path: '/api/auth' });
+  res.json({ ok: true });
+});
+
+// ─── Auth middleware: verify JWT, attach user to request ───────
 export function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Missing or invalid authorization header' });
+    return res.status(401).json({ error: 'Authentication required' });
   }
 
   const token = authHeader.slice(7);
   try {
-    const payload = jwt.verify(token, JWT_SECRET);
+    // FIX #7: Explicit algorithm in verify
+    const payload = jwt.verify(token, JWT_SECRET, { algorithms: [JWT_ALGORITHM] });
     req.userId = payload.userId;
     req.address = payload.address;
     next();
   } catch {
-    return res.status(401).json({ error: 'Invalid or expired token' });
+    return res.status(401).json({ error: 'Authentication required' });
   }
 }
 

@@ -2,7 +2,7 @@
 // Designed to be a no-op when the user is not authenticated or the backend is unreachable.
 
 import {
-  restoreAuthToken, checkHealth,
+  restoreSession, getWalletAddress, checkHealth,
   fetchSettings, saveSettings,
 } from './apiClient.js';
 
@@ -18,8 +18,8 @@ async function isBackendUp() {
 
 // ─── LOAD FROM BACKEND (on app mount, if authenticated) ───────
 export async function loadFromBackend() {
-  const { token } = restoreAuthToken();
-  if (!token) return null;
+  const restored = await restoreSession();
+  if (!restored || !getWalletAddress()) return null;
 
   const up = await isBackendUp();
   if (!up) return null;
@@ -61,8 +61,7 @@ export function scheduleBackendPush(store) {
 }
 
 async function pushToBackend(store) {
-  const { token } = restoreAuthToken();
-  if (!token) return;
+  if (!getWalletAddress()) return;
 
   const up = await isBackendUp();
   if (!up) return;

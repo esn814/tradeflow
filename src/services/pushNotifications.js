@@ -89,10 +89,13 @@ export async function enablePushNotifications() {
 
   // Send subscription to server
   const subJson = pushSubscription.toJSON();
-  const token = localStorage.getItem('tf_auth_token');
+  // FIX #1: Use in-memory token from apiClient (not localStorage)
+  const { getAuthToken } = await import('./apiClient.js');
+  const token = getAuthToken();
 
   const res = await fetch(`${API_BASE}/push/subscribe`, {
     method: 'POST',
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -126,10 +129,12 @@ export async function disablePushNotifications() {
   await subscription.unsubscribe();
 
   // Remove from server
-  const token = localStorage.getItem('tf_auth_token');
+  const { getAuthToken } = await import('./apiClient.js');
+  const token = getAuthToken();
   try {
     await fetch(`${API_BASE}/push/unsubscribe`, {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),

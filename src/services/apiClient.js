@@ -1,37 +1,89 @@
 // TradeFlow API Client — persistent backend sync
 // Falls back gracefully to localStorage-only when backend is unavailable
+// SECURITY: JWT stored in memory only (not localStorage). Refresh token is httpOnly cookie.
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
+// ── In-memory token (never persisted to localStorage) ──
 let _token = null;
 let _walletAddress = null;
+let _refreshPromise = null; // prevent concurrent refreshes
 
-// Set the JWT token after SIWE authentication
+// Set the JWT token after SIWE authentication (in memory only)
 export function setAuthToken(token, address) {
   _token = token;
   _walletAddress = address;
-  if (token) {
-    localStorage.setItem('tf_auth_token', token);
-    localStorage.setItem('tf_wallet_address', address);
-  } else {
-    localStorage.removeItem('tf_auth_token');
-    localStorage.removeItem('tf_wallet_address');
-  }
+  // FIX #1: Do NOT persist token to localStorage — memory only
 }
 
-// Restore token from localStorage on app load
-export function restoreAuthToken() {
-  _token = localStorage.getItem('tf_auth_token');
-  _walletAddress = localStorage.getItem('tf_wallet_address');
-  return { token: _token, address: _walletAddress };
+// Clear in-memory token
+export function clearAuthToken() {
+  _token = null;
+  _walletAddress = null;
 }
 
-// Generic fetch wrapper with auth + error handling
+// Get current in-memory token (for internal use by other services)
+export function getAuthToken() {
+  return _token;
+}
+
+// Get current address (for components that need it)
+export function getWalletAddress() {
+  return _walletAddress;
+}
+
+// ── Token refresh logic ────────────────────────────────────────
+async function refreshToken() {
+  // Deduplicate concurrent refresh calls
+  if (_refreshPromise) return _refreshPromise;
+  _refreshPromise = (async () => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include', // send httpOnly refresh cookie
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!res.ok) {
+        clearAuthToken();
+        return false;
+      }
+      const data = await res.json();
+      _token = data.token;
+      _walletAddress = data.address;
+      return true;
+    } catch {
+      clearAuthToken();
+      return false;
+    } finally {
+      _refreshPromise = null;
+    }
+  })();
+  return _refreshPromise;
+}
+
+// ── Generic fetch wrapper with auth, auto-refresh, error handling ─
 async function apiFetch(path, options = {}) {
   const headers = { 'Content-Type': 'application/json', ...options.headers };
   if (_token) headers['Authorization'] = `Bearer ${_token}`;
 
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  const fetchOpts = {
+    ...options,
+    headers,
+    credentials: 'include', // always send cookies (for refresh token)
+  };
+
+  let res = await fetch(`${API_BASE}${path}`, fetchOpts);
+
+  // FIX #1: On 401, try refreshing the token once, then retry
+  if (res.status === 401 && _token) {
+    const refreshed = await refreshToken();
+    if (refreshed) {
+      const retryHeaders = { 'Content-Type': 'application/json', ...options.headers };
+      if (_token) retryHeaders['Authorization'] = `Bearer ${_token}`;
+      res = await fetch(`${API_BASE}${path}`, { ...options, headers: retryHeaders, credentials: 'include' });
+    }
+  }
+
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.error || `API ${res.status}`);
@@ -62,6 +114,24 @@ export async function verifySiwe(message, signature) {
   });
   setAuthToken(res.token, res.address);
   return res;
+}
+
+// FIX #1: Restore session on app load using refresh token cookie
+export async function restoreSession() {
+  const refreshed = await refreshToken();
+  return refreshed;
+}
+
+// FIX #1: Logout — revoke refresh token, clear memory
+export async function logout() {
+  try {
+    await fetch(`${API_BASE}/auth/logout`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch { /* best effort */ }
+  clearAuthToken();
 }
 
 // ─── Bots ──────────────────────────────────────────────────────
