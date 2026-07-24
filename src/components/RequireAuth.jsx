@@ -1,4 +1,5 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 /**
@@ -7,19 +8,15 @@ import { useAuth } from '../context/AuthContext'
  */
 export default function RequireAuth({ children }) {
   const { isAuthenticated, isLoading, signInDemo } = useAuth()
+  const navigate = useNavigate()
+  const [promptGuest, setPromptGuest] = useState(false)
 
-  /* Auto-enter demo mode for first-time visitors — no wallet needed */
   useEffect(() => {
-    if (!isAuthenticated) {
-      signInDemo()
-      try {
-        const raw = localStorage.getItem('tradeflow-store')
-        const store = raw ? JSON.parse(raw) : {}
-        store.settings = { ...(store.settings || {}), demoMode: true, virtualBalance: 10000, hasCompletedOnboarding: true }
-        localStorage.setItem('tradeflow-store', JSON.stringify(store))
-      } catch { /* ignore */ }
+    if (!isLoading && !isAuthenticated) {
+      // Don't auto-sign in — show a guest mode prompt instead
+      setPromptGuest(true)
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isLoading, isAuthenticated])
 
   if (isLoading) {
     return (
@@ -29,7 +26,28 @@ export default function RequireAuth({ children }) {
     )
   }
 
-  // Always render children — demo mode is auto-enabled
+  if (promptGuest && !isAuthenticated) {
+    return (
+      <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'60vh', gap:16 }}>
+        <p style={{ fontSize:15, color:'var(--color-text-primary)', fontWeight:600 }}>You're not signed in.</p>
+        <div style={{ display:'flex', gap:12 }}>
+          <button
+            onClick={() => signInDemo()}
+            style={{ padding:'8px 20px', borderRadius:8, border:'1px solid var(--color-primary-50)', background:'var(--color-primary)', color:'#fff', cursor:'pointer', fontSize:14 }}
+          >
+            Continue as Guest
+          </button>
+          <button
+            onClick={() => navigate('/connections')}
+            style={{ padding:'8px 20px', borderRadius:8, border:'1px solid var(--color-border)', background:'var(--color-surface)', color:'var(--color-text-primary)', cursor:'pointer', fontSize:14 }}
+          >
+            Sign In with Wallet
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return children
 }
 

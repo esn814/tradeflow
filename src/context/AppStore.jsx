@@ -42,7 +42,7 @@ export function AppStoreProvider({ children }) {
   // Load from backend on mount (merge with localStorage defaults)
   useEffect(() => {
     let cancelled = false;
-    loadFromBackend().then((backendData) => {
+    loadFromBackend(store).then((backendData) => {
       if (cancelled || !backendData) return;
       setStore((prev) => {
         const merged = { ...prev };

@@ -17,7 +17,10 @@ async function isBackendUp() {
 }
 
 // ─── LOAD FROM BACKEND (on app mount, if authenticated) ───────
-export async function loadFromBackend() {
+export async function loadFromBackend(store) {
+  // Respect user's cloud sync preference
+  if (store?.settings?.cloudSync === false) return null;
+
   const restored = await restoreSession();
   if (!restored || !getWalletAddress()) return null;
 
@@ -56,6 +59,8 @@ let _pushTimer = null;
 let _prevSnapshot = {};
 
 export function scheduleBackendPush(store) {
+  // Respect user's cloud sync preference
+  if (store.settings?.cloudSync === false) return;
   if (_pushTimer) clearTimeout(_pushTimer);
   _pushTimer = setTimeout(() => pushToBackend(store), 10000);
 }

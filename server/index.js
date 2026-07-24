@@ -21,6 +21,8 @@ import socialRouter from './routes/social.js';
 import { startAlertChecker } from './services/alertChecker.js';
 import { startBackupScheduler, createBackup, listBackups, restoreBackup } from './backup.js';
 
+const ADMIN_ADDRESSES = (process.env.ADMIN_ADDRESSES || '').split(',').map(a => a.trim().toLowerCase()).filter(Boolean);
+
 const app = express();
 const PORT = config.PORT;
 
@@ -194,6 +196,9 @@ app.post('/api/backup', backupLimiter, authMiddleware, (req, res) => {
 });
 app.post('/api/backup/restore', backupLimiter, authMiddleware, (req, res) => {
   try {
+    if (ADMIN_ADDRESSES.length > 0 && !ADMIN_ADDRESSES.includes(req.address?.toLowerCase())) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
     const { name } = req.body;
     if (!name) {
       return res.status(400).json({ error: 'Backup name is required' });

@@ -83,15 +83,7 @@ function getOrCreateDeviceSeed() {
  */
 function getDevicePassphrase() {
   const seed = getOrCreateDeviceSeed();
-  const parts = [
-    navigator.userAgent,
-    navigator.language,
-    screen.width + 'x' + screen.height,
-    new Date().getTimezoneOffset(),
-    navigator.hardwareConcurrency,
-    seed,
-  ];
-  return 'tradeflow-device-' + parts.join('|');
+  return 'tradeflow-device-' + seed;
 }
 
 /**

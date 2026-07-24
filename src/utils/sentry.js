@@ -20,7 +20,7 @@ export function initSentry() {
     release: import.meta.env.VITE_APP_VERSION || 'unknown',
 
     // Capture 100% of errors in production; adjust for high-traffic later
-    tracesSampleRate: 1.0,
+    tracesSampleRate: 0.1,
 
     // Don't send errors from localhost in production builds
     beforeSend(event) {
