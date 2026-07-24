@@ -67,7 +67,7 @@ Backups:   Daily VACUUM INTO, 7-day retention, stored on Render persistent disk
 - CORS `credentials: true` for httpOnly cookie support
 - 3-tier rate limiting (global 100/15min, auth 20/15min, trade 10/min, backup 2/hr)
 - No uptime or filesystem path disclosure in API responses
-- Route guards — RequireAuth wraps 17/24 routes (soft guard: auto-demo mode)
+- Route guards — RequireAuth wraps 16/24 routes (soft guard: auto-demo mode)
 - Input validation middleware (sanitize HTML, requireFields, validateNumber, validateEnum)
 - `debug.keystore` removed from repo, `*.keystore` and `.env` gitignored
 

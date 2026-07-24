@@ -77,21 +77,21 @@ Every tier of the original roadmap has been built, verified, and deployed. Secur
 ## Improvement Roadmap (from quality audit — 2026-07-23)
 
 ### Step 1: Quick Wins (~4h total) — IN PROGRESS
-- [ ] Move `playwright` to devDependencies (200MB production bloat)
-- [ ] Complete `.env.example` with all 9 env vars
-- [ ] Memoize AuthContext value (prevent unnecessary re-renders)
-- [ ] Add backup on graceful shutdown
-- [ ] Add composite DB indexes (trades, alerts)
-- [ ] Add Prettier formatter
-- [ ] Fix Dashboard hardcoded demo data
-- [ ] Document uptime monitoring setup
+- [x] Move `playwright` to devDependencies (200MB production bloat)
+- [x] Complete `.env.example` with all 9 env vars
+- [x] Memoize AuthContext value (prevent unnecessary re-renders)
+- [x] Add backup on graceful shutdown
+- [x] Add composite DB indexes (trades, alerts)
+- [x] Add Prettier formatter
+- [x] Fix Dashboard hardcoded demo data
+- [x] Document uptime monitoring setup
 
 ### Step 2: Critical Infrastructure (~20h)
-- [ ] DB migration system (schema evolution blocked without it)
-- [ ] Persist refresh tokens in SQLite (lost on restart)
-- [ ] Server-side Sentry error tracking
-- [ ] Structured logging (pino — JSON, log levels, request IDs)
-- [ ] Config validation at startup
+- [x] DB migration system (migrate.js + 2 SQL migrations)
+- [x] Persist refresh tokens in SQLite
+- [x] Server-side Sentry error tracking
+- [x] Structured logging (pino — JSON, log levels, request IDs)
+- [x] Config validation at startup
 
 ### Step 3: UX & Performance (~15h)
 - [ ] Split AppStore god context (6 slices → per-domain contexts or Zustand)

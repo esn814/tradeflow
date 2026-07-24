@@ -32,7 +32,7 @@
 - [x] 3-tier rate limiting (global, auth, trade 10/min, backup 2/hr)
 - [x] No uptime/path disclosure in API responses
 - [x] debug.keystore removed from repo, *.keystore and .env gitignored
-- [x] Route guards — RequireAuth wraps 17/24 routes
+- [x] Route guards — RequireAuth wraps 16/24 routes
 - [x] Input validation middleware (sanitize, requireFields, validateNumber, validateEnum)
 
 ### Features
