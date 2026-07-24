@@ -104,6 +104,7 @@ Key changes: SQL injection fix, VAPID keys to env vars, SameSite cookie hardenin
 - Chart theme unification — shared across 5 chart pages
 - Chunk splitting — 18 optimized chunks via manualChunks
 - Service worker — network-first HTML, stale-while-revalidate static, API cache, push notifications
+- Matrix Design System integration (brand.matrixmcl.com) — StatusPill, ConfirmDialog, Tip, Shimmer components wired into MyBots, Alerts, Settings
 
 ### Backend (Express 5 + SQLite)
 - 13 database tables
