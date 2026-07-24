@@ -86,11 +86,11 @@
 - [x] Document uptime monitoring setup (MONITORING.md)
 
 ### Step 2: Critical Infrastructure (~20h)
-- [ ] DB migration system (schema evolution blocked without it)
-- [ ] Persist refresh tokens in SQLite (lost on restart)
+- [x] DB migration system — server/migrate.js + 2 SQL migration files
+- [x] Persist refresh tokens in SQLite — auth.js + migration 002_refresh_tokens.sql
 - [ ] Server-side Sentry error tracking
-- [ ] Structured logging (pino — JSON, log levels, request IDs)
-- [ ] Config validation at startup
+- [x] Structured logging (pino) — server/logger.js with JSON, levels, redaction, serializers
+- [x] Config validation at startup — server/config.js validates all env vars with descriptive errors
 
 ### Step 3: UX & Performance (~15h)
 - [x] Split AppStore context — memoized value with useMemo (prevents unnecessary re-renders)
@@ -112,7 +112,7 @@
 - [x] Label all strategies/bots as "Demo/Simulation" in UI until real integration is done
 - [ ] Onboarding flow improvements
 - [ ] API documentation (OpenAPI/Swagger)
-- [ ] Staging environment
+- [x] Staging environment — https://tradeflow-staging.cloud.hyperpaxeer.com
 
 ### Step 6: Scale Prep (~15h)
 - [ ] SQLite → PostgreSQL migration (or Render Starter for spin-down)
