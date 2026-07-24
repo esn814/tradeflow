@@ -144,6 +144,31 @@ Key changes: SQL injection fix, VAPID keys to env vars, SameSite cookie hardenin
 
 ---
 
+
+## APK Distribution Strategy
+
+**Decision: Direct sideloading — skip Google Play Store.**
+
+The APK is distributed via direct download from our own infrastructure, not through the Google Play Store. This is a deliberate choice:
+
+- **No Play Store fees or review delays** — we ship when ready, no 2-week review cycles
+- **No 30% revenue share** on any future in-app purchases
+- **Full control** over the download experience, install flow, and versioning
+- **Faster iteration** — push an APK update and it's live immediately
+
+### How it works
+1. User visits **tradeflow-dl.cloud.hyperpaxeer.com** (download page)
+2. Page fetches `/tradeflow.bin` via JavaScript fetch + reblob with correct Android MIME type
+3. Browser downloads the file as `tradeflow.apk` with `application/vnd.android.package-archive` Content-Type
+4. User opens the file to install (requires "Install from unknown sources" enabled)
+
+### The `.bin` extension trick
+Android browsers will unzip `.apk` files instead of offering to install them. Using `.bin` + JavaScript reblob bypasses this: the browser fetches raw bytes, creates a Blob with the correct MIME type, and triggers a download with the `.apk` filename.
+
+### Live URLs
+- **Download page:** https://tradeflow-dl.cloud.hyperpaxeer.com
+- **APK helper:** https://tradeflow-apk.cloud.hyperpaxeer.com (same mechanism, different deploy)
+- **APK file:** Hosted on Paxeer Cloud alongside the download page
 ## Remaining Work
 
 ### Real Device Testing
@@ -151,4 +176,4 @@ Key changes: SQL injection fix, VAPID keys to env vars, SameSite cookie hardenin
 
 ### Low Effort / Optional
 - [ ] Further index chunk splitting (currently 40KB)
-- [ ] Play Store listing (after real device testing)
+- [x] ~~Play Store listing~~ — Decision: sideload APK via direct download (skip Google Play)

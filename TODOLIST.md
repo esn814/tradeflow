@@ -125,7 +125,7 @@
 ## 🔲 Remaining Original Work
 - [ ] Real Android device testing — install on 2-3 physical devices, verify all flows
 - [x] Further index chunk splitting — 18+ optimized chunks (ethers 7 sub-chunks, d3, siwe, noble, capacitor, etc.)
-- [ ] Play Store listing (after real device testing)
+- [x] ~~Play Store listing~~ — Decision: sideload APK via direct download, skip Google Play
 
 ---
 

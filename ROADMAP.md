@@ -136,7 +136,7 @@ A comprehensive codebase audit identified 25 issues across security, backend, fr
 ## Remaining Original Work
 - [ ] Real Android device testing — install on 2-3 physical devices, verify all flows
 - [ ] Further index chunk splitting (currently 40KB)
-- [ ] Play Store listing (after real device testing)
+- [x] ~~Play Store listing~~ — Decision: sideload APK via direct download (skip Google Play)
 
 ---
 
