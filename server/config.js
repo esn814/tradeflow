@@ -14,6 +14,10 @@ const config = {
   BACKUP_RETENTION_DAYS: parseInt(process.env.BACKUP_RETENTION_DAYS || '7', 10),
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   SENTRY_DSN: process.env.SENTRY_DSN || null,
+
+  // VAPID keys for web push notifications (loaded from env vars, not files)
+  VAPID_PUBLIC_KEY: process.env.VAPID_PUBLIC_KEY || null,
+  VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY || null,
 };
 
 // Validate required vars
@@ -53,6 +57,7 @@ export function logConfig(logger) {
     backupRetentionDays: config.BACKUP_RETENTION_DAYS,
     logLevel: config.LOG_LEVEL,
     sentryEnabled: !!config.SENTRY_DSN,
+    vapidEnabled: !!(config.VAPID_PUBLIC_KEY && config.VAPID_PRIVATE_KEY),
     dbPath: config.DB_PATH || '(default)',
   }, 'Server configuration loaded');
 }

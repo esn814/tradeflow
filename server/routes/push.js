@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { logger } from '../logger.js';
 import { readFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -44,7 +45,7 @@ router.post('/subscribe', (req, res) => {
 
     res.json({ ok: true });
   } catch (err) {
-    console.error('Push subscribe error:', err);
+    logger.error({ err }, 'Push subscribe error');
     res.status(500).json({ error: 'Failed to save subscription' });
   }
 });
@@ -63,7 +64,7 @@ router.post('/unsubscribe', (req, res) => {
 
     res.json({ ok: true });
   } catch (err) {
-    console.error('Push unsubscribe error:', err);
+    logger.error({ err }, 'Push unsubscribe error');
     res.status(500).json({ error: 'Failed to remove subscription' });
   }
 });
@@ -76,7 +77,7 @@ router.get('/subscriptions', (req, res) => {
       .all(req.userId);
     res.json(rows);
   } catch (err) {
-    console.error('Push list error:', err);
+    logger.error({ err }, 'Push list error');
     res.status(500).json({ error: 'Failed to list subscriptions' });
   }
 });

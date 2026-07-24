@@ -11,7 +11,7 @@ export const createBotSchema = z.object({
   currentValue: z.number().nonnegative().optional(),
   status: z.enum(['active', 'paused', 'stopped']).optional(),
   strategy: z.string().max(100).optional(),
-  config: z.any().optional(),
+  config: z.record(z.unknown()).optional(),
 });
 
 export const updateBotSchema = z.object({
@@ -22,7 +22,7 @@ export const updateBotSchema = z.object({
   currentValue: z.number().nonnegative().optional(),
   status: z.enum(['active', 'paused', 'stopped']).optional(),
   strategy: z.string().max(100).optional(),
-  config: z.any().optional(),
+  config: z.record(z.unknown()).optional(),
 });
 
 // ── Trades ─────────────────────────────────────────────────────
@@ -37,7 +37,7 @@ export const createTradeSchema = z.object({
   sl: z.number().positive().optional(),
   tp: z.number().positive().optional(),
   strategy: z.string().max(100).optional(),
-  meta: z.any().optional(),
+  meta: z.record(z.unknown()).optional(),
 });
 
 // ── Alerts ─────────────────────────────────────────────────────
@@ -47,7 +47,7 @@ export const createAlertSchema = z.object({
   condition: z.string().min(1).max(100),
   value: z.number().nullable().optional(),
   active: z.boolean().optional(),
-  meta: z.any().optional(),
+  meta: z.record(z.unknown()).optional(),
 });
 
 export const updateAlertSchema = z.object({
@@ -56,7 +56,7 @@ export const updateAlertSchema = z.object({
   condition: z.string().min(1).max(100).optional(),
   value: z.number().nullable().optional(),
   active: z.boolean().optional(),
-  meta: z.any().optional(),
+  meta: z.record(z.unknown()).optional(),
 });
 
 // ── Schedules ──────────────────────────────────────────────────
@@ -64,14 +64,14 @@ export const createScheduleSchema = z.object({
   id: z.string().max(100).optional(),
   action: z.string().min(1).max(200),
   cron: z.string().min(1).max(100),
-  params: z.any().optional(),
+  params: z.record(z.unknown()).optional(),
   active: z.boolean().optional(),
 });
 
 export const updateScheduleSchema = z.object({
   action: z.string().min(1).max(200).optional(),
   cron: z.string().min(1).max(100).optional(),
-  params: z.any().optional(),
+  params: z.record(z.unknown()).optional(),
   active: z.boolean().optional(),
 });
 
@@ -90,11 +90,11 @@ export const updateSettingsSchema = z.object({
 // ── Copy Trading ───────────────────────────────────────────────
 export const followTraderSchema = z.object({
   traderId: z.string().min(1).max(100),
-  copySettings: z.any().optional(),
+  copySettings: z.record(z.unknown()).optional(),
 });
 
 export const updateCopySettingsSchema = z.object({
-  copySettings: z.any(),
+  copySettings: z.record(z.unknown()),
 });
 
 // ── Social ─────────────────────────────────────────────────────
@@ -102,7 +102,7 @@ export const createStrategySchema = z.object({
   name: z.string().min(1).max(200),
   description: z.string().max(2000).optional(),
   strategyType: z.string().max(50).optional(),
-  params: z.any().optional(),
+  params: z.record(z.unknown()).optional(),
   riskLevel: z.enum(['conservative', 'moderate', 'aggressive']).optional(),
   tags: z.union([z.array(z.string()), z.string()]).optional(),
 });
@@ -111,7 +111,7 @@ export const updateStrategySchema = z.object({
   name: z.string().min(1).max(200).optional(),
   description: z.string().max(2000).optional(),
   strategyType: z.string().max(50).optional(),
-  params: z.any().optional(),
+  params: z.record(z.unknown()).optional(),
   riskLevel: z.enum(['conservative', 'moderate', 'aggressive']).optional(),
   tags: z.union([z.array(z.string()), z.string()]).optional(),
 });

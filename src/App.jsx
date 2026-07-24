@@ -80,7 +80,6 @@ function AnimatedPage({ children }) {
 }
 
 function AppContent() {
-  const [_sidebarOpen, _setSidebarOpen] = [false, () => {}] // simplified — toggled below
   const [sidebarOpenState, setSidebarOpenState] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
@@ -105,13 +104,13 @@ function AppContent() {
   useEffect(() => {
     if (!isAuthenticated) {
       signInDemo()
+      setDemoMode(true)
+      setVirtualBalance(settings.virtualBalance || 10000)
+      if (!settings.hasCompletedOnboarding) {
+        updateSettings({ hasCompletedOnboarding: true, demoMode: true, virtualBalance: settings.virtualBalance || 10000 })
+      }
     }
-    setDemoMode(true)
-    setVirtualBalance(settings.virtualBalance || 10000)
-    if (!settings.hasCompletedOnboarding) {
-      updateSettings({ hasCompletedOnboarding: true, demoMode: true, virtualBalance: settings.virtualBalance || 10000 })
-    }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleNavigate = (p) => {
     navigate(p)

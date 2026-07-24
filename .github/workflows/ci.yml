@@ -29,6 +29,9 @@ jobs:
       - name: Test (Server)
         run: npm run test:server
 
+      - name: Security audit
+        run: npm audit --audit-level=high
+
       - name: Build
         run: npm run build
 

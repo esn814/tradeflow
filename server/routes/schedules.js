@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { logger } from '../logger.js';
 import { authMiddleware } from '../auth.js';
 import { getDb } from '../db.js';
 import { sanitize } from '../middleware/validate.js';
@@ -9,13 +10,16 @@ router.use(sanitize);
 
 router.get('/', (req, res) => {
   try {
-    const rows = getDb().prepare(`SELECT * FROM schedules WHERE user_id = ? ORDER BY created_at DESC`).all(req.userId);
+    const { limit = 100, offset = 0 } = req.query;
+    const limitNum = Math.min(Math.max(1, Number(limit)), 500);
+    const offsetNum = Math.max(0, Number(offset));
+    const rows = getDb().prepare(`SELECT * FROM schedules WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`).all(req.userId, limitNum, offsetNum);
     res.json(rows.map(r => ({
       id: r.id, action: r.action, cron: r.cron,
       params: r.params ? JSON.parse(r.params) : null,
       active: !!r.active, lastRun: r.last_run, createdAt: r.created_at,
     })));
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Failed to fetch schedules' }); }
+  } catch (err) { logger.error({ err }; res.status(500).json({ error: 'Failed to fetch schedules' }); }
 });
 
 router.post('/', (req, res) => {
@@ -30,7 +34,7 @@ router.post('/', (req, res) => {
       WHERE schedules.user_id = excluded.user_id
     `).run(scheduleId, req.userId, action, cron, params?JSON.stringify(params):null, now, now);
     res.status(201).json({ ok: true, id: scheduleId });
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Failed to create schedule' }); }
+  } catch (err) { logger.error({ err }; res.status(500).json({ error: 'Failed to create schedule' }); }
 });
 
 router.put('/:id', (req, res) => {
@@ -42,7 +46,7 @@ router.put('/:id', (req, res) => {
     `).run(action, cron, params?JSON.stringify(params):null, active!=null?(active?1:0):null, req.params.id, req.userId);
     if (result.changes === 0) return res.status(404).json({ error: 'Schedule not found' });
     res.json({ ok: true });
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Failed to update schedule' }); }
+  } catch (err) { logger.error({ err }; res.status(500).json({ error: 'Failed to update schedule' }); }
 });
 
 router.delete('/:id', (req, res) => {
@@ -50,7 +54,7 @@ router.delete('/:id', (req, res) => {
     const result = getDb().prepare(`DELETE FROM schedules WHERE id=? AND user_id=?`).run(req.params.id, req.userId);
     if (result.changes === 0) return res.status(404).json({ error: 'Schedule not found' });
     res.json({ ok: true });
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Failed to delete schedule' }); }
+  } catch (err) { logger.error({ err }; res.status(500).json({ error: 'Failed to delete schedule' }); }
 });
 
 export default router;

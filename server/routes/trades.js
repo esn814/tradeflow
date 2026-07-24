@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { logger } from '../logger.js';
 import { authMiddleware } from '../auth.js';
 import { getDb } from '../db.js';
 import { sanitize } from '../middleware/validate.js';
@@ -24,7 +25,7 @@ router.get('/', (req, res) => {
       sl: r.sl, tp: r.tp, strategy: r.strategy, time: r.created_at,
       meta: r.meta ? JSON.parse(r.meta) : null,
     })));
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Failed to fetch trades' }); }
+  } catch (err) { logger.error({ err }; res.status(500).json({ error: 'Failed to fetch trades' }); }
 });
 
 router.get('/summary', (req, res) => {
@@ -43,7 +44,7 @@ router.get('/summary', (req, res) => {
       count: stats.count, totalPnl: stats.totalPnl, volume: stats.volume,
       winRate: stats.count > 0 ? +((stats.wins / stats.count) * 100).toFixed(1) : 0,
     });
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Failed to compute summary' }); }
+  } catch (err) { logger.error({ err }; res.status(500).json({ error: 'Failed to compute summary' }); }
 });
 
 router.post('/', validateBody(createTradeSchema), (req, res) => {
@@ -55,7 +56,7 @@ router.post('/', validateBody(createTradeSchema), (req, res) => {
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,COALESCE(?,datetime('now')))
     `).run(tradeId, req.userId, botId, pair, side, price, qty, pnl||0, status||'filled', sl, tp, strategy, meta?JSON.stringify(meta):null, time||null);
     res.status(201).json({ ok: true, id: tradeId });
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Failed to record trade' }); }
+  } catch (err) { logger.error({ err }; res.status(500).json({ error: 'Failed to record trade' }); }
 });
 
 export default router;

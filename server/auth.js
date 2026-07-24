@@ -116,7 +116,7 @@ router.post('/verify', async (req, res) => {
     res.cookie('tf_rt', refreshToken, {
       httpOnly: true,
       secure: true,
-      sameSite: 'none',
+      sameSite: 'strict',
       maxAge: REFRESH_TTL_MS,
       path: '/api/auth',
     });

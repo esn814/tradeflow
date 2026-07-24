@@ -1,22 +1,17 @@
 // Push notification sender — dispatches web-push to all of a user's subscriptions
 import webpush from 'web-push';
-import { readFileSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
 import { getDb } from './db.js';
+import { logger } from './logger.js';
+import config from './config.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const VAPID_KEYS_PATH = join(__dirname, 'vapid-keys.json');
-
-// Configure VAPID
+// Configure VAPID from env vars
 let vapidConfigured = false;
-if (existsSync(VAPID_KEYS_PATH)) {
-  const keys = JSON.parse(readFileSync(VAPID_KEYS_PATH, 'utf8'));
-  webpush.setVapidDetails('mailto:alerts@tradeflow.app', keys.publicKey, keys.privateKey);
+if (config.VAPID_PUBLIC_KEY && config.VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails('mailto:alerts@tradeflow.app', config.VAPID_PUBLIC_KEY, config.VAPID_PRIVATE_KEY);
   vapidConfigured = true;
-  console.log('[push-sender] VAPID keys loaded');
+  logger.info('[push-sender] VAPID keys loaded from environment');
 } else {
-  console.warn('[push-sender] VAPID keys not found — push sending disabled');
+  logger.warn('[push-sender] VAPID keys not set — push sending disabled');
 }
 
 /**
@@ -52,12 +47,11 @@ export async function sendPushToUser(userId, payload) {
       sent++;
     } catch (err) {
       failed++;
-      // 410 Gone or 404 = subscription expired/invalid — clean it up
       if (err.statusCode === 410 || err.statusCode === 404) {
         db.prepare('DELETE FROM push_subscriptions WHERE id = ?').run(sub.id);
-        console.log(`[push-sender] Removed stale subscription ${sub.id}`);
+        logger.info({ subId: sub.id }, '[push-sender] Removed stale subscription');
       } else {
-        console.warn(`[push-sender] Push failed for sub ${sub.id}:`, err.statusCode, err.message);
+        logger.warn({ err, subId: sub.id, statusCode: err.statusCode }, '[push-sender] Push failed');
       }
     }
   }

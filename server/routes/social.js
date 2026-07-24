@@ -1,7 +1,8 @@
 import { Router } from 'express';
-import { authMiddleware, JWT_SECRET } from '../auth.js';
+import { authMiddleware } from '../auth.js';
+import { validateBody } from '../middleware/validateZod.js';
+import { createStrategySchema, updateStrategySchema } from '../schemas.js';
 import { getDb } from '../db.js';
-import jwt from 'jsonwebtoken';
 
 const router = Router();
 
@@ -93,7 +94,7 @@ router.get('/leaderboard', (req, res) => {
       worstTrade: r.worstTrade,
     })));
   } catch (err) {
-    console.error('Leaderboard error:', err);
+    logger.error({ err }, 'Leaderboard error');
     res.status(500).json({ error: 'Failed to fetch leaderboard' });
   }
 });
@@ -146,7 +147,7 @@ router.get('/strategies', (req, res) => {
       totalPages: Math.ceil(countRow.total / limitNum),
     });
   } catch (err) {
-    console.error('List strategies error:', err);
+    logger.error({ err }, 'List strategies error');
     res.status(500).json({ error: 'Failed to fetch strategies' });
   }
 });
@@ -164,13 +165,13 @@ router.get('/strategies/my', authMiddleware, (req, res) => {
     
     res.json(rows.map(r => formatStrategy(r)));
   } catch (err) {
-    console.error('My strategies error:', err);
+    logger.error({ err }, 'My strategies error');
     res.status(500).json({ error: 'Failed to fetch your strategies' });
   }
 });
 
 // POST /api/social/strategies — publish a new strategy
-router.post('/strategies', authMiddleware, (req, res) => {
+router.post('/strategies', authMiddleware, validateBody(createStrategySchema), (req, res) => {
   try {
     const { name, description, strategyType, params, riskLevel, tags } = req.body;
     if (!name) return res.status(400).json({ error: 'Strategy name is required' });
@@ -194,7 +195,7 @@ router.post('/strategies', authMiddleware, (req, res) => {
     if (err.message?.includes('UNIQUE constraint failed')) {
       return res.status(409).json({ error: 'You already have a strategy with this name' });
     }
-    console.error('Create strategy error:', err);
+    logger.error({ err }, 'Create strategy error');
     res.status(500).json({ error: 'Failed to create strategy' });
   }
 });
@@ -205,29 +206,19 @@ router.get('/strategies/:id', (req, res) => {
     const strategy = getStrategyWithAuthor(req.params.id);
     if (!strategy) return res.status(404).json({ error: 'Strategy not found' });
     
-    // Check if current user (if authenticated) has liked/forked
-    let liked = false;
-    let forked = false;
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      try {
-        const payload = jwt.verify(authHeader.slice(7), JWT_SECRET);
-        liked = !!getDb().prepare('SELECT 1 FROM strategy_likes WHERE strategy_id = ? AND user_id = ?').get(strategy.id, payload.userId);
-        forked = !!getDb().prepare('SELECT 1 FROM strategy_forks WHERE strategy_id = ? AND user_id = ?').get(strategy.id, payload.userId);
-      } catch {
-        // Token invalid — liked/forked stay false
-      }
-    }
+    // Check if current user has liked/forked
+    const liked = !!getDb().prepare('SELECT 1 FROM strategy_likes WHERE strategy_id = ? AND user_id = ?').get(strategy.id, req.userId);
+    const forked = !!getDb().prepare('SELECT 1 FROM strategy_forks WHERE strategy_id = ? AND user_id = ?').get(strategy.id, req.userId)
 
     res.json(formatStrategy(strategy, liked, forked));
   } catch (err) {
-    console.error('Get strategy error:', err);
+    logger.error({ err }, 'Get strategy error');
     res.status(500).json({ error: 'Failed to fetch strategy' });
   }
 });
 
 // PUT /api/social/strategies/:id — update own strategy
-router.put('/strategies/:id', authMiddleware, (req, res) => {
+router.put('/strategies/:id', authMiddleware, validateBody(updateStrategySchema), (req, res) => {
   try {
     const strategy = getDb().prepare('SELECT * FROM shared_strategies WHERE id = ?').get(req.params.id);
     if (!strategy) return res.status(404).json({ error: 'Strategy not found' });
@@ -261,7 +252,7 @@ router.put('/strategies/:id', authMiddleware, (req, res) => {
     if (err.message?.includes('UNIQUE constraint failed')) {
       return res.status(409).json({ error: 'You already have a strategy with this name' });
     }
-    console.error('Update strategy error:', err);
+    logger.error({ err }, 'Update strategy error');
     res.status(500).json({ error: 'Failed to update strategy' });
   }
 });
@@ -276,7 +267,7 @@ router.delete('/strategies/:id', authMiddleware, (req, res) => {
     getDb().prepare('DELETE FROM shared_strategies WHERE id = ?').run(req.params.id);
     res.json({ ok: true });
   } catch (err) {
-    console.error('Delete strategy error:', err);
+    logger.error({ err }, 'Delete strategy error');
     res.status(500).json({ error: 'Failed to delete strategy' });
   }
 });
@@ -303,7 +294,7 @@ router.post('/strategies/:id/like', authMiddleware, (req, res) => {
     
     res.json(toggleLike());
   } catch (err) {
-    console.error('Toggle like error:', err);
+    logger.error({ err }, 'Toggle like error');
     res.status(500).json({ error: 'Failed to toggle like' });
   }
 });
@@ -340,7 +331,7 @@ router.post('/strategies/:id/fork', authMiddleware, (req, res) => {
     const forked = getStrategyWithAuthor(result.lastInsertRowid);
     res.status(201).json(formatStrategy(forked));
   } catch (err) {
-    console.error('Fork strategy error:', err);
+    logger.error({ err }, 'Fork strategy error');
     res.status(500).json({ error: 'Failed to fork strategy' });
   }
 });

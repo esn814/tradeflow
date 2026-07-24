@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { logger } from '../logger.js';
 import { authMiddleware } from '../auth.js';
 import { getDb } from '../db.js';
 import { sanitize } from '../middleware/validate.js';
@@ -11,14 +12,17 @@ router.use(sanitize);
 
 router.get('/', (req, res) => {
   try {
-    const rows = getDb().prepare(`SELECT * FROM bots WHERE user_id = ? ORDER BY created_at DESC`).all(req.userId);
+    const { limit = 100, offset = 0 } = req.query;
+    const limitNum = Math.min(Math.max(1, Number(limit)), 500);
+    const offsetNum = Math.max(0, Number(offset));
+    const rows = getDb().prepare(`SELECT * FROM bots WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`).all(req.userId, limitNum, offsetNum);
     res.json(rows.map(r => ({
       id: r.id, name: r.name, type: r.type, coin: r.coin,
       invested: r.invested, currentValue: r.current_value,
       status: r.status, strategy: r.strategy, createdAt: r.created_at,
       config: r.config ? JSON.parse(r.config) : null,
     })));
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Failed to fetch bots' }); }
+  } catch (err) { logger.error({ err }; res.status(500).json({ error: 'Failed to fetch bots' }); }
 });
 
 router.post('/', validateBody(createBotSchema), (req, res) => {
@@ -37,7 +41,7 @@ router.post('/', validateBody(createBotSchema), (req, res) => {
       WHERE bots.user_id = excluded.user_id
     `).run(id, req.userId, name, type, coin, invested || 0, currentValue || 0, status || 'active', strategy, config ? JSON.stringify(config) : null, now, now);
     res.status(201).json({ ok: true, id });
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Failed to create bot' }); }
+  } catch (err) { logger.error({ err }; res.status(500).json({ error: 'Failed to create bot' }); }
 });
 
 router.put('/:id', validateBody(updateBotSchema), (req, res) => {
@@ -53,7 +57,7 @@ router.put('/:id', validateBody(updateBotSchema), (req, res) => {
     `).run(name, type, coin, invested, currentValue, status, strategy, config ? JSON.stringify(config) : null, now, req.params.id, req.userId);
     if (result.changes === 0) return res.status(404).json({ error: 'Bot not found' });
     res.json({ ok: true });
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Failed to update bot' }); }
+  } catch (err) { logger.error({ err }; res.status(500).json({ error: 'Failed to update bot' }); }
 });
 
 router.delete('/:id', (req, res) => {
@@ -61,7 +65,7 @@ router.delete('/:id', (req, res) => {
     const result = getDb().prepare(`DELETE FROM bots WHERE id=? AND user_id=?`).run(req.params.id, req.userId);
     if (result.changes === 0) return res.status(404).json({ error: 'Bot not found' });
     res.json({ ok: true });
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Failed to delete bot' }); }
+  } catch (err) { logger.error({ err }; res.status(500).json({ error: 'Failed to delete bot' }); }
 });
 
 export default router;

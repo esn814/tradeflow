@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { logger } from '../logger.js';
 import { authMiddleware } from '../auth.js';
 import { getDb } from '../db.js';
 import { sanitize } from '../middleware/validate.js';
@@ -11,13 +12,16 @@ router.use(sanitize);
 
 router.get('/', (req, res) => {
   try {
-    const rows = getDb().prepare(`SELECT * FROM alerts WHERE user_id = ? ORDER BY created_at DESC`).all(req.userId);
+    const { limit = 100, offset = 0 } = req.query;
+    const limitNum = Math.min(Math.max(1, Number(limit)), 500);
+    const offsetNum = Math.max(0, Number(offset));
+    const rows = getDb().prepare(`SELECT * FROM alerts WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`).all(req.userId, limitNum, offsetNum);
     res.json(rows.map(r => ({
       id: r.id, type: r.type, asset: r.asset, condition: r.condition,
       value: r.value, active: !!r.active, triggered: !!r.triggered,
       createdAt: r.created_at, meta: r.meta ? JSON.parse(r.meta) : null,
     })));
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Failed to fetch alerts' }); }
+  } catch (err) { logger.error({ err }; res.status(500).json({ error: 'Failed to fetch alerts' }); }
 });
 
 router.post('/', validateBody(createAlertSchema), (req, res) => {
@@ -27,7 +31,7 @@ router.post('/', validateBody(createAlertSchema), (req, res) => {
       INSERT INTO alerts (user_id,type,asset,condition,value,active,triggered,meta) VALUES (?,?,?,?,?,1,0,?)
     `).run(req.userId, type, asset, condition, value, meta?JSON.stringify(meta):null);
     res.status(201).json({ ok: true, id: result.lastInsertRowid });
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Failed to create alert' }); }
+  } catch (err) { logger.error({ err }; res.status(500).json({ error: 'Failed to create alert' }); }
 });
 
 router.put('/:id', validateBody(updateAlertSchema), (req, res) => {
@@ -41,7 +45,7 @@ router.put('/:id', validateBody(updateAlertSchema), (req, res) => {
     `).run(type, asset, condition, value, active!=null?(active?1:0):null, triggered!=null?(triggered?1:0):null, meta?JSON.stringify(meta):null, req.params.id, req.userId);
     if (result.changes === 0) return res.status(404).json({ error: 'Alert not found' });
     res.json({ ok: true });
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Failed to update alert' }); }
+  } catch (err) { logger.error({ err }; res.status(500).json({ error: 'Failed to update alert' }); }
 });
 
 router.delete('/:id', (req, res) => {
@@ -49,7 +53,7 @@ router.delete('/:id', (req, res) => {
     const result = getDb().prepare(`DELETE FROM alerts WHERE id=? AND user_id=?`).run(req.params.id, req.userId);
     if (result.changes === 0) return res.status(404).json({ error: 'Alert not found' });
     res.json({ ok: true });
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Failed to delete alert' }); }
+  } catch (err) { logger.error({ err }; res.status(500).json({ error: 'Failed to delete alert' }); }
 });
 
 export default router;

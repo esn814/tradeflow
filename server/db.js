@@ -5,7 +5,8 @@ import { fileURLToPath } from 'url';
 import { runMigrations } from './migrate.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DB_PATH = process.env.DB_PATH || join(__dirname, 'data', 'tradeflow.db');
+// import.meta.dirname requires Node 21+; if targeting Node 20 LTS, use fileURLToPath(import.meta.url)
+const DB_PATH = process.env.DB_PATH || join(import.meta.dirname, 'data', 'tradeflow.db');
 
 let _db = null;
 

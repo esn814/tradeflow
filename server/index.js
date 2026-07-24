@@ -1,6 +1,7 @@
 import config, { logConfig } from './config.js'; // validates env vars on import — exits if invalid
 import { logger } from './logger.js';
 import express from 'express';
+import crypto from 'crypto';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
@@ -29,12 +30,14 @@ if (config.SENTRY_DSN) {
     dsn: config.SENTRY_DSN,
     environment: config.NODE_ENV,
     tracesSampleRate: config.NODE_ENV === 'production' ? 0.1 : 1.0,
+    replaysSessionSampleRate: 0,
+    replaysOnErrorSampleRate: config.NODE_ENV === 'production' ? 1.0 : 1.0,
   });
   app.use(Sentry.setupExpressRequestHandler());
 }
 
 // Trust reverse proxy (Render, Cloudflare) for correct rate-limit IPs and proto
-app.set('trust proxy', 1);
+app.set('trust proxy', 'loopback');
 
 // ── Security headers (HSTS, X-Frame-Options, X-Content-Type-Options, etc.) ──
 app.use(helmet({
@@ -59,6 +62,13 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
+
+// ── Request ID middleware ──────────────────────────────────────
+app.use((req, res, next) => {
+  req.id = req.headers['x-request-id'] || crypto.randomUUID();
+  res.setHeader('X-Request-Id', req.id);
+  next();
+});
 
 // ── Structured request logging (pino-http) ────────────────────
 app.use(pinoHttp({ logger, autoLogging: { ignore: (req) => req.url === '/api/health' } }));
@@ -93,8 +103,17 @@ const writeLimiter = rateLimit({
 // Health check — no uptime disclosure
 app.get('/api/health', (req, res) => {
   try {
-    getDb().prepare('SELECT 1').get();
-    res.json({ ok: true });
+    const db = getDb();
+    db.prepare('SELECT 1').get();
+    const dbSize = db.pragma('page_count')[0].page_count * db.pragma('page_size')[0].page_size;
+    const migrations = db.prepare('SELECT MAX(version) as v FROM schema_version').get();
+    res.json({
+      ok: true,
+      version: '1.1',
+      db: { sizeMB: +(dbSize / 1024 / 1024).toFixed(2), migration: migrations?.v || 0 },
+      uptime: Math.floor(process.uptime()),
+      memory: { rssMB: +(process.memoryUsage().rss / 1024 / 1024).toFixed(1) },
+    });
   } catch {
     res.status(503).json({ ok: false });
   }

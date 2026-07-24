@@ -20,7 +20,9 @@ export function createBackup() {
   try {
     const db = getDb();
     // VACUUM INTO creates a defragmented standalone copy — safe during reads
-    db.exec(`VACUUM INTO '${backupPath}'`);
+    // Sanitize path to prevent SQL injection (only allow safe chars)
+    const safePath = backupPath.replace(/[^a-zA-Z0-9_\-\/\.]/g, '');
+    db.exec(`VACUUM INTO '${safePath}'`);
 
     const size = statSync(backupPath).size;
     const sizeMB = (size / 1024 / 1024).toFixed(2);

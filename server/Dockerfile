@@ -1,13 +1,22 @@
-FROM node:22-slim
+# Stage 1: Build native modules
+FROM node:22-slim AS builder
 
 WORKDIR /app
 
 # Install build deps for better-sqlite3 (native module)
 RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 
-# Copy package files and install
+# Copy package files and install ALL deps (including dev for native rebuild)
 COPY package.json package-lock.json ./
-RUN npm ci --production
+RUN npm ci
+
+# Stage 2: Production image
+FROM node:22-slim
+
+WORKDIR /app
+
+# Copy built node_modules from builder
+COPY --from=builder /app/node_modules ./node_modules
 
 # Copy source
 COPY . .

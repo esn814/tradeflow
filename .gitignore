@@ -41,3 +41,6 @@ tradeflow-backup-*.tar.gz
 
 # Server backups
 server/data/backups/
+
+# VAPID keys (use env vars instead)
+server/vapid-keys.json

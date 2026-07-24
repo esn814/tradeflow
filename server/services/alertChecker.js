@@ -1,23 +1,18 @@
 // Alert Checker — periodically checks price alert conditions and sends push notifications
 import webpush from 'web-push';
-import { readFileSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
 import { getDb } from '../db.js';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const VAPID_KEYS_PATH = join(__dirname, '..', 'vapid-keys.json');
+import { logger } from '../logger.js';
+import config from '../config.js';
 
 let configured = false;
 
 function ensureVapid() {
   if (configured) return;
-  if (!existsSync(VAPID_KEYS_PATH)) {
-    console.warn('[alertChecker] VAPID keys not found — push notifications disabled');
+  if (!config.VAPID_PUBLIC_KEY || !config.VAPID_PRIVATE_KEY) {
+    logger.warn('[alertChecker] VAPID keys not set — push notifications disabled');
     return;
   }
-  const keys = JSON.parse(readFileSync(VAPID_KEYS_PATH, 'utf8'));
-  webpush.setVapidDetails('mailto:alerts@tradeflow.app', keys.publicKey, keys.privateKey);
+  webpush.setVapidDetails('mailto:alerts@tradeflow.app', config.VAPID_PUBLIC_KEY, config.VAPID_PRIVATE_KEY);
   configured = true;
 }
 
@@ -45,7 +40,7 @@ async function fetchPriceData(asset) {
     }
     return cached ?? { price: null, change24h: null };
   } catch (err) {
-    console.warn(`[alertChecker] Price fetch failed for ${key}:`, err.message);
+    logger.warn({ err, asset: key }, '[alertChecker] Price fetch failed');
     return cached ?? { price: null, change24h: null };
   }
 }
@@ -57,7 +52,6 @@ function checkCondition(condition, currentPrice, threshold, priceData) {
   if (c === '>=') return currentPrice >= threshold;
   if (c === '<=') return currentPrice <= threshold;
   if (c === '==' || c === '=') return Math.abs(currentPrice - threshold) < threshold * 0.001;
-  // 24h change percentage conditions
   const change24h = priceData?.change24h ?? null;
   if (change24h != null) {
     if (c === 'change_up') return change24h >= threshold;
@@ -79,12 +73,12 @@ async function sendPush(subscription, payload) {
     return true;
   } catch (err) {
     if (err.statusCode === 404 || err.statusCode === 410) {
-      console.log(`[alertChecker] Removing stale subscription`);
+      logger.info('[alertChecker] Removing stale subscription');
       try {
         getDb().prepare('DELETE FROM push_subscriptions WHERE id = ?').run(subscription.id);
       } catch {}
     } else {
-      console.warn(`[alertChecker] Push send failed (${err.statusCode}):`, err.message);
+      logger.warn({ err, statusCode: err.statusCode }, '[alertChecker] Push send failed');
     }
     return false;
   }
@@ -139,11 +133,11 @@ async function checkAlerts() {
         for (const sub of subs) {
           if (await sendPush(sub, payload)) sent++;
         }
-        console.log(`[alertChecker] Alert #${alert.id} (${asset} ${alert.condition} $${alert.value}) triggered at $${currentPrice} — pushed to ${sent}/${subs.length} devices`);
+        logger.info({ alertId: alert.id, asset, condition: alert.condition, value: alert.value, price: currentPrice, pushed: sent, total: subs.length }, '[alertChecker] Alert triggered');
       }
     }
   } catch (err) {
-    console.error('[alertChecker] Check cycle error:', err.message);
+    logger.error({ err }, '[alertChecker] Check cycle error');
   }
 }
 
@@ -152,18 +146,18 @@ let _interval = null;
 export function startAlertChecker(intervalMs = 60_000) {
   ensureVapid();
   if (!configured) {
-    console.warn('[alertChecker] Cannot start — VAPID not configured');
+    logger.warn('[alertChecker] Cannot start — VAPID not configured');
     return;
   }
   checkAlerts();
   _interval = setInterval(checkAlerts, intervalMs);
-  console.log(`[alertChecker] Started — checking every ${intervalMs / 1000}s`);
+  logger.info({ intervalMs }, '[alertChecker] Started');
 }
 
 export function stopAlertChecker() {
   if (_interval) {
     clearInterval(_interval);
     _interval = null;
-    console.log('[alertChecker] Stopped');
+    logger.info('[alertChecker] Stopped');
   }
 }

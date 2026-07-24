@@ -57,7 +57,7 @@ let _prevSnapshot = {};
 
 export function scheduleBackendPush(store) {
   if (_pushTimer) clearTimeout(_pushTimer);
-  _pushTimer = setTimeout(() => pushToBackend(store), 2000);
+  _pushTimer = setTimeout(() => pushToBackend(store), 10000);
 }
 
 async function pushToBackend(store) {
