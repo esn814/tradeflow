@@ -111,11 +111,11 @@
 - [ ] Real exchange integration — API key auth, order placement, position tracking (~40-60h, separate project)
 - [x] Label all strategies/bots as "Demo/Simulation" in UI until real integration is done
 - [ ] Onboarding flow improvements
-- [ ] API documentation (OpenAPI/Swagger)
+- [x] API documentation (OpenAPI/Swagger)
 - [x] Staging environment — https://tradeflow-staging.cloud.hyperpaxeer.com
 
 ### Step 6: Scale Prep (~15h)
-- [ ] SQLite → PostgreSQL migration (or Render Starter for spin-down)
+- [x] SQLite → PostgreSQL migration (infrastructure ready: schema, indexes, adapter, migration runner) (or Render Starter for spin-down)
 - [x] Android CI pipeline — .github/workflows/android-ci.yml (builds APK on push, uploads artifact)
 - [x] Backup restore function — POST /api/backup/restore endpoint with filename validation
 - [x] Clean up Dockerfile vs render.yaml — render.yaml now uses runtime: docker, consistent with Dockerfile

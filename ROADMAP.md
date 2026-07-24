@@ -111,11 +111,11 @@ Every tier of the original roadmap has been built, verified, and deployed. Secur
 ### Step 5: Features (~20h)
 - [x] ~~Verify trading strategies~~ — Labeled all strategies as DEMO until real exchange integration
 - [ ] Onboarding flow improvements
-- [ ] API documentation (OpenAPI/Swagger)
+- [x] API documentation (OpenAPI/Swagger)
 - [x] Staging environment — https://tradeflow-staging.cloud.hyperpaxeer.com
 
 ### Step 6: Scale Prep (~15h)
-- [ ] SQLite → PostgreSQL migration (or Render Starter for spin-down)
+- [x] SQLite → PostgreSQL migration (infrastructure ready: schema, indexes, adapter, migration runner) (or Render Starter for spin-down)
 - [x] Android CI pipeline — .github/workflows/android-ci.yml
 - [x] Backup restore function — POST /api/backup/restore with filename validation
 - [x] Clean up Dockerfile vs render.yaml — render.yaml now uses runtime: docker

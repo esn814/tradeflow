@@ -184,6 +184,13 @@ Android browsers will unzip `.apk` files instead of offering to install them. Us
 ### Real Device Testing
 - [ ] Install release APK on 2-3 physical Android devices, verify all flows + push notifications
 
+### API Documentation + Postgres Migration (2026-07-24)
+
+- **Commit `b9c0d73`** — 7 files, 2488 insertions, pushed to GitHub
+- **API Docs**: `docs/openapi.yaml` (1321 lines, 42 operations, 27 paths, 9 resource groups) + `docs/API.md` (250 lines, developer guide with curl examples)
+- **Postgres Migration**: `server/db/migrations/001_initial_schema.sql` (14 tables), `002_indexes.sql` (14 composite indexes), `server/db/postgres.js` (SQLite-compatible adapter), `server/db/migrate.js` (runner with --dry-run), `POSTGRES_MIGRATION.md` (8-step guide)
+- **Render**: auto-deploys on push to master
+
 ### Low Effort / Optional
 - [ ] Further index chunk splitting (currently 40KB)
 - [x] ~~Play Store listing~~ — Decision: sideload APK via direct download (skip Google Play)
