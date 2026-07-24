@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLivePrices } from '../data/liveData';
 import { Bell, TrendingUp, AlertTriangle, Plus, Trash2, Check, Zap, Shield, Smartphone } from 'lucide-react';
 import InfoTip from '../components/InfoTip';
-import { Card, CardBody, Btn, Badge, PageHeader, Divider, Toggle, Input, EmptyState, SectionHeader, LinkCard } from '../components/ui';
+import { Card, CardBody, Btn, Badge, PageHeader, Divider, Toggle, Input, EmptyState, SectionHeader, LinkCard, StatusPill } from '../components/ui';
 import { useAppStore } from '../context/AppStore';
 import { isPushSupported, enablePushNotifications, isSubscribed as checkPushSubscribed } from '../services/pushNotifications';
 
@@ -240,7 +240,7 @@ export default function Alerts({ onNavigate }) {
                 <div className="flex items-center gap-2">
                   <span className="text-[var(--color-text-primary)] font-medium text-sm">{alert.asset}</span>
                   <Badge variant={typeBadgeVariant(alert.type)}>{alert.type}</Badge>
-                  {alert.triggered && <Badge variant="warning">Triggered</Badge>}
+                  {alert.triggered && <StatusPill status="triggered" />}
                 </div>
                 <p className="text-[var(--color-text-muted)] text-xs mt-0.5">
                   {alert.type === 'price' && `${alert.condition} $${alert.value?.toLocaleString()}`}

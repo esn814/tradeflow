@@ -3,7 +3,7 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 import { CHART_AXIS_TICK, CHART_AXIS, CHART_TOOLTIP_STYLE } from '../data/chartTheme';
 import { TrendingUp, Grid3x3, Timer, Pause, Play, StopCircle, Bot, Wallet, ArrowUpRight, ArrowDownRight, Plus, ChevronLeft, BarChart3, Clock } from 'lucide-react';
 import InfoTip from '../components/InfoTip';
-import { Card, CardBody, SectionHeader, Btn, Badge, Stat, PageHeader, Divider, EmptyState } from '../components/ui';
+import { Card, CardBody, SectionHeader, Btn, Badge, Stat, PageHeader, Divider, EmptyState, StatusPill } from '../components/ui';
 import { useAppStore } from '../context/AppStore';
 import { useMode } from '../context/AppStore';
 import { RiskBadge, calculateRiskScore, RiskScoreCard, PositionSizingAdvice } from '../components/RiskScore';
@@ -62,7 +62,7 @@ function BotDetail({ bot, onBack, onToggle, onStop, livePrices }) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant={bot.status === 'running' ? 'success' : bot.status === 'paused' ? 'warning' : 'danger'}>{bot.status}</Badge>
+          <StatusPill status={bot.status} />
           {bot.status !== 'stopped' && (
             <>
               <Btn variant="secondary" size="sm" onClick={() => onToggle(bot.id)}>
@@ -263,9 +263,7 @@ export default function MyBots({ onNavigate }) {
                       <p className="text-[11px] text-[var(--color-text-muted)]">{bot.type} Strategy</p>
                     </div>
                   </div>
-                  <Badge variant={bot.status === 'running' ? 'success' : bot.status === 'paused' ? 'warning' : 'danger'}>
-                    {bot.status}
-                  </Badge>
+                      <StatusPill status={bot.status} />
                 </div>
 
                 {/* Risk Score Badge */}

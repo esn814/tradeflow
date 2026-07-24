@@ -498,3 +498,9 @@ button, .sidebar-link, [role="button"] {
 .onboarding-slide {
   animation: onboardingSlideIn 0.2s ease-out;
 }
+
+/* Matrix Shimmer — sweeping gradient for live-state labels */
+@keyframes shimmer-sweep {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

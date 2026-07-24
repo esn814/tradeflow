@@ -158,3 +158,115 @@ export function EmptyState({ icon: Icon, title, desc, action }) {
     </Card>
   );
 }
+
+/* ── Matrix Design System components (brand.matrixmcl.com) ── */
+
+/**
+ * StatusPill — mono ALL-CAPS indicator for live states.
+ * Inspired by Matrix Design System's signature component.
+ * Use for bot status, trade status, alert state, connection state.
+ */
+const STATUS_STYLES = {
+  running:  'bg-[var(--color-accent)]/15 text-[var(--color-accent)]',
+  active:   'bg-[var(--color-accent)]/15 text-[var(--color-accent)]',
+  live:     'bg-[var(--color-accent)]/15 text-[var(--color-accent)]',
+  online:   'bg-[var(--color-accent)]/15 text-[var(--color-accent)]',
+  success:  'bg-[var(--color-success-18)] text-[var(--color-success)]',
+  filled:   'bg-[var(--color-success-18)] text-[var(--color-success)]',
+  resolved: 'bg-[var(--color-success-18)] text-[var(--color-success)]',
+  paused:   'bg-[var(--color-warning-alt-18)] text-[var(--color-warning-alt)]',
+  pending:  'bg-[var(--color-warning-alt-18)] text-[var(--color-warning-alt)]',
+  warning:  'bg-[var(--color-warning-alt-18)] text-[var(--color-warning-alt)]',
+  stopped:  'bg-[var(--color-danger-18)] text-[var(--color-danger)]',
+  failed:   'bg-[var(--color-danger-18)] text-[var(--color-danger)]',
+  error:    'bg-[var(--color-danger-18)] text-[var(--color-danger)]',
+  offline:  'bg-[var(--color-danger-18)] text-[var(--color-danger)]',
+  triggered:'bg-[var(--color-warning-18)] text-[var(--color-warning)]',
+  info:     'bg-[var(--color-info-18)] text-[var(--color-info)]',
+};
+
+export function StatusPill({ status, children, className = '' }) {
+  const s = (status || '').toLowerCase();
+  const style = STATUS_STYLES[s] || STATUS_STYLES.info;
+  const label = children || status;
+  return (
+    <span
+      className={`inline-flex items-center font-mono text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded ${style} ${className}`}
+      role="status"
+    >
+      {s === 'running' || s === 'active' || s === 'live' ? (
+        <span className="w-1.5 h-1.5 rounded-full bg-current mr-1.5 animate-pulse" />
+      ) : null}
+      {label}
+    </span>
+  );
+}
+
+/**
+ * ConfirmDialog — accessible modal for destructive actions.
+ * Replaces window.confirm() with a proper dark-themed dialog.
+ */
+export function ConfirmDialog({ open, title, message, confirmLabel = 'Confirm', variant = 'danger', onConfirm, onCancel }) {
+  if (!open) return null;
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      onClick={onCancel}
+      onKeyDown={(e) => e.key === 'Escape' && onCancel?.()}
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+    >
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div
+        className="relative bg-[var(--color-surface-2)] border border-[var(--color-border-strong)] rounded-2xl p-6 max-w-md w-full shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {title && <h3 className="text-[var(--color-text-primary)] font-bold text-base mb-2">{title}</h3>}
+        {message && <p className="text-sm text-[var(--color-text-secondary)] mb-6 leading-relaxed">{message}</p>}
+        <div className="flex gap-3 justify-end">
+          <Btn variant="ghost" size="sm" onClick={onCancel}>Cancel</Btn>
+          <Btn variant={variant} size="sm" onClick={onConfirm}>{confirmLabel}</Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Tip — lightweight hover tooltip for metrics and status indicators.
+ * Shows on hover/focus, positioned above the trigger element.
+ */
+export function Tip({ children, text }) {
+  return (
+    <span className="relative inline-flex group/tip">
+      {children}
+      <span
+        className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 text-[11px] font-mono font-medium text-[var(--color-text-primary)] bg-[var(--color-surface-3)] border border-[var(--color-border-strong)] rounded-lg opacity-0 group-hover/tip:opacity-100 group-focus-within/tip:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50"
+        role="tooltip"
+      >
+        {text}
+        <span className="absolute top-full left-1/2 -translate-x-1/2 -mt-px border-4 border-transparent border-t-[var(--color-border-strong)]" />
+      </span>
+    </span>
+  );
+}
+
+/**
+ * Shimmer — sweeping gradient label for live/refreshing states.
+ * Inspired by Matrix Design System's Shimmer component.
+ * Use for prices, balances, or P&L while data is refreshing.
+ */
+export function Shimmer({ children, active = true, className = '' }) {
+  if (!active) return <span className={className}>{children}</span>;
+  return (
+    <span
+      className={`inline-block bg-clip-text text-transparent bg-[length:200%_100%] animate-[shimmer-sweep_2s_ease-in-out_infinite] ${className}`}
+      style={{
+        backgroundImage: 'linear-gradient(90deg, var(--color-text-primary) 0%, var(--color-accent) 50%, var(--color-text-primary) 100%)',
+      }}
+    >
+      {children}
+    </span>
+  );
+}

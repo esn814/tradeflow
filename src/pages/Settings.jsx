@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useMode, useAppStore } from '../context/AppStore';
 import { Bell, Shield, Key, Globe, Save, AlertTriangle, CheckCircle, Wallet, Send, MessageSquare } from 'lucide-react';
-import { Card, CardBody, SectionHeader, Btn, Badge, PageHeader, Divider, Toggle, Input, LinkCard } from '../components/ui';
+import { Card, CardBody, SectionHeader, Btn, Badge, PageHeader, Divider, Toggle, Input, LinkCard, ConfirmDialog } from '../components/ui';
 import { isPushSupported, enablePushNotifications, disablePushNotifications, isSubscribed } from '../services/pushNotifications';
 
 const EXCHANGES = [
@@ -43,6 +43,10 @@ export default function Settings({ onNavigate }) {
   const [pushEnabled, setPushEnabled] = useState(false);
   const [pushLoading, setPushLoading] = useState(false);
   const [pushError, setPushError] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
+  const confirm = (message, onOk) => setConfirmState({ message, onOk });
+  const handleConfirm = () => { confirmState?.onOk(); setConfirmState(null); };
+  const handleCancel = () => setConfirmState(null);
 
   useEffect(() => {
     isSubscribed().then(setPushEnabled).catch(() => {});
@@ -179,9 +183,9 @@ export default function Settings({ onNavigate }) {
                 </div>
                 <Btn variant={ex.connected ? 'danger' : 'success'} size="sm" onClick={() => {
                 if (ex.connected) {
-                    if (window.confirm(`Disconnect from ${ex.name}?`)) {
-                        setSaved(true); setTimeout(() => setSaved(false), 2000);
-                  }
+                confirm(`Disconnect from ${ex.name}?`, () => {
+                setSaved(true); setTimeout(() => setSaved(false), 2000);
+                });
                 } else {
                   setSaved(true); setTimeout(() => setSaved(false), 2000);
                 }
@@ -403,9 +407,9 @@ export default function Settings({ onNavigate }) {
         <CardBody>
           <SectionHeader icon={AlertTriangle} title="Danger Zone" />
           <div className="flex flex-wrap gap-3">
-            <Btn variant="danger" size="sm" onClick={() => { if (window.confirm('Close all open positions? This cannot be undone.')) { updateSettings({ bots: [] }); setSaved(true); setTimeout(() => setSaved(false), 2000); } }}>Close All Positions</Btn>
-            <Btn variant="danger" size="sm" onClick={() => { if (window.confirm('Reset all strategy parameters to defaults?')) { localStorage.clear(); window.location.reload(); } }}>Reset All Strategies</Btn>
-            <Btn variant="danger" size="sm" onClick={() => { if (window.confirm('Delete ALL account data? This cannot be undone.')) { localStorage.clear(); window.location.reload(); } }}>Delete Account Data</Btn>
+            <Btn variant="danger" size="sm" onClick={() => confirm('Close all open positions? This cannot be undone.', () => { updateSettings({ bots: [] }); setSaved(true); setTimeout(() => setSaved(false), 2000); })}>Close All Positions</Btn>
+            <Btn variant="danger" size="sm" onClick={() => confirm('Reset all strategy parameters to defaults?', () => { localStorage.clear(); window.location.reload(); })}>Reset All Strategies</Btn>
+            <Btn variant="danger" size="sm" onClick={() => confirm('Delete ALL account data? This cannot be undone.', () => { localStorage.clear(); window.location.reload(); })}>Delete Account Data</Btn>
           </div>
         </CardBody>
       </Card>
@@ -429,6 +433,14 @@ export default function Settings({ onNavigate }) {
           <LinkCard icon={Shield} title="Terms of Service" desc="Usage terms, risk disclosures, and liability" color="var(--color-warning)" onClick={() => onNavigate('/terms')} />
         </div>
       </div>
+
+      <ConfirmDialog
+        open={!!confirmState}
+        title="Confirm Action"
+        message={confirmState?.message}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
     </div>
   );
 }
