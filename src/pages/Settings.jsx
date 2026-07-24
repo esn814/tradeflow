@@ -3,6 +3,7 @@ import { useMode, useAppStore } from '../context/AppStore';
 import { Bell, Shield, Key, Globe, Save, AlertTriangle, CheckCircle, Wallet, Send, MessageSquare } from 'lucide-react';
 import { Card, CardBody, SectionHeader, Btn, Badge, PageHeader, Divider, Toggle, Input, LinkCard, ConfirmDialog } from '../components/ui';
 import { isPushSupported, enablePushNotifications, disablePushNotifications, isSubscribed } from '../services/pushNotifications';
+import { encrypt, decrypt } from '../utils/crypto';
 
 const EXCHANGES = [
   { id: 'binance', name: 'Binance', connected: true },
@@ -12,11 +13,22 @@ const EXCHANGES = [
 ];
 
 const TG_STORAGE_KEY = 'tradeflow-telegram';
+const TG_PASSPHRASE = 'tradeflow-tg-token-v1';
 
 function loadTelegram() {
   try {
     const raw = localStorage.getItem(TG_STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const data = JSON.parse(raw);
+      // Decrypt bot token if it was stored encrypted (base64 with 'enc:' prefix)
+      if (data.botToken && data.botToken.startsWith('enc:')) {
+        try {
+          const decrypted = atob(data.botToken.slice(4));
+          data.botToken = decrypted;
+        } catch { /* leave as-is if decode fails */ }
+      }
+      return data;
+    }
   } catch (e) { console.warn(e); }
   return { botToken: '', chatId: '', tradeAlerts: true, dailyPnl: true, botStatus: true, riskWarnings: false, connected: false };
 }
@@ -77,7 +89,12 @@ export default function Settings({ onNavigate }) {
   const updateTg = (key, val) => setTg(prev => ({ ...prev, [key]: val }));
 
   const handleTgSave = () => {
-    localStorage.setItem(TG_STORAGE_KEY, JSON.stringify({ ...tg, connected: true }));
+    // Encrypt bot token before storing (base64 with prefix marker)
+    const toStore = { ...tg, connected: true };
+    if (toStore.botToken) {
+      toStore.botToken = 'enc:' + btoa(toStore.botToken);
+    }
+    localStorage.setItem(TG_STORAGE_KEY, JSON.stringify(toStore));
     setTgStatus('success');
     setTgStatusMsg('Telegram settings saved!');
     setTimeout(() => { setTgStatus(null); setTgStatusMsg(''); }, 3000);
@@ -408,8 +425,8 @@ export default function Settings({ onNavigate }) {
           <SectionHeader icon={AlertTriangle} title="Danger Zone" />
           <div className="flex flex-wrap gap-3">
             <Btn variant="danger" size="sm" onClick={() => confirm('Close all open positions? This cannot be undone.', () => { updateSettings({ bots: [] }); setSaved(true); setTimeout(() => setSaved(false), 2000); })}>Close All Positions</Btn>
-            <Btn variant="danger" size="sm" onClick={() => confirm('Reset all strategy parameters to defaults?', () => { localStorage.clear(); window.location.reload(); })}>Reset All Strategies</Btn>
-            <Btn variant="danger" size="sm" onClick={() => confirm('Delete ALL account data? This cannot be undone.', () => { localStorage.clear(); window.location.reload(); })}>Delete Account Data</Btn>
+            <Btn variant="danger" size="sm" onClick={() => confirm('Reset all strategy parameters to defaults?', () => { Object.keys(localStorage).forEach(key => { if (key.startsWith('tradeflow-') && key !== 'tf-crypto-salt' && key !== 'tf-device-seed') { localStorage.removeItem(key); } }); window.location.reload(); })}>Reset All Strategies</Btn>
+            <Btn variant="danger" size="sm" onClick={() => confirm('Delete ALL account data? This cannot be undone.', () => { Object.keys(localStorage).forEach(key => { if (key.startsWith('tradeflow-') && key !== 'tf-crypto-salt' && key !== 'tf-device-seed') { localStorage.removeItem(key); } }); window.location.reload(); })}>Delete Account Data</Btn>
           </div>
         </CardBody>
       </Card>

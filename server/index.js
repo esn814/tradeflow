@@ -41,7 +41,21 @@ app.set('trust proxy', 'loopback');
 
 // ── Security headers (HSTS, X-Frame-Options, X-Content-Type-Options, etc.) ──
 app.use(helmet({
-  contentSecurityPolicy: false, // CSP is in HTML meta tag
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      imgSrc: ["'self'", "data:", "https:"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      connectSrc: ["'self'", "https://api.paxscan.io", "https://api.hyperpax.xyz", "wss:"],
+      frameSrc: ["'none'"],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+      frameAncestors: ["'self'"],
+    },
+  },
   hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
 }));
 
@@ -100,8 +114,19 @@ const writeLimiter = rateLimit({
   message: { error: 'Too many write requests, please try again later' },
 });
 
-// Health check — no uptime disclosure
+// Health check — minimal, no internals disclosed
 app.get('/api/health', (req, res) => {
+  try {
+    const db = getDb();
+    db.prepare('SELECT 1').get();
+    res.json({ ok: true });
+  } catch {
+    res.status(503).json({ ok: false });
+  }
+});
+
+// Admin health — detailed, authenticated
+app.get('/api/admin/health', authMiddleware, (req, res) => {
   try {
     const db = getDb();
     db.prepare('SELECT 1').get();

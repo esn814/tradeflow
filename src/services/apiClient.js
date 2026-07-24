@@ -153,10 +153,13 @@ export async function deleteBot(id) {
 
 // ─── Trades ────────────────────────────────────────────────────
 export async function fetchTrades({ botId, limit, offset } = {}) {
+  if (botId) botId = String(botId).slice(0, 100);
+  limit = Math.min(Math.max(1, +limit || 100), 100);
+  offset = Math.max(0, +offset || 0);
   const params = new URLSearchParams();
   if (botId) params.set('botId', botId);
-  if (limit) params.set('limit', limit);
-  if (offset) params.set('offset', offset);
+  params.set('limit', limit);
+  params.set('offset', offset);
   const qs = params.toString();
   return safe(`/trades${qs ? '?' + qs : ''}`) ?? [];
 }
@@ -252,10 +255,14 @@ export async function recordCopyTrade(trade) {
 
 // ─── Social / Leaderboard ────────────────────────────────────
 export async function fetchLeaderboard(period = 'week', limit = 25) {
+  limit = Math.min(Math.max(1, +limit || 25), 100);
   return safe(`/social/leaderboard?period=${period}&limit=${limit}`) ?? [];
 }
 
 export async function fetchSharedStrategies({ type, risk, search, page = 1, limit = 12 } = {}) {
+  limit = Math.min(Math.max(1, +limit || 12), 100);
+  page = Math.max(1, +page || 1);
+  if (search) search = String(search).slice(0, 200);
   const params = new URLSearchParams();
   if (type) params.set('type', type);
   if (risk) params.set('risk', risk);

@@ -7,7 +7,7 @@ export default defineConfig({
   base: '/',
   build: {
     outDir: 'dist',
-    sourcemap: 'hidden',
+    sourcemap: process.env.NODE_ENV === 'production' ? false : 'hidden',
     chunkSizeWarningLimit: 600,
     modulePreload: { polyfill: false },
     rolldownOptions: {

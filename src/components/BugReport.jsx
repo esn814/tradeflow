@@ -100,7 +100,7 @@ export default function BugReport() {
     )
 
     // Open mailto with rich body
-    window.open(`mailto:support@tradeflow.app?subject=${subject}&body=${encodeURIComponent(body)}`, '_blank')
+    window.open(`mailto:support@tradeflow.app?subject=${subject}&body=${encodeURIComponent(body)}`, '_blank', 'noopener,noreferrer')
 
     setSent(true)
     setTimeout(() => { setOpen(false); setMsg(''); setSent(false); setScreenshot(null); setSummary(null) }, 3000)

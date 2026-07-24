@@ -5,13 +5,19 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { authMiddleware } from '../auth.js';
 import { getDb } from '../db.js';
+import config from '../config.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const VAPID_KEYS_PATH = join(__dirname, '..', 'vapid-keys.json');
 
-// Load VAPID keys
+// Load VAPID keys: prefer env vars, fall back to file
 let vapidKeys = null;
-if (existsSync(VAPID_KEYS_PATH)) {
+if (config.VAPID_PUBLIC_KEY && config.VAPID_PRIVATE_KEY) {
+  vapidKeys = {
+    publicKey: config.VAPID_PUBLIC_KEY,
+    privateKey: config.VAPID_PRIVATE_KEY,
+  };
+} else if (existsSync(VAPID_KEYS_PATH)) {
   vapidKeys = JSON.parse(readFileSync(VAPID_KEYS_PATH, 'utf8'));
 }
 

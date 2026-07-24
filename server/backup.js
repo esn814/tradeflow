@@ -1,6 +1,7 @@
 import { readdirSync, unlinkSync, mkdirSync, statSync, existsSync, copyFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { getDb, resetDb } from './db.js';
+import { logger } from './logger.js';
 
 const DB_PATH = process.env.DB_PATH || join(import.meta.dirname, 'data', 'tradeflow.db');
 const BACKUP_DIR = join(dirname(DB_PATH), 'backups');
@@ -26,11 +27,11 @@ export function createBackup() {
 
     const size = statSync(backupPath).size;
     const sizeMB = (size / 1024 / 1024).toFixed(2);
-    console.log(`[backup] Created: ${backupPath} (${sizeMB} MB)`);
+    logger.info({ path: backupPath, sizeMB }, '[backup] Created');
 
     return { ok: true, path: backupPath, sizeMB };
   } catch (err) {
-    console.error('[backup] Failed:', err.message);
+    logger.error({ err: err.message }, '[backup] Failed');
     return { ok: false, error: err.message };
   }
 }
@@ -52,11 +53,11 @@ export function cleanupOldBackups() {
       if (stat.mtimeMs < cutoff) {
         unlinkSync(filePath);
         deleted++;
-        console.log(`[backup] Deleted old: ${file}`);
+        logger.info({ file }, '[backup] Deleted old');
       }
     }
   } catch (err) {
-    console.error('[backup] Cleanup error:', err.message);
+    logger.error({ err: err.message }, '[backup] Cleanup error');
   }
 
   return { deleted };
@@ -121,17 +122,17 @@ export function restoreBackup(backupName) {
 export function startBackupScheduler() {
   // Run first backup 60 seconds after startup
   setTimeout(() => {
-    console.log('[backup] Running initial backup...');
+    logger.info('[backup] Running initial backup...');
     createBackup();
     cleanupOldBackups();
   }, 60_000);
 
   // Then every 24 hours
   setInterval(() => {
-    console.log('[backup] Scheduled backup starting...');
+    logger.info('[backup] Scheduled backup starting...');
     createBackup();
     cleanupOldBackups();
   }, BACKUP_INTERVAL_MS);
 
-  console.log(`[backup] Scheduler started — daily backups, ${RETENTION_DAYS}-day retention`);
+  logger.info({ retentionDays: RETENTION_DAYS }, '[backup] Scheduler started — daily backups');
 }

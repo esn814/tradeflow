@@ -7,7 +7,7 @@
   },
   "android": {
     "backgroundColor": "#0b0f1a",
-    "allowMixedContent": true
+    "allowMixedContent": false
   },
   "plugins": {
     "StatusBar": {

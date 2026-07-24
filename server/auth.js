@@ -2,10 +2,11 @@ import { Router } from 'express';
 import { randomBytes } from 'crypto';
 import jwt from 'jsonwebtoken';
 import { getDb, upsertUser } from './db.js';
+import { logger } from './logger.js';
 
 // ── FIX #4: Require JWT_SECRET — no file-based fallback ──
 if (!process.env.JWT_SECRET) {
-  console.error('FATAL: JWT_SECRET environment variable is required. Exiting.');
+  logger.error('FATAL: JWT_SECRET environment variable is required. Exiting.');
   process.exit(1);
 }
 export const JWT_SECRET = process.env.JWT_SECRET;
@@ -127,7 +128,7 @@ router.post('/verify', async (req, res) => {
       address: user.address,
     });
   } catch (err) {
-    console.error('Auth verify error:', err);
+    logger.error({ err }, 'Auth verify error');
     res.status(500).json({ error: 'Authentication failed' });
   }
 });
@@ -152,6 +153,19 @@ router.post('/refresh', (req, res) => {
     JWT_SECRET,
     { algorithm: JWT_ALGORITHM, expiresIn: JWT_EXPIRY }
   );
+
+  // Rotate refresh token: delete old, issue new
+  deleteRefreshToken(refreshToken);
+  const newRefreshToken = randomBytes(32).toString('hex');
+  storeRefreshToken(newRefreshToken, data.user_id, data.address);
+
+  res.cookie('tf_rt', newRefreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'strict',
+    maxAge: REFRESH_TTL_MS,
+    path: '/api/auth',
+  });
 
   res.json({ token, address: data.address });
 });

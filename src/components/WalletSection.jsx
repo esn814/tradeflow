@@ -86,7 +86,7 @@ export default function WalletSection({
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge style={{ background: chain?.color + '20', color: chain?.color }}>{chain?.icon} {chain?.short}</Badge>
-                  <Btn variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); window.open(`${chain?.explorer}/address/${wallet.address}`, '_blank'); }}><ExternalLink className="w-4 h-4" /></Btn>
+                  <Btn variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); window.open(`${chain?.explorer}/address/${wallet.address}`, '_blank', 'noopener,noreferrer'); }}><ExternalLink className="w-4 h-4" /></Btn>
                   <Btn variant="danger" size="sm" onClick={(e) => { e.stopPropagation(); disconnectWallet(idx); }}><Unplug className="w-3 h-3" /></Btn>
                 </div>
               </div>
