@@ -141,9 +141,9 @@ export default function AutomatedTrading({ onNavigate: _onNavigate }) {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <PageHeader icon={Bot} title="Automated Trading" badge="REAL SWAPS"
-        subtitle="Deploy DCA, Grid, Mean Reversion and Trailing Stop strategies with real swap execution">
-        <InfoTip text="Unlike the Stress Test simulation, these strategies execute through connected DEX routers with real on-chain transactions. Always start with small amounts and test thoroughly." />
+      <PageHeader icon={Bot} title="Automated Trading" badge="DEMO"
+        subtitle="Deploy DCA, Grid, Mean Reversion and Trailing Stop strategies in demo mode">
+        <InfoTip text="These strategies simulate trades using live market data but do not place real orders. Real exchange integration is on the roadmap." />
       </PageHeader>
 
       {/* KPI Row */}

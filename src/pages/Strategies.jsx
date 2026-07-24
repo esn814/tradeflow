@@ -91,7 +91,7 @@ export default function Strategies({ onNavigate }) {
 
   return (
     <div className="max-w-5xl mx-auto space-y-5">
-      <PageHeader icon={Bot} title="Trading Strategies" subtitle="Configure and manage AI-powered trading strategies">
+      <PageHeader icon={Bot} title="Trading Strategies" subtitle="Explore demo trading strategies — real exchange integration coming soon">
         {!simple && (
           <Btn variant="primary" size="md" onClick={() => onNavigate('/autopilot')}>
             <Bot className="w-4 h-4" /> New Strategy
