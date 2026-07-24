@@ -1,5 +1,5 @@
 # TradeFlow Roadmap
-*Last audited against source: 2026-07-23*
+*Last audited against source: 2026-07-24*
 
 ---
 
@@ -119,6 +119,17 @@ Every tier of the original roadmap has been built, verified, and deployed. Secur
 - [ ] Android CI pipeline
 - [ ] Backup restore function + off-site backup
 - [ ] Clean up Dockerfile vs render.yaml inconsistency
+
+---
+
+## Enhancement Audit (2026-07-24) — All 25 Findings Fixed ✅
+
+A comprehensive codebase audit identified 25 issues across security, backend, frontend, DevOps, and architecture. All have been implemented (commit f2336b9, 22 files, 192 insertions, 120 deletions).
+
+**Critical (5):** SQL injection fix, z.any()→z.record, VAPID env vars, SameSite strict, npm audit in CI
+**High (7):** Social route validation + auth, dead code removal, logger in all routes, trust proxy, pagination
+**Medium (9):** Multi-stage Dockerfile, auto-demo fix, storeSync debounce 10s, server/.env.example, X-Request-Id, enriched health check, db.js docs
+**Low (2):** Sentry replay sampling, vapid-keys.json gitignored
 
 ---
 

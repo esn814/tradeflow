@@ -1,5 +1,5 @@
 # TradeFlow Progress Log
-*Last updated: 2026-07-23*
+*Last updated: 2026-07-24*
 
 ## Current State (verified 2026-07-23)
 
@@ -35,6 +35,22 @@ Backups:   Daily VACUUM INTO, 7-day retention, stored on Render persistent disk
 - **2026-07-23:** Release APK built — 6.1MB signed release (was 7.8MB debug), 2048-bit RSA keystore.
 - **2026-07-23:** Comprehensive security hardening — 12 findings fixed across auth, CSP, headers, rate limits.
 - **2026-07-23:** CSP `unsafe-inline` removed from `script-src`, JWT reduced to 5min, all scripts externalized.
+
+---
+
+## Enhancement Audit (2026-07-24)
+
+All 25 findings from a comprehensive codebase audit have been implemented and pushed:
+
+| Category | Critical | High | Medium | Low | Total |
+|----------|----------|------|--------|-----|-------|
+| Security | 4 | 2 | 0 | 0 | 6 |
+| Backend | 1 | 4 | 5 | 1 | 11 |
+| Frontend | 0 | 2 | 2 | 0 | 4 |
+| DevOps | 1 | 1 | 2 | 1 | 5 |
+| **Total** | **5** | **7** | **9** | **2** | **25** |
+
+Key changes: SQL injection fix, VAPID keys to env vars, SameSite cookie hardening, Zod validation on all write endpoints, pino logger throughout, pagination on all list endpoints, multi-stage Dockerfile, X-Request-Id middleware, enriched health check.
 
 ---
 
