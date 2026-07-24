@@ -109,7 +109,7 @@
 
 ### Step 5: Features (~20h)
 - [ ] Real exchange integration — API key auth, order placement, position tracking (~40-60h, separate project)
-- [ ] Label all strategies/bots as "Demo/Simulation" in UI until real integration is done
+- [x] Label all strategies/bots as "Demo/Simulation" in UI until real integration is done
 - [ ] Onboarding flow improvements
 - [ ] API documentation (OpenAPI/Swagger)
 - [ ] Staging environment
