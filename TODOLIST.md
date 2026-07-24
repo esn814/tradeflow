@@ -144,3 +144,11 @@
 | Stress test TPS | 6,072 (1000 bots, 3 engines) |
 | JWT expiry | 5 min (httpOnly refresh cookie) |
 | Rate limits | 100 global, 20 auth, 10 trade/min, 2 backup/hr |
+
+## 🔜 Next Up (Post Security Audit)
+
+- [ ] Set ADMIN_ADDRESSES env var on Render — enables backup restore admin check (5 min)
+- [ ] Real Android device testing — install APK on 2-3 physical devices, verify all flows + push notifications (1-2h)
+- [ ] Test coverage expansion — edge cases for auth, trades, alerts, copy trading (~25h)
+- [ ] P&L analytics refinement — realized/unrealized, per-strategy breakdown, dedicated UI (2 weeks)
+- [ ] Real exchange integration — real API key auth + order placement, strategies no longer DEMO-labeled (40-60h, separate project)

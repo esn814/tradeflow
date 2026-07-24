@@ -153,3 +153,11 @@ Testing:   Vitest 4.1 (18 smoke tests) + Playwright 1.61 (14 E2E tests)
 Backups:   Daily VACUUM INTO, 7-day retention, Render persistent disk
 Security:  helmet (HSTS), CSP (no unsafe-inline), SIWE domain binding, 5-min JWT, memory-only tokens
 ```
+
+## 🔜 Next Up (Post Security Audit)
+
+- [ ] Set ADMIN_ADDRESSES env var on Render — enables backup restore admin check (5 min)
+- [ ] Real Android device testing — install APK on 2-3 physical devices, verify all flows + push notifications (1-2h)
+- [ ] Test coverage expansion — edge cases for auth, trades, alerts, copy trading (~25h)
+- [ ] P&L analytics refinement — realized/unrealized, per-strategy breakdown, dedicated UI (2 weeks)
+- [ ] Real exchange integration — real API key auth + order placement, strategies no longer DEMO-labeled (40-60h, separate project)
