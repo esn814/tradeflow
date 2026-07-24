@@ -1,0 +1,1 @@
+var e={stroke:`#1e2740`,strokeDasharray:`3 3`},t={fill:`#8892b0`,fontSize:11},n={axisLine:!1,tickLine:!1},r={background:`#0a0f1e`,border:`1px solid #1e2740`,borderRadius:12,color:`#ccd6f6`,fontSize:12};export{r as i,t as n,e as r,n as t};
