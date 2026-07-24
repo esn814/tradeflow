@@ -1,0 +1,1321 @@
+openapi: 3.0.3
+info:
+  title: TradeFlow API
+  version: 1.0.0
+  description: |
+    Backend API for TradeFlow — an automated crypto trading platform.
+    All endpoints except Auth require a Bearer JWT token obtained via SIWE (Sign-In With Ethereum).
+  contact:
+    name: TradeFlow Team
+
+servers:
+  - url: https://tradeflow-api-i2o1.onrender.com
+    description: Production (Render)
+
+security:
+  - BearerAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Short-lived JWT (5min) obtained via POST /api/auth/verify.
+        Refresh via POST /api/auth/refresh using an httpOnly cookie.
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        address:
+          type: string
+          description: Ethereum address (EIP-55 checksummed)
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT access token (5min expiry)
+        user:
+          $ref: '#/components/schemas/User'
+        address:
+          type: string
+
+    Trade:
+      type: object
+      properties:
+        id:
+          type: string
+        botId:
+          type: string
+        pair:
+          type: string
+          example: BTC/USDT
+        side:
+          type: string
+          enum: [buy, sell]
+        price:
+          type: number
+        qty:
+          type: number
+        pnl:
+          type: number
+        status:
+          type: string
+          example: filled
+        sl:
+          type: number
+          nullable: true
+        tp:
+          type: number
+          nullable: true
+        strategy:
+          type: string
+          nullable: true
+        time:
+          type: string
+          format: date-time
+        meta:
+          type: object
+          nullable: true
+
+    TradeSummary:
+      type: object
+      properties:
+        count:
+          type: integer
+        totalPnl:
+          type: number
+        volume:
+          type: number
+        winRate:
+          type: number
+          description: Win rate as percentage (0-100)
+
+    Bot:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        strategy:
+          type: string
+        pair:
+          type: string
+        risk:
+          type: string
+          enum: [Low, Medium, High]
+        status:
+          type: string
+          enum: [running, paused, stopped]
+        config:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+
+    Alert:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        condition:
+          type: string
+        value:
+          type: number
+        active:
+          type: boolean
+        triggered:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    Schedule:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        strategy:
+          type: string
+        pair:
+          type: string
+        frequency:
+          type: string
+        active:
+          type: boolean
+        params:
+          type: object
+
+    Settings:
+      type: object
+      properties:
+        maxPositionSize:
+          type: number
+        maxDailyLoss:
+          type: number
+        riskLevel:
+          type: string
+        notifications:
+          type: object
+
+    CopyTrader:
+      type: object
+      properties:
+        id:
+          type: integer
+        trader_id:
+          type: string
+        name:
+          type: string
+        active:
+          type: boolean
+
+    Strategy:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        strategy_type:
+          type: string
+        params:
+          type: object
+        likes:
+          type: integer
+        forks:
+          type: integer
+        author_address:
+          type: string
+        published_at:
+          type: string
+          format: date-time
+
+    PushSubscription:
+      type: object
+      properties:
+        id:
+          type: integer
+        endpoint:
+          type: string
+
+tags:
+  - name: Auth
+    description: SIWE-based wallet authentication (JWT + refresh tokens)
+  - name: Trades
+    description: Trade history and recording
+  - name: Bots
+    description: Trading bot CRUD
+  - name: Alerts
+    description: Price and condition alerts
+  - name: Schedules
+    description: Scheduled trading tasks
+  - name: Settings
+    description: User settings and demo trades
+  - name: Push
+    description: Web push notification subscriptions
+  - name: Copy Trading
+    description: Follow and copy other traders
+  - name: Social
+    description: Leaderboards, shared strategies, likes, forks
+
+paths:
+  # ── Auth ──────────────────────────────────────────────────
+  /api/auth/nonce:
+    post:
+      tags: [Auth]
+      summary: Generate SIWE nonce
+      description: Returns a one-time nonce for Sign-In With Ethereum message construction.
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Nonce generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nonce:
+                    type: string
+        '429':
+          description: Too many pending nonces (rate limit)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/verify:
+    post:
+      tags: [Auth]
+      summary: Verify SIWE signature and issue JWT
+      description: |
+        Accepts a signed SIWE message + signature, verifies it, upserts the user,
+        and returns a short-lived JWT (5min) plus a refresh token (httpOnly cookie, 7d).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message, signature]
+              properties:
+                message:
+                  type: string
+                  description: The SIWE message string
+                signature:
+                  type: string
+                  description: EIP-191 personal_sign signature
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+          headers:
+            Set-Cookie:
+              description: tf_rt httpOnly refresh token cookie
+              schema:
+                type: string
+        '400':
+          description: Missing or invalid nonce
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Signature verification failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh JWT access token
+      description: Exchange a valid refresh token cookie for a new 5min JWT.
+      security: []
+      responses:
+        '200':
+          description: New JWT issued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  address:
+                    type: string
+        '401':
+          description: No valid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout and revoke refresh token
+      security: []
+      responses:
+        '200':
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+
+  # ── Trades ────────────────────────────────────────────────
+  /api/trades:
+    get:
+      tags: [Trades]
+      summary: List trades
+      parameters:
+        - name: botId
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Trade list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Trade'
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags: [Trades]
+      summary: Record a trade
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [pair, side, price, qty]
+              properties:
+                id:
+                  type: string
+                  description: Custom trade ID (auto-generated if omitted)
+                botId:
+                  type: string
+                pair:
+                  type: string
+                side:
+                  type: string
+                  enum: [buy, sell]
+                price:
+                  type: number
+                qty:
+                  type: number
+                pnl:
+                  type: number
+                  default: 0
+                status:
+                  type: string
+                  default: filled
+                sl:
+                  type: number
+                  nullable: true
+                tp:
+                  type: number
+                  nullable: true
+                strategy:
+                  type: string
+                meta:
+                  type: object
+                time:
+                  type: string
+                  format: date-time
+      responses:
+        '201':
+          description: Trade recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  id:
+                    type: string
+
+  /api/trades/summary:
+    get:
+      tags: [Trades]
+      summary: Get trade summary statistics
+      parameters:
+        - name: botId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Summary stats
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TradeSummary'
+
+  # ── Alerts ───────────────────────────────────────────────
+  /api/alerts:
+    get:
+      tags: [Alerts]
+      summary: List alerts
+      responses:
+        '200':
+          description: Alert list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Alert'
+    post:
+      tags: [Alerts]
+      summary: Create alert
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, condition, value]
+              properties:
+                type:
+                  type: string
+                  description: 'Alert type (e.g. price_above, price_below)'
+                condition:
+                  type: string
+                value:
+                  type: number
+                pair:
+                  type: string
+      responses:
+        '201':
+          description: Alert created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  id:
+                    type: integer
+
+  /api/alerts/{id}:
+    put:
+      tags: [Alerts]
+      summary: Update alert
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                condition:
+                  type: string
+                value:
+                  type: number
+                active:
+                  type: boolean
+      responses:
+        '200':
+          description: Alert updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+    delete:
+      tags: [Alerts]
+      summary: Delete alert
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Alert deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+
+  # ── Bots ──────────────────────────────────────────────────
+  /api/bots:
+    get:
+      tags: [Bots]
+      summary: List bots
+      responses:
+        '200':
+          description: Bot list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Bot'
+    post:
+      tags: [Bots]
+      summary: Create bot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, strategy, pair]
+              properties:
+                name:
+                  type: string
+                strategy:
+                  type: string
+                pair:
+                  type: string
+                risk:
+                  type: string
+                  enum: [Low, Medium, High]
+                config:
+                  type: object
+      responses:
+        '201':
+          description: Bot created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  id:
+                    type: string
+
+  /api/bots/{id}:
+    put:
+      tags: [Bots]
+      summary: Update bot
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                status:
+                  type: string
+                  enum: [running, paused, stopped]
+                config:
+                  type: object
+      responses:
+        '200':
+          description: Bot updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+    delete:
+      tags: [Bots]
+      summary: Delete bot
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Bot deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+
+  # ── Schedules ─────────────────────────────────────────────
+  /api/schedules:
+    get:
+      tags: [Schedules]
+      summary: List scheduled tasks
+      responses:
+        '200':
+          description: Schedule list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Schedule'
+    post:
+      tags: [Schedules]
+      summary: Create schedule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, strategy, pair]
+              properties:
+                name:
+                  type: string
+                strategy:
+                  type: string
+                pair:
+                  type: string
+                frequency:
+                  type: string
+                params:
+                  type: object
+      responses:
+        '201':
+          description: Schedule created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  id:
+                    type: string
+
+  /api/schedules/{id}:
+    put:
+      tags: [Schedules]
+      summary: Update schedule
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                active:
+                  type: boolean
+                params:
+                  type: object
+      responses:
+        '200':
+          description: Schedule updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+    delete:
+      tags: [Schedules]
+      summary: Delete schedule
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Schedule deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+
+  # ── Settings ──────────────────────────────────────────────
+  /api/settings:
+    get:
+      tags: [Settings]
+      summary: Get user settings
+      responses:
+        '200':
+          description: User settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Settings'
+    put:
+      tags: [Settings]
+      summary: Update user settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Settings'
+      responses:
+        '200':
+          description: Settings updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+
+  /api/settings/demo-trades:
+    get:
+      tags: [Settings]
+      summary: List demo trades
+      responses:
+        '200':
+          description: Demo trade list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Trade'
+    post:
+      tags: [Settings]
+      summary: Record a demo trade
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [pair, side, price, qty]
+              properties:
+                pair:
+                  type: string
+                side:
+                  type: string
+                price:
+                  type: number
+                qty:
+                  type: number
+                strategy:
+                  type: string
+      responses:
+        '201':
+          description: Demo trade recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  id:
+                    type: string
+
+  # ── Push Notifications ────────────────────────────────────
+  /api/push/vapid-public-key:
+    get:
+      tags: [Push]
+      summary: Get VAPID public key
+      description: Returns the public key needed to subscribe to web push notifications.
+      responses:
+        '200':
+          description: VAPID public key
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  publicKey:
+                    type: string
+
+  /api/push/subscribe:
+    post:
+      tags: [Push]
+      summary: Subscribe to push notifications
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [endpoint, keys]
+              properties:
+                endpoint:
+                  type: string
+                keys:
+                  type: object
+                  properties:
+                    p256dh:
+                      type: string
+                    auth:
+                      type: string
+      responses:
+        '200':
+          description: Subscribed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  id:
+                    type: integer
+
+  /api/push/unsubscribe:
+    post:
+      tags: [Push]
+      summary: Unsubscribe from push notifications
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [endpoint]
+              properties:
+                endpoint:
+                  type: string
+      responses:
+        '200':
+          description: Unsubscribed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+
+  /api/push/subscriptions:
+    get:
+      tags: [Push]
+      summary: List push subscriptions
+      responses:
+        '200':
+          description: Subscription list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PushSubscription'
+
+  # ── Copy Trading ─────────────────────────────────────────
+  /api/copy-trading:
+    get:
+      tags: [Copy Trading]
+      summary: List followed traders
+      responses:
+        '200':
+          description: Followed traders list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CopyTrader'
+    post:
+      tags: [Copy Trading]
+      summary: Follow a trader
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [trader_id, name]
+              properties:
+                trader_id:
+                  type: string
+                name:
+                  type: string
+                active:
+                  type: boolean
+                  default: true
+      responses:
+        '201':
+          description: Trader followed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  id:
+                    type: integer
+
+  /api/copy-trading/{id}:
+    put:
+      tags: [Copy Trading]
+      summary: Update follow settings
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                active:
+                  type: boolean
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+    delete:
+      tags: [Copy Trading]
+      summary: Unfollow a trader
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Unfollowed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+
+  /api/copy-trading/history:
+    get:
+      tags: [Copy Trading]
+      summary: Get copy trade history
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Copy trade history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Trade'
+    post:
+      tags: [Copy Trading]
+      summary: Record a copy trade
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [trader_id, pair, side, price, qty]
+              properties:
+                trader_id:
+                  type: string
+                pair:
+                  type: string
+                side:
+                  type: string
+                price:
+                  type: number
+                qty:
+                  type: number
+                pnl:
+                  type: number
+      responses:
+        '201':
+          description: Copy trade recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  id:
+                    type: string
+
+  # ── Social ────────────────────────────────────────────────
+  /api/social/leaderboard:
+    get:
+      tags: [Social]
+      summary: Get trader leaderboard
+      description: Public leaderboard ranked by PnL. No auth required.
+      security: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Leaderboard entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    address:
+                      type: string
+                    pnl:
+                      type: number
+                    trades:
+                      type: integer
+                    winRate:
+                      type: number
+
+  /api/social/strategies:
+    get:
+      tags: [Social]
+      summary: List published strategies
+      description: Public list of all published shared strategies. No auth required.
+      security: []
+      parameters:
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [newest, popular, top]
+            default: popular
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Strategy list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Strategy'
+
+  /api/social/strategies/my:
+    get:
+      tags: [Social]
+      summary: List my published strategies
+      responses:
+        '200':
+          description: My strategies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Strategy'
+    post:
+      tags: [Social]
+      summary: Publish a strategy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, strategy_type]
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                strategy_type:
+                  type: string
+                params:
+                  type: object
+      responses:
+        '201':
+          description: Strategy published
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  id:
+                    type: integer
+
+  /api/social/strategies/{id}:
+    get:
+      tags: [Social]
+      summary: Get strategy details
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Strategy details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Strategy'
+        '404':
+          description: Strategy not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags: [Social]
+      summary: Update strategy
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                params:
+                  type: object
+      responses:
+        '200':
+          description: Strategy updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+    delete:
+      tags: [Social]
+      summary: Delete strategy
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Strategy deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+
+  /api/social/strategies/{id}/like:
+    post:
+      tags: [Social]
+      summary: Like a strategy
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Liked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  likes:
+                    type: integer
+
+  /api/social/strategies/{id}/fork:
+    post:
+      tags: [Social]
+      summary: Fork a strategy
+      description: Creates a copy of the strategy under the authenticated user's account.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: Strategy forked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  id:
+                    type: integer
