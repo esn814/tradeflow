@@ -25,6 +25,11 @@ export function getDb() {
   return _db;
 }
 
+/** Reset the cached DB reference (used by backup restore) */
+export function resetDb() {
+  _db = null;
+}
+
 // Upsert a user by wallet address, returning the user row
 export function upsertUser(address) {
   const db = getDb();

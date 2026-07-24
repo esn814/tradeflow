@@ -1,11 +1,9 @@
 services:
   - type: web
     name: tradeflow-api
-    runtime: node
-    plan: free
+    runtime: docker
+    dockerfilePath: server/Dockerfile
     region: oregon
-    buildCommand: npm ci
-    startCommand: node index.js
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV

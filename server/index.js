@@ -19,7 +19,7 @@ import copyTradingRouter from './routes/copy-trading.js';
 import pushRouter from './routes/push.js';
 import socialRouter from './routes/social.js';
 import { startAlertChecker } from './services/alertChecker.js';
-import { startBackupScheduler, createBackup, listBackups } from './backup.js';
+import { startBackupScheduler, createBackup, listBackups, restoreBackup } from './backup.js';
 
 const app = express();
 const PORT = config.PORT;
@@ -165,6 +165,22 @@ app.post('/api/backup', backupLimiter, authMiddleware, (req, res) => {
     }
   } catch {
     res.status(500).json({ error: 'Backup failed' });
+  }
+});
+app.post('/api/backup/restore', backupLimiter, authMiddleware, (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: 'Backup name is required' });
+    }
+    const result = restoreBackup(name);
+    if (result.ok) {
+      res.json({ ok: true, restoredFrom: result.restoredFrom });
+    } else {
+      res.status(400).json({ error: result.error });
+    }
+  } catch {
+    res.status(500).json({ error: 'Restore failed' });
   }
 });
 

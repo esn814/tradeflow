@@ -1,6 +1,6 @@
-import { readdirSync, unlinkSync, mkdirSync, statSync } from 'fs';
+import { readdirSync, unlinkSync, mkdirSync, statSync, existsSync, copyFileSync } from 'fs';
 import { join, dirname } from 'path';
-import { getDb } from './db.js';
+import { getDb, resetDb } from './db.js';
 
 const DB_PATH = process.env.DB_PATH || join(import.meta.dirname, 'data', 'tradeflow.db');
 const BACKUP_DIR = join(dirname(DB_PATH), 'backups');
@@ -83,6 +83,35 @@ export function listBackups() {
       .sort((a, b) => b.created.localeCompare(a.created));
   } catch {
     return [];
+  }
+}
+
+/**
+ * Restore the database from a named backup file.
+ * Safety: closes current DB, copies backup over live DB, reopens.
+ * Returns ok:true on success.
+ */
+export function restoreBackup(backupName) {
+  // Validate filename — only allow safe chars, prevent path traversal
+  if (!/^tradeflow-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.db$/.test(backupName)) {
+    return { ok: false, error: 'Invalid backup filename' };
+  }
+
+  const backupPath = join(BACKUP_DIR, backupName);
+  if (!existsSync(backupPath)) {
+    return { ok: false, error: 'Backup not found' };
+  }
+
+  try {
+    const db = getDb();
+    db.close();
+    copyFileSync(backupPath, DB_PATH);
+    // Reopen by clearing the cached reference and reinitializing
+    resetDb();
+    getDb();
+    return { ok: true, restoredFrom: backupName };
+  } catch (err) {
+    return { ok: false, error: err.message };
   }
 }
 

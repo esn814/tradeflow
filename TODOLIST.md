@@ -88,7 +88,7 @@
 ### Step 2: Critical Infrastructure (~20h)
 - [x] DB migration system — server/migrate.js + 2 SQL migration files
 - [x] Persist refresh tokens in SQLite — auth.js + migration 002_refresh_tokens.sql
-- [ ] Server-side Sentry error tracking
+- [x] Server-side Sentry error tracking — @sentry/node in server/index.js, conditional on SENTRY_DSN
 - [x] Structured logging (pino) — server/logger.js with JSON, levels, redaction, serializers
 - [x] Config validation at startup — server/config.js validates all env vars with descriptive errors
 
@@ -116,15 +116,15 @@
 
 ### Step 6: Scale Prep (~15h)
 - [ ] SQLite → PostgreSQL migration (or Render Starter for spin-down)
-- [ ] Android CI pipeline
-- [ ] Backup restore function + off-site backup
-- [ ] Clean up Dockerfile vs render.yaml inconsistency
+- [x] Android CI pipeline — .github/workflows/android-ci.yml (builds APK on push, uploads artifact)
+- [x] Backup restore function — POST /api/backup/restore endpoint with filename validation
+- [x] Clean up Dockerfile vs render.yaml — render.yaml now uses runtime: docker, consistent with Dockerfile
 
 ---
 
 ## 🔲 Remaining Original Work
 - [ ] Real Android device testing — install on 2-3 physical devices, verify all flows
-- [ ] Further index chunk splitting (currently 40KB)
+- [x] Further index chunk splitting — 18+ optimized chunks (ethers 7 sub-chunks, d3, siwe, noble, capacitor, etc.)
 - [ ] Play Store listing (after real device testing)
 
 ---
