@@ -1,4 +1,4 @@
-import { TrendingUp, RefreshCw, Activity, Target, Shield } from 'lucide-react';
+import { TrendingUp, RefreshCw, Activity, Target, Shield, Crosshair, Grid3x3 } from 'lucide-react';
 
 /* ─── Strategy presets ─── */
 export const STRATEGIES = [
@@ -53,6 +53,32 @@ export const STRATEGIES = [
     timeframe: '5m',
     pairs: ['BTC/USDT'],
     params: { emaFast: 5, emaSlow: 20, stopLoss: 0.5, takeProfit: 1.5 },
+  },
+  {
+    id: 'sniper',
+    name: 'Sniper Scalp',
+    desc: 'Ultra-fast RSI+EMA confluence entry — catches oversold bounces at the 1m timeframe for rapid-fire wins',
+    icon: Crosshair,
+    risk: 'High',
+    riskColor: 'text-red-400 bg-red-400/10',
+    winRate: 55,
+    avgReturn: '3\u20138%',
+    timeframe: '1m',
+    pairs: ['BTC/USDT', 'ETH/USDT', 'SOL/USDT'],
+    params: { rsiPeriod: 7, rsiOversold: 25, emaFast: 3, emaSlow: 12, stopLoss: 1.5, takeProfit: 3 },
+  },
+  {
+    id: 'grid-surge',
+    name: 'Grid Surge',
+    desc: 'Volatility-adaptive grid that tightens in range-bound markets and widens during breakouts for maximum capture',
+    icon: Grid3x3,
+    risk: 'Medium',
+    riskColor: 'text-yellow-400 bg-yellow-400/10',
+    winRate: 64,
+    avgReturn: '6\u201312%',
+    timeframe: '15m',
+    pairs: ['BTC/USDT', 'ETH/USDT', 'SOL/USDT'],
+    params: { gridLevels: 8, atrPeriod: 14, rangeMultiplier: 1.2, breakoutMultiplier: 2.5, stopLoss: 3, takeProfit: 8 },
   },
 ];
 

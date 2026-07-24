@@ -9,6 +9,8 @@
  * exhaust balance in minutes; percentages recycle capital indefinitely.
  */
 
+import { computeEMA, computeMACD, computeRSI, computeBollinger, computeATR, computeSMA } from './indicators.js';
+
 /** DCA: buy a fraction of balance every N ticks, sell a fraction of holdings on alternating cycles */
 export function dcaStrategy({ prices, bot, tickCount, balance, state }) {
   const interval = bot.params?.interval || 8;
@@ -284,6 +286,305 @@ export function meanReversionStrategy({ prices, bot, state, balance }) {
   return { _setState: newState };
 }
 
+/** Scalper: fast EMA crossover + RSI + MACD confirmation — high frequency, small profits */
+export function scalperStrategy({ prices, bot, state, balance }) {
+  const price = prices[bot.coin]?.price;
+  if (!price || price <= 0) return null;
+
+  const fastEMA = bot.params?.fastEMA || 5;
+  const slowEMA = bot.params?.slowEMA || 13;
+  const rsiPeriod = bot.params?.rsiPeriod || 7;
+  const rsiBuy = bot.params?.rsiBuy || 30;
+  const rsiSell = bot.params?.rsiSell || 70;
+  const tradePct = bot.params?.tradePct || 0.20;
+
+  const priceHistory = [...(state.priceHistory || []), price].slice(-slowEMA - 5);
+  if (priceHistory.length < slowEMA + 1) {
+    return { _setState: { priceHistory, holdings: state.holdings || 0 } };
+  }
+
+  const fast = computeEMA(priceHistory, fastEMA);
+  const slow = computeEMA(priceHistory, slowEMA);
+  const rsi = computeRSI(priceHistory, rsiPeriod);
+  const macd = computeMACD(priceHistory, fastEMA, slowEMA, 3);
+  if (fast == null || slow == null || rsi == null) {
+    return { _setState: { priceHistory, holdings: state.holdings || 0 } };
+  }
+
+  const prevFast = state.prevFast ?? fast;
+  const prevSlow = state.prevSlow ?? slow;
+  const holdings = state.holdings || 0;
+  const newState = { priceHistory, prevFast: fast, prevSlow: slow, holdings };
+
+  // Buy: fast EMA crosses above slow + RSI not overbought + MACD histogram positive
+  if (prevFast <= prevSlow && fast > slow && rsi < rsiSell && (!macd || macd.histogram > 0) && balance >= 1) {
+    const buyCost = balance * tradePct;
+    const coinAmount = buyCost / price;
+    return {
+      action: 'buy', coin: bot.coin, amount: coinAmount, price, cost: buyCost,
+      reason: `Scalp buy: EMA ${fastEMA}/${slowEMA} cross up, RSI ${rsi.toFixed(0)}, MACD confirm`,
+      _setState: { ...newState, holdings: holdings + coinAmount },
+    };
+  }
+
+  // Sell: fast EMA crosses below slow + RSI overbought OR MACD histogram negative
+  if (prevFast >= prevSlow && fast < slow && rsi > rsiBuy && holdings > 0.0001) {
+    const sellAmount = holdings * tradePct;
+    return {
+      action: 'sell', coin: bot.coin, amount: sellAmount, price, revenue: sellAmount * price,
+      reason: `Scalp sell: EMA ${fastEMA}/${slowEMA} cross down, RSI ${rsi.toFixed(0)}`,
+      _setState: { ...newState, holdings: holdings - sellAmount },
+    };
+  }
+
+  return { _setState: newState };
+}
+
+/** Smart DCA: RSI-timed DCA — buys more aggressively on oversold dips, sells on overbought */
+export function smartDCAStrategy({ prices, bot, tickCount, balance, state }) {
+  const price = prices[bot.coin]?.price;
+  if (!price || price <= 0) return null;
+
+  const interval = bot.params?.interval || 6;
+  const baseBuyPct = bot.params?.baseBuyPct || 0.06;
+  const dipBuyPct = bot.params?.dipBuyPct || 0.12;
+  const rsiPeriod = bot.params?.rsiPeriod || 14;
+  const rsiDip = bot.params?.rsiDip || 35;
+  const sellPct = bot.params?.sellPct || 0.05;
+
+  if (tickCount % interval !== 0) return null;
+
+  const priceHistory = [...(state.priceHistory || []), price].slice(-rsiPeriod - 2);
+  if (priceHistory.length < rsiPeriod + 1) {
+    return { _setState: { priceHistory, holdings: state.holdings || 0 } };
+  }
+
+  const rsi = computeRSI(priceHistory, rsiPeriod);
+  if (rsi == null) {
+    return { _setState: { priceHistory, holdings: state.holdings || 0 } };
+  }
+
+  const holdings = state.holdings || 0;
+  const holdingsValue = holdings * price;
+  const totalValue = balance + holdingsValue;
+  const allocationRatio = totalValue > 0 ? holdingsValue / totalValue : 0;
+  const newState = { priceHistory, holdings };
+
+  // Overbought: sell to lock profits
+  if (rsi > 70 && holdings > 0.0001) {
+    const sellAmount = holdings * sellPct * 1.5;
+    return {
+      action: 'sell', coin: bot.coin, amount: sellAmount, price, revenue: sellAmount * price,
+      reason: `Smart DCA sell: RSI ${rsi.toFixed(0)} overbought, trimming ${(sellPct * 150).toFixed(1)}%`,
+      _setState: { ...newState, holdings: holdings - sellAmount },
+    };
+  }
+
+  // Deep dip: buy aggressively (RSI below dip threshold)
+  if (rsi < rsiDip && allocationRatio < 0.6) {
+    const buyCost = balance * dipBuyPct;
+    if (buyCost >= 1) {
+      const coinAmount = buyCost / price;
+      return {
+        action: 'buy', coin: bot.coin, amount: coinAmount, price, cost: buyCost,
+        reason: `Smart DCA deep buy: RSI ${rsi.toFixed(0)} oversold, ${(dipBuyPct * 100).toFixed(0)}% of balance`,
+        _setState: { ...newState, holdings: holdings + coinAmount },
+      };
+    }
+  }
+
+  // Regular interval buy
+  if (allocationRatio < 0.4) {
+    const buyCost = balance * baseBuyPct;
+    if (buyCost >= 1) {
+      const coinAmount = buyCost / price;
+      return {
+        action: 'buy', coin: bot.coin, amount: coinAmount, price, cost: buyCost,
+        reason: `Smart DCA buy: RSI ${rsi.toFixed(0)}, ${(baseBuyPct * 100).toFixed(0)}% of balance`,
+        _setState: { ...newState, holdings: holdings + coinAmount },
+      };
+    }
+  }
+
+  return { _setState: newState };
+}
+
+/** Trailing Stop: EMA crossover for entry, trailing stop-loss that rises with price to lock profits */
+export function trailingStopStrategy({ prices, bot, state, balance }) {
+  const price = prices[bot.coin]?.price;
+  if (!price || price <= 0) return null;
+
+  const fastEMA = bot.params?.fastEMA || 8;
+  const slowEMA = bot.params?.slowEMA || 21;
+  const trailPct = bot.params?.trailPct || 0.025;
+  const tradePct = bot.params?.tradePct || 0.15;
+
+  const priceHistory = [...(state.priceHistory || []), price].slice(-slowEMA - 5);
+  if (priceHistory.length < slowEMA + 1) {
+    return { _setState: { priceHistory, holdings: state.holdings || 0 } };
+  }
+
+  const fast = computeEMA(priceHistory, fastEMA);
+  const slow = computeEMA(priceHistory, slowEMA);
+  if (fast == null || slow == null) {
+    return { _setState: { priceHistory, holdings: state.holdings || 0 } };
+  }
+
+  const prevFast = state.prevFast ?? fast;
+  const prevSlow = state.prevSlow ?? slow;
+  const holdings = state.holdings || 0;
+  let trailingStop = state.trailingStop || 0;
+  let inPosition = state.inPosition || false;
+
+  // Update trailing stop: rises with price, never falls
+  if (inPosition && price > trailingStop / (1 - trailPct)) {
+    trailingStop = price * (1 - trailPct);
+  }
+
+  const newState = { priceHistory, prevFast: fast, prevSlow: slow, holdings, trailingStop, inPosition };
+
+  // Entry: fast EMA crosses above slow EMA — open position
+  if (!inPosition && prevFast <= prevSlow && fast > slow && balance >= 1) {
+    const buyCost = balance * tradePct;
+    const coinAmount = buyCost / price;
+    const newTrailingStop = price * (1 - trailPct);
+    return {
+      action: 'buy', coin: bot.coin, amount: coinAmount, price, cost: buyCost,
+      reason: `Trailing stop buy: EMA ${fastEMA}/${slowEMA} cross up, trail at ${(trailPct * 100).toFixed(1)}%`,
+      _setState: { ...newState, holdings: holdings + coinAmount, trailingStop: newTrailingStop, inPosition: true },
+    };
+  }
+
+  // Exit: price drops below trailing stop — close position
+  if (inPosition && price <= trailingStop && holdings > 0.0001) {
+    const sellAmount = holdings * tradePct;
+    return {
+      action: 'sell', coin: bot.coin, amount: sellAmount, price, revenue: sellAmount * price,
+      reason: `Trailing stop sell: price ${price.toFixed(2)} hit trail ${trailingStop.toFixed(2)}, ${(tradePct * 100).toFixed(0)}% of holdings`,
+      _setState: { ...newState, holdings: holdings - sellAmount, trailingStop: 0, inPosition: holdings - sellAmount > 0.0001 },
+    };
+  }
+
+  // Also exit on bearish EMA crossover while in position
+  if (inPosition && prevFast >= prevSlow && fast < slow && holdings > 0.0001) {
+    const sellAmount = holdings * tradePct;
+    return {
+      action: 'sell', coin: bot.coin, amount: sellAmount, price, revenue: sellAmount * price,
+      reason: `Trailing stop sell: EMA ${fastEMA}/${slowEMA} cross down, exiting position`,
+      _setState: { ...newState, holdings: holdings - sellAmount, trailingStop: 0, inPosition: holdings - sellAmount > 0.0001 },
+    };
+  }
+
+  return { _setState: newState };
+}
+
+/** Breakout: detect price breaking above/below ATR-based bands for volatility expansion trades */
+export function breakoutStrategy({ prices, bot, state, balance }) {
+  const price = prices[bot.coin]?.price;
+  if (!price || price <= 0) return null;
+
+  const atrPeriod = bot.params?.atrPeriod || 14;
+  const atrMultiplier = bot.params?.atrMultiplier || 1.5;
+  const lookback = bot.params?.lookback || 20;
+  const tradePct = bot.params?.tradePct || 0.18;
+
+  const priceHistory = [...(state.priceHistory || []), price].slice(-lookback - 2);
+  if (priceHistory.length < lookback + 1) {
+    return { _setState: { priceHistory, holdings: state.holdings || 0 } };
+  }
+
+  const atr = computeATR(priceHistory, atrPeriod);
+  if (atr == null) {
+    return { _setState: { priceHistory, holdings: state.holdings || 0 } };
+  }
+
+  // Rolling high/low over lookback window (excluding current price)
+  const windowPrices = priceHistory.slice(-(lookback + 1), -1);
+  const rollingHigh = Math.max(...windowPrices);
+  const rollingLow = Math.min(...windowPrices);
+
+  // ATR-based resistance and support bands
+  const resistance = rollingHigh + atr * atrMultiplier;
+  const support = rollingLow - atr * atrMultiplier;
+
+  const prevPrice = priceHistory[priceHistory.length - 2];
+  const holdings = state.holdings || 0;
+  const newState = { priceHistory, holdings };
+
+  // Breakout above resistance: buy
+  if (price > resistance && prevPrice <= resistance && balance >= 1) {
+    const buyCost = balance * tradePct;
+    const coinAmount = buyCost / price;
+    return {
+      action: 'buy', coin: bot.coin, amount: coinAmount, price, cost: buyCost,
+      reason: `Breakout buy: price ${price.toFixed(2)} broke resistance ${resistance.toFixed(2)} (ATR ${atr.toFixed(2)} × ${atrMultiplier})`,
+      _setState: { ...newState, holdings: holdings + coinAmount },
+    };
+  }
+
+  // Breakdown below support: sell
+  if (price < support && prevPrice >= support && holdings > 0.0001) {
+    const sellAmount = holdings * tradePct;
+    return {
+      action: 'sell', coin: bot.coin, amount: sellAmount, price, revenue: sellAmount * price,
+      reason: `Breakout sell: price ${price.toFixed(2)} broke support ${support.toFixed(2)} (ATR ${atr.toFixed(2)} × ${atrMultiplier})`,
+      _setState: { ...newState, holdings: holdings - sellAmount },
+    };
+  }
+
+  return { _setState: newState };
+}
+
+/** RSI Bollinger: combine RSI oversold/overbought with Bollinger Band extremes for mean-reversion */
+export function rsiBollingerStrategy({ prices, bot, state, balance }) {
+  const price = prices[bot.coin]?.price;
+  if (!price || price <= 0) return null;
+
+  const rsiPeriod = bot.params?.rsiPeriod || 14;
+  const bbPeriod = bot.params?.bbPeriod || 20;
+  const rsiBuy = bot.params?.rsiBuy || 25;
+  const rsiSell = bot.params?.rsiSell || 75;
+  const tradePct = bot.params?.tradePct || 0.15;
+
+  const minLen = Math.max(rsiPeriod, bbPeriod) + 2;
+  const priceHistory = [...(state.priceHistory || []), price].slice(-minLen - 5);
+  if (priceHistory.length < minLen) {
+    return { _setState: { priceHistory, holdings: state.holdings || 0 } };
+  }
+
+  const rsi = computeRSI(priceHistory, rsiPeriod);
+  const bb = computeBollinger(priceHistory, bbPeriod);
+  if (rsi == null || !bb) {
+    return { _setState: { priceHistory, holdings: state.holdings || 0 } };
+  }
+
+  const holdings = state.holdings || 0;
+  const newState = { priceHistory, holdings };
+
+  // Buy: RSI oversold AND price below lower Bollinger Band — high-probability mean-reversion entry
+  if (rsi < rsiBuy && price < bb.lower && balance >= 1) {
+    const buyCost = balance * tradePct;
+    const coinAmount = buyCost / price;
+    return {
+      action: 'buy', coin: bot.coin, amount: coinAmount, price, cost: buyCost,
+      reason: `RSI+BB buy: RSI ${rsi.toFixed(0)} < ${rsiBuy}, price ${price.toFixed(2)} < BB lower ${bb.lower.toFixed(2)}`,
+      _setState: { ...newState, holdings: holdings + coinAmount },
+    };
+  }
+
+  // Sell: RSI overbought AND price above upper Bollinger Band — high-probability mean-reversion exit
+  if (rsi > rsiSell && price > bb.upper && holdings > 0.0001) {
+    const sellAmount = holdings * tradePct;
+    return {
+      action: 'sell', coin: bot.coin, amount: sellAmount, price, revenue: sellAmount * price,
+      reason: `RSI+BB sell: RSI ${rsi.toFixed(0)} > ${rsiSell}, price ${price.toFixed(2)} > BB upper ${bb.upper.toFixed(2)}`,
+      _setState: { ...newState, holdings: holdings - sellAmount },
+    };
+  }
+
+  return { _setState: newState };
+}
+
 /** Strategy registry */
 export const STRATEGIES = {
   dca: { name: 'DCA', fn: dcaStrategy, description: 'Dollar-cost average at fixed intervals with auto-rebalancing' },
@@ -291,6 +592,11 @@ export const STRATEGIES = {
   trend: { name: 'Trend', fn: trendStrategy, description: 'Follow MA crossover momentum' },
   momentum: { name: 'Momentum', fn: momentumStrategy, description: 'Buy winners, sell losers' },
   meanReversion: { name: 'Mean Reversion', fn: meanReversionStrategy, description: 'Buy dips, sell rallies' },
+  scalper: { name: 'Scalper', fn: scalperStrategy, description: 'Fast EMA+RSI+MACD scalping for quick profits' },
+  smartDCA: { name: 'Smart DCA', fn: smartDCAStrategy, description: 'RSI-timed DCA — buys more on oversold dips' },
+  trailingStop: { name: 'Trailing Stop', fn: trailingStopStrategy, description: 'Trend follow with trailing stop-loss to lock profits' },
+  breakout: { name: 'Breakout', fn: breakoutStrategy, description: 'ATR-based breakout detection for volatility expansion' },
+  rsiBollinger: { name: 'RSI Bollinger', fn: rsiBollingerStrategy, description: 'Quick mean-reversion on RSI+Bollinger extremes' },
 };
 
 /** Default bot configs — percentage-based for sustained activity */
@@ -300,4 +606,9 @@ export const DEFAULT_BOT_CONFIGS = {
   trend: { shortWindow: 5, longWindow: 20, tradePct: 0.12 },
   momentum: { lookback: 10, threshold: 0.03, tradePct: 0.15 },
   meanReversion: { window: 15, deviation: 0.025, tradePct: 0.10 },
+  scalper: { fastEMA: 5, slowEMA: 13, rsiPeriod: 7, rsiBuy: 30, rsiSell: 70, tradePct: 0.20 },
+  smartDCA: { interval: 6, baseBuyPct: 0.06, dipBuyPct: 0.12, rsiPeriod: 14, rsiDip: 35, sellPct: 0.05 },
+  trailingStop: { fastEMA: 8, slowEMA: 21, trailPct: 0.025, tradePct: 0.15 },
+  breakout: { atrPeriod: 14, atrMultiplier: 1.5, lookback: 20, tradePct: 0.18 },
+  rsiBollinger: { rsiPeriod: 14, bbPeriod: 20, rsiBuy: 25, rsiSell: 75, tradePct: 0.15 },
 };

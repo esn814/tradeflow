@@ -124,7 +124,7 @@ export default function Sidebar({ page, onNavigate, isOpen, onToggle }) {
               </div>
               <button
                 onClick={signOut}
-                className="px-2 py-1 rounded-md text-xs font-bold cursor-pointer"
+                className="px-3 py-2 rounded-md text-xs font-bold cursor-pointer"
                 style={{ marginLeft: 'auto', background: 'var(--color-danger-18)', color: 'var(--color-danger-light)', border: 'none' }}
                 title="Sign Out"
               >
@@ -140,7 +140,7 @@ export default function Sidebar({ page, onNavigate, isOpen, onToggle }) {
               </div>
               <button
                 onClick={() => onNavigate('/connections')}
-                className="px-2 py-1 rounded-md text-xs font-bold cursor-pointer"
+                className="px-3 py-2 rounded-md text-xs font-bold cursor-pointer"
                 style={{ marginLeft: 'auto', background: 'var(--color-accent-18)', color: 'var(--color-accent)', border: 'none' }}
                 title="Sign In"
               >

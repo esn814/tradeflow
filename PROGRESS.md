@@ -142,6 +142,15 @@ Key changes: SQL injection fix, VAPID keys to env vars, SameSite cookie hardenin
 - ARIA attributes on Toggle, LinkCard
 - Media queries at 768px and 640px
 - Mobile sidebar with hamburger menu, backdrop, escape key
+- Focus-visible ring for keyboard navigation (2px accent outline)
+- Sidebar link touch targets — 44px min-height (WCAG minimum)
+- Sidebar Sign Out/Sign In buttons padding upgraded to px-3 py-2
+- Mobile pie chart stacking — allocation-layout flexes column on ≤640px
+- Table scroll affordance — mask-image gradient signals horizontal scroll
+- Card hover accent glow — ::after pseudo-element with gradient fade-in
+- Scrollbar styling — thin 6px themed scrollbar for .app-main
+- Fixed pre-existing JSX bugs: duplicate div in Dashboard, missing Btn/Card/CardBody/SectionHeader/Badge imports
+- Fixed pre-existing lucide-react import: Grid3X → Grid3x3 in autopilotData.js
 
 ---
 

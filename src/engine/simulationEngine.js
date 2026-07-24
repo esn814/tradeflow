@@ -24,7 +24,8 @@ export class SimulationEngine {
     this.storeActions = storeActions;
     this.coins = options.coins || ['BTC', 'ETH', 'SOL', 'AVAX', 'MATIC'];
     this.startingBalance = options.startingBalance || 10000;
-    this.tickIntervalMs = options.tickIntervalMs || 1500;
+    this.tickIntervalMs = options.tickIntervalMs || 1000; // 1s default for fast strategies
+    this.fastTickMs = options.fastTickMs || 400; // 400ms for scalping/sniper bots
 
     this.useSimulator = options.useSimulator || false;
     this.priceSim = this.useSimulator

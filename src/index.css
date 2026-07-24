@@ -504,3 +504,284 @@ button, .sidebar-link, [role="button"] {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+
+/* ═══════════════════════════════════════════════════════
+   CUTTING-EDGE VISUAL EFFECTS (2026-07-25)
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Glassmorphism card variant ── */
+.card-glass {
+  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-glass:hover {
+  background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%);
+  border-color: rgba(255,255,255,0.14);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06);
+  transform: translateY(-1px);
+}
+
+/* ── Gradient border glow ── */
+.card-glow {
+  position: relative;
+  background: var(--color-surface-1);
+  border-radius: 16px;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+.card-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 17px;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-secondary, #6366f1), var(--color-accent));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  padding: 1px;
+}
+.card-glow:hover::before {
+  opacity: 1;
+}
+.card-glow:hover {
+  box-shadow: 0 0 20px rgba(0,212,170,0.15), 0 8px 32px rgba(0,0,0,0.25);
+  transform: translateY(-1px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Live data pulse ring ── */
+@keyframes live-pulse {
+  0% { box-shadow: 0 0 0 0 var(--color-accent-40); }
+  70% { box-shadow: 0 0 0 8px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  animation: live-pulse 2s ease-in-out infinite;
+}
+
+/* ── Value flash (green/red) when data updates ── */
+@keyframes flash-green {
+  0% { background-color: rgba(22,163,74,0.3); }
+  100% { background-color: transparent; }
+}
+@keyframes flash-red {
+  0% { background-color: rgba(229,62,62,0.3); }
+  100% { background-color: transparent; }
+}
+.flash-up {
+  animation: flash-green 0.8s ease-out;
+}
+.flash-down {
+  animation: flash-red 0.8s ease-out;
+}
+
+/* ── Shimmer button hover sweep ── */
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+  transition: left 0.5s ease;
+}
+.btn-shimmer:hover::after {
+  left: 100%;
+}
+
+/* ── Gradient text accent ── */
+.text-gradient {
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-secondary, #6366f1));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Ambient background glow orbs ── */
+.ambient-glow {
+  position: fixed;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 0;
+}
+.ambient-glow-accent {
+  background: var(--color-accent);
+  top: -100px;
+  right: -100px;
+}
+.ambient-glow-purple {
+  background: #6366f1;
+  bottom: -100px;
+  left: -100px;
+}
+
+/* ── Sidebar active glow pill ── */
+.sidebar-link-active {
+  position: relative;
+}
+.sidebar-link-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  border-radius: 0 4px 4px 0;
+  background: var(--color-accent);
+  box-shadow: 0 0 8px var(--color-accent-60, rgba(0,212,170,0.6));
+}
+
+/* ── Staggered page reveal ── */
+@keyframes stagger-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+.stagger-reveal > * {
+  animation: stagger-reveal 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+.stagger-reveal > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-reveal > *:nth-child(2) { animation-delay: 50ms; }
+.stagger-reveal > *:nth-child(3) { animation-delay: 100ms; }
+.stagger-reveal > *:nth-child(4) { animation-delay: 150ms; }
+.stagger-reveal > *:nth-child(5) { animation-delay: 200ms; }
+.stagger-reveal > *:nth-child(6) { animation-delay: 250ms; }
+.stagger-reveal > *:nth-child(7) { animation-delay: 300ms; }
+.stagger-reveal > *:nth-child(8) { animation-delay: 350ms; }
+
+/* ── Number counter tabular alignment ── */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+/* ── Smooth height transitions for expanding content ── */
+.expand-enter {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+.expand-enter-active {
+  max-height: 500px;
+  opacity: 1;
+}
+
+/* ── Chart container with subtle inner glow ── */
+.chart-glow {
+  position: relative;
+}
+.chart-glow::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 10%;
+  right: 10%;
+  height: 40%;
+  background: radial-gradient(ellipse at bottom, var(--color-accent-08, rgba(0,212,170,0.08)) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ── Mobile: Stack pie chart + legend vertically ── */
+@media (max-width: 640px) {
+  .allocation-layout {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  .allocation-layout .recharts-responsive-container {
+    width: 100% !important;
+    max-width: 260px;
+  }
+  .allocation-layout .allocation-legend {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+  }
+}
+
+/* ── Mobile table scroll affordance ── */
+@media (max-width: 640px) {
+  .overflow-x-auto {
+    mask-image: linear-gradient(to right, black 90%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black 90%, transparent 100%);
+  }
+}
+
+/* ── Sidebar link touch targets (44px WCAG minimum) ── */
+.sidebar-link {
+  min-height: 44px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── Enhanced card hover: accent glow border ── */
+.card {
+  position: relative;
+  overflow: hidden;
+}
+.card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  background: linear-gradient(135deg, var(--color-accent-08, rgba(0,212,170,0.05)), transparent 60%);
+  pointer-events: none;
+}
+.card:hover::after {
+  opacity: 1;
+}
+
+/* ── Focus-visible ring for keyboard nav ── */
+*:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Scrollbar styling (thin, themed) ── */
+.app-main::-webkit-scrollbar {
+  width: 6px;
+}
+.app-main::-webkit-scrollbar-track {
+  background: transparent;
+}
+.app-main::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+.app-main::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-hover);
+}

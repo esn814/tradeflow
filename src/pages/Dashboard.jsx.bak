@@ -7,7 +7,7 @@ import { CHART_GRID, CHART_AXIS_TICK, CHART_AXIS, CHART_TOOLTIP_STYLE } from '..
 import ExportPortfolio from '../components/ExportPortfolio';
 import MarketPulse from '../components/MarketPulse';
 import InfoTip from '../components/InfoTip';
-import { PageHeader, Divider, LinkCard, AnimatedNumber, LivePulse, ValueFlash, Btn, Card, CardBody, SectionHeader, Badge } from '../components/ui';
+import { PageHeader, Divider, LinkCard, AnimatedNumber, LivePulse, ValueFlash } from '../components/ui';
 import { useMode, useAppStore } from '../context/AppStore';
 import { useWalletPortfolio } from '../data/portfolio';
 
@@ -123,6 +123,7 @@ export default function Dashboard({ onNavigate }) {
       )}
       <PageHeader icon={LayoutDashboard} title="Dashboard" subtitle="Your portfolio overview — live positions, P&L, and bot performance">
         <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3">
           <LivePulse connected={wsConnected} label={wsConnected ? 'Live' : 'Polling'} size="sm" />
           {!simple && <ExportPortfolio positions={positions} />}
         </div>
@@ -250,7 +251,7 @@ export default function Dashboard({ onNavigate }) {
           <Card>
             <CardBody>
               <SectionHeader icon={BarChart3} title="Portfolio Allocation" />
-              <div className="allocation-layout flex items-center gap-4">
+              <div className="flex items-center gap-4">
                 <ResponsiveContainer width="60%" height={200}>
                   <PieChart>
                     <Pie data={allocationData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
@@ -259,7 +260,7 @@ export default function Dashboard({ onNavigate }) {
                     <Tooltip formatter={(v) => `${v.toLocaleString()}`} contentStyle={{ background: 'var(--color-surface-card)', border: '1px solid var(--color-border-hover)', borderRadius: 8, color: 'var(--color-text-on-dark)', fontSize: 12 }} />
                   </PieChart>
                 </ResponsiveContainer>
-                <div className="flex-1 space-y-2 allocation-legend">
+                <div className="flex-1 space-y-2">
                   {allocationData.map(d => (
                     <div key={d.name} className="flex items-center gap-2">
                       <div className="w-2.5 h-2.5 rounded-full" style={{ background: d.color }} />

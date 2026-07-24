@@ -1,13 +1,21 @@
-import { memo } from 'react';
+import { memo, useState, useEffect, useRef } from 'react';
 import { ChevronRight } from 'lucide-react';
 
 /* ── Reusable UI primitives for consistent, professional pages ── */
 
-export const Card = memo(function Card({ children, className = '', hover = false, accent = false, ...props }) {
-  const base = accent
-    ? 'bg-[var(--color-surface-1)] border border-[var(--color-accent)]/20 rounded-2xl'
-    : 'bg-[var(--color-surface-1)] border border-[var(--color-border-default)] rounded-2xl';
-  const effect = hover ? 'hover:border-[var(--color-border-card-hover)] hover:shadow-lg hover:shadow-black/20 hover:-translate-y-0.5 transition-all duration-200' : '';
+export const Card = memo(function Card({ children, className = '', hover = false, accent = false, variant, ...props }) {
+  // variant: 'glass' (glassmorphism), 'glow' (gradient border on hover), undefined = default
+  let base;
+  if (variant === 'glass') {
+    base = 'card-glass';
+  } else if (variant === 'glow') {
+    base = 'card-glow';
+  } else if (accent) {
+    base = 'bg-[var(--color-surface-1)] border border-[var(--color-accent)]/20 rounded-2xl';
+  } else {
+    base = 'bg-[var(--color-surface-1)] border border-[var(--color-border-default)] rounded-2xl';
+  }
+  const effect = hover && !variant ? 'hover:border-[var(--color-border-card-hover)] hover:shadow-lg hover:shadow-black/20 hover:-translate-y-0.5 transition-all duration-200' : '';
   return <div className={`${base} ${effect} ${className}`} {...props}>{children}</div>;
 });
 
@@ -43,7 +51,7 @@ export function Btn({ children, variant = 'primary', size = 'md', className = ''
     full: 'w-full py-4 text-lg rounded-xl justify-center',
   };
   return (
-    <button className={`inline-flex items-center gap-2 transition-all duration-200 cursor-pointer ${variants[variant]} ${sizes[size]} ${className}`} {...props}>
+    <button className={`btn-shimmer inline-flex items-center gap-2 transition-all duration-200 cursor-pointer ${variants[variant]} ${sizes[size]} ${className}`} {...props}>
       {children}
     </button>
   );
@@ -268,5 +276,111 @@ export function Shimmer({ children, active = true, className = '' }) {
     >
       {children}
     </span>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   CUTTING-EDGE COMPONENTS (2026-07-25)
+   ═══════════════════════════════════════════════════════ */
+
+/**
+ * AnimatedNumber — smooth counting animation for financial values.
+ * Animates from previous value to new value on change.
+ * Use for portfolio values, P&L, balances, prices.
+ */
+export function AnimatedNumber({ value, prefix = '', suffix = '', duration = 600, className = '' }) {
+  const [display, setDisplay] = useState(value);
+  const prevRef = useRef(value);
+  const rafRef = useRef(null);
+
+  useEffect(() => {
+    const from = prevRef.current;
+    const to = value;
+    if (from === to) return;
+    prevRef.current = to;
+    const start = performance.now();
+    const animate = (now) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(from + (to - from) * eased);
+      if (progress < 1) {
+        rafRef.current = requestAnimationFrame(animate);
+      }
+    };
+    rafRef.current = requestAnimationFrame(animate);
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+  }, [value, duration]);
+
+  const formatted = typeof display === 'number'
+    ? (Number.isInteger(display) ? display.toLocaleString() : display.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))
+    : display;
+
+  return (
+    <span className={`tabular-nums ${className}`}>
+      {prefix}{formatted}{suffix}
+    </span>
+  );
+}
+
+/**
+ * LivePulse — glowing dot that indicates live/connected data.
+ * Replaces static colored dots with an animated pulse ring.
+ */
+export function LivePulse({ connected = true, label, size = 'md', className = '' }) {
+  const sizes = { sm: 'w-1.5 h-1.5', md: 'w-2 h-2', lg: 'w-3 h-3' };
+  return (
+    <div className={`flex items-center gap-1.5 ${className}`}>
+      <div className={`${sizes[size]} rounded-full ${connected ? 'bg-[var(--color-success)] shadow-[0_0_6px_var(--color-success-60)]' : 'bg-[var(--color-text-muted)]'} ${connected ? 'animate-pulse' : ''}`} />
+      {label && (
+        <span className={`text-xs font-semibold ${connected ? 'text-[var(--color-success)]' : 'text-[var(--color-text-muted)]'}`}>
+          {label}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/**
+ * GradientText — heading text with accent gradient.
+ * Use for key headings to draw the eye.
+ */
+export function GradientText({ children, as: Tag = 'span', className = '' }) {
+  return <Tag className={`text-gradient ${className}`}>{children}</Tag>;
+}
+
+/**
+ * ValueFlash — wrapper that flashes green/red when value changes.
+ * Wraps any content and applies a brief background flash on update.
+ */
+export function ValueFlash({ value, children, className = '' }) {
+  const [flash, setFlash] = useState(null);
+  const prevRef = useRef(value);
+
+  useEffect(() => {
+    if (prevRef.current !== value) {
+      const direction = value > prevRef.current ? 'up' : 'down';
+      setFlash(direction);
+      prevRef.current = value;
+      const timer = setTimeout(() => setFlash(null), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [value]);
+
+  const flashClass = flash === 'up' ? 'flash-up' : flash === 'down' ? 'flash-down' : '';
+  return <span className={`${flashClass} rounded ${className}`}>{children}</span>;
+}
+
+/**
+ * AmbientGlow — fixed background glow orbs for depth.
+ * Place once in App.jsx to add subtle ambient lighting.
+ */
+export function AmbientGlow() {
+  return (
+    <>
+      <div className="ambient-glow ambient-glow-accent" />
+      <div className="ambient-glow ambient-glow-purple" />
+    </>
   );
 }
