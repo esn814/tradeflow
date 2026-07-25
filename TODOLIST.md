@@ -100,6 +100,7 @@
 - [x] Remove unused Analytics computations (_summary, _realPnL, _dd, _sr)
 - [x] Accessibility pass (aria-labels, keyboard nav, focus management)
 - [x] Visual alignment overhaul — mb-6 headline spacing, p-4 lg:p-5 card padding, overflow-hidden + truncate + line-clamp for text fitting, min-w-0 on flex children, inline-flex pill badges, gap-4 grid consistency, mobile pt-16 clearance, viewport-clamped tooltips (19 files touched)
+- [x] Health audit bug fixes — logger.error syntax (25 occurrences), undefined now in schedules.js, Security.jsx setState-in-render, dead runBacktest removal (127 lines), unused imports cleanup
 
 ### Step 4: Code Quality (~25h)
 - [x] Test coverage — 56 unit tests across 3 files: marketData (SMA/RSI/Bollinger/position sizing/Kelly/ATR/Sortino/Calmar), Zod schemas (bot/trade/alert/strategy/settings), validateBody middleware

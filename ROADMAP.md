@@ -101,6 +101,7 @@ Every tier of the original roadmap has been built, verified, and deployed. Secur
 - [x] Remove unused Analytics computations (_summary, _realPnL, _dd, _sr)
 - [x] Accessibility pass (aria-labels, keyboard nav, focus management)
 - [x] Visual alignment overhaul — mb-6 headline spacing, p-4 lg:p-5 card padding, overflow-hidden + truncate + line-clamp, min-w-0, inline-flex pills, gap-4 grids, mobile pt-16, viewport-clamped tooltips (19 files)
+- [x] Health audit bug fixes — logger.error syntax (25x), undefined now, Security setState-in-render, dead code removal, unused imports
 
 ### Step 4: Code Quality (~25h)
 - [x] Test coverage — 56 unit tests (marketData, Zod schemas, validateBody) (trade P&L calc, auth flow, bot CRUD, server routes)
