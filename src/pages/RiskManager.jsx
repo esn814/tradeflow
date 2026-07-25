@@ -33,17 +33,17 @@ const RISK_ALERTS = [
 function RiskGauge({ label, value, max, unit, color }) {
   const pct = Math.min((value / max) * 100, 100);
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <CardBody>
         <span className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">{label}</span>
-        <div className="mt-3 flex items-end justify-between">
-          <span className="text-2xl font-bold text-[var(--color-text-primary)]">{value}<span className="text-sm text-[var(--color-text-muted)] ml-1">{unit}</span></span>
+        <div className="mt-3 flex items-end justify-between gap-2">
+          <span className="text-2xl font-bold text-[var(--color-text-primary)] truncate min-w-0">{value}<span className="text-sm text-[var(--color-text-muted)] ml-1">{unit}</span></span>
           <Gauge className="w-5 h-5" style={{ color }} />
         </div>
         <div className="mt-2 h-2 bg-[var(--color-surface-3)] rounded-full overflow-hidden">
           <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
         </div>
-        <div className="flex justify-between text-[10px] text-[var(--color-text-muted)] mt-1">
+        <div className="flex items-center justify-between text-[10px] text-[var(--color-text-muted)] mt-1">
           <span>0</span><span>{max}{unit}</span>
         </div>
       </CardBody>
@@ -59,15 +59,15 @@ export default function RiskManager({ onNavigate }) {
   const atr = useMemo(() => calculateATR(ohlcv), [ohlcv]);
 
   return (
-    <div className="max-w-6xl mx-auto space-y-5">
+    <div className="max-w-6xl mx-auto space-y-6">
       <PageHeader icon={Shield} title="Risk Manager" subtitle="Real-time portfolio risk monitoring and position sizing">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-[var(--color-profit)] animate-pulse" />
-          <Badge variant="success">Monitoring Active</Badge>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="w-2 h-2 rounded-full bg-[var(--color-profit)] animate-pulse flex-shrink-0" />
+          <Badge variant="success" className="flex-shrink-0">Monitoring Active</Badge>
         </div>
       </PageHeader>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <RiskGauge label="Value at Risk (95%)" value={3420} max={10000} unit="$" color="var(--color-warning)" />
         <RiskGauge label="Max Drawdown" value={8.2} max={20} unit="%" color="var(--color-danger-light)" />
         <RiskGauge label="Portfolio Beta" value={1.15} max={2} unit="" color="var(--color-accent)" />
@@ -154,8 +154,8 @@ export default function RiskManager({ onNavigate }) {
         {Object.values(RISK_METRICS).map(m => (
           <Card key={m.name}>
             <CardBody>
-              <h3 className="text-sm font-medium text-[var(--color-text-primary)]">{m.name}</h3>
-              <p className="text-xs text-[var(--color-text-muted)] mt-1">{m.desc}</p>
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)] truncate">{m.name}</h3>
+              <p className="text-xs text-[var(--color-text-muted)] mt-1 line-clamp-2">{m.desc}</p>
               <div className="mt-3 flex items-center justify-between">
                 <span className="text-xs text-[var(--color-text-secondary)]">Target: <span className="text-[var(--color-profit)]">{m.good}</span></span>
               </div>
@@ -171,15 +171,15 @@ export default function RiskManager({ onNavigate }) {
           <SectionHeader icon={AlertTriangle} title="Risk Alerts" />
           <div className="space-y-2">
             {RISK_ALERTS.map((a, i) => (
-              <div key={i} className="flex items-start gap-3 p-3 rounded-lg" style={{
+              <div key={i} className="flex items-start gap-3 p-3 rounded-lg min-w-0" style={{
                 background: a.level === 'critical' ? 'var(--color-loss-12)' : a.level === 'warning' ? 'var(--color-warning-12)' : 'var(--color-accent-8)',
                 borderLeft: `3px solid ${a.level === 'critical' ? 'var(--color-loss)' : a.level === 'warning' ? 'var(--color-warning)' : 'var(--color-accent)'}`,
               }}>
                 {a.level === 'critical' ? <AlertTriangle className="w-4 h-4 text-[var(--color-loss)] mt-0.5 flex-shrink-0" /> :
                  a.level === 'warning' ? <AlertTriangle className="w-4 h-4 text-[var(--color-warning)] mt-0.5 flex-shrink-0" /> :
                  <Shield className="w-4 h-4 text-[var(--color-accent)] mt-0.5 flex-shrink-0" />}
-                <div className="flex-1">
-                  <p className="text-sm text-gray-200">{a.msg}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-gray-200 break-words">{a.msg}</p>
                   <span className="text-[10px] text-[var(--color-text-muted)]">{a.time}</span>
                 </div>
               </div>

@@ -194,9 +194,9 @@ function AccordionItem({ item, isOpen, onToggle }) {
         <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${isOpen ? 'bg-[var(--color-accent)]/20 text-[var(--color-accent)]' : 'bg-[var(--color-surface-3)] text-[var(--color-text-muted)]'}`}>
           {isOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
         </div>
-        <span className="text-sm font-medium text-[var(--color-text-primary)] flex-1">{item.q}</span>
+        <span className="text-sm font-medium text-[var(--color-text-primary)] flex-1 truncate">{item.q}</span>
         {item.tag && (
-          <Badge variant={item.tag === 'Low Risk' ? 'success' : item.tag === 'Medium Risk' ? 'warning' : 'danger'}>
+          <Badge variant={item.tag === 'Low Risk' ? 'success' : item.tag === 'Medium Risk' ? 'warning' : 'danger'} className="flex-shrink-0">
             {item.tag}
           </Badge>
         )}
@@ -233,7 +233,7 @@ export default function Help({ onNavigate }) {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-5">
+    <div className="max-w-3xl mx-auto space-y-6">
       {/* Header */}
       <PageHeader icon={HelpCircle} title="Help & Guide" subtitle="Everything you need to know, in plain English" />
 
@@ -246,7 +246,7 @@ export default function Help({ onNavigate }) {
       />
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
           { label: 'Bot Types', value: '6', color: 'var(--color-purple)' },
           { label: 'Strategies', value: '6', color: 'var(--color-accent)' },

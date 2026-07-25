@@ -87,7 +87,7 @@ export default function Invest({ onNavigate }) {
 
   return (
     <div className="min-h-screen bg-[var(--color-surface-deep)] p-4 sm:p-6">
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto space-y-6">
         <PageHeader icon={Zap} title="Invest" subtitle="Set up an automated trading bot in 3 easy steps">
           <InfoTip text="Pick a strategy, choose your amount, and launch. You can pause or stop anytime." />
         </PageHeader>
@@ -106,9 +106,9 @@ export default function Invest({ onNavigate }) {
                         <div className="w-10 h-10 rounded-lg bg-[var(--color-surface-3)] flex items-center justify-center shrink-0"><Icon size={20} className="text-[var(--color-accent)]" /></div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-semibold text-[var(--color-text-primary)]">{b.name}</span>
-                            {b.popular && <Badge variant="accent">MOST POPULAR</Badge>}
-                            <Badge variant={b.risk === 'Low' ? 'success' : b.risk === 'Medium' ? 'warning' : 'danger'}>{b.risk} Risk</Badge>
+                            <span className="font-semibold text-[var(--color-text-primary)] min-w-0 truncate">{b.name}</span>
+                            {b.popular && <Badge variant="accent" className="flex-shrink-0">MOST POPULAR</Badge>}
+                            <Badge variant={b.risk === 'Low' ? 'success' : b.risk === 'Medium' ? 'warning' : 'danger'} className="flex-shrink-0">{b.risk} Risk</Badge>
                           </div>
                           <p className="text-[var(--color-text-secondary)] text-sm mt-1">{b.desc}</p>
                           <p className="text-[var(--color-accent)] text-xs mt-1">Typical monthly return: {b.returns}</p>
@@ -123,7 +123,7 @@ export default function Invest({ onNavigate }) {
               <Card className="!border-[var(--color-accent)]/30">
                 <CardBody className="p-4">
                   <h4 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Strategy Details</h4>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="text-center">
                       <p className="text-xs text-[var(--color-text-muted)] mb-1">Monthly Return</p>
                       <p className="text-sm font-semibold text-[var(--color-accent)]">{strategy.returnRange}</p>
@@ -155,7 +155,7 @@ export default function Invest({ onNavigate }) {
 
         {/* Step 2: Wallet & Amount */}
         {step === 1 && (
-          <div className="space-y-5">
+          <div className="space-y-6">
             <Card>
               <CardBody>
                 <label className="text-sm text-[var(--color-text-secondary)] mb-2 flex items-center gap-2"><Wallet size={14} /> Select Wallet</label>
@@ -169,7 +169,7 @@ export default function Invest({ onNavigate }) {
             <Card>
               <CardBody>
                 <label className="text-sm text-[var(--color-text-secondary)] mb-3 flex items-center gap-2"><DollarSign size={14} /> Investment Amount</label>
-                <div className="grid grid-cols-3 gap-2 mb-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3">
                   {PRESETS.map(p => (
                     <Btn key={p} variant={!customMode && amount === p ? 'primary' : 'secondary'} size="sm"
                       onClick={() => { setAmount(p); setCustomMode(false); }}>
@@ -276,7 +276,7 @@ export default function Invest({ onNavigate }) {
 
         {/* Step 3: Confirm & Launch */}
         {step === 2 && (
-          <div className="space-y-5">
+          <div className="space-y-6">
             <Card>
               <CardBody>
                 <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">

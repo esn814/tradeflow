@@ -10,8 +10,8 @@ export default function ExchangeSection({
   connectedExchangeCount,
 }) {
   return (
-    <Card>
-      <CardBody className="space-y-5">
+    <Card className="overflow-hidden">
+      <CardBody className="space-y-6">
         <SectionHeader icon={Link} title="Exchange Accounts" badge={`${connectedExchangeCount} Connected`} />
         <p className="text-[var(--color-text-muted)] text-xs -mt-2">Connect exchange API keys for live order execution.</p>
         <div className="flex items-center gap-2 bg-[var(--color-surface-2)] rounded-xl p-3 text-xs text-[var(--color-text-secondary)]">
@@ -31,7 +31,7 @@ export default function ExchangeSection({
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold" style={{ background: `${exchange.color}20`, color: exchange.color }}>{exchange.name[0]}</div>
                     <div>
                       <span className="text-sm font-medium">{exchange.name}</span>
-                      {keys && <div className="flex items-center gap-2 mt-0.5"><span className="text-[var(--color-text-muted)] text-xs font-mono">{keys.keyPreview}</span><Badge variant={status === 'connected' ? 'success' : 'warning'}>{status === 'connected' ? 'Verified' : 'Saved'}</Badge></div>}
+                      {keys && <div className="flex items-center gap-2 mt-0.5"><span className="text-[var(--color-text-muted)] text-xs font-mono truncate">{keys.keyPreview}</span><Badge variant={status === 'connected' ? 'success' : 'warning'} className="flex-shrink-0 whitespace-nowrap">{status === 'connected' ? 'Verified' : 'Saved'}</Badge></div>}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">

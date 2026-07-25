@@ -46,23 +46,23 @@ function BotDetail({ bot, onBack, onToggle, onStop, livePrices }) {
   const chartData = trades.map(t => ({ date: t.date, pnl: t.cumPnl }));
 
   return (
-    <div className="max-w-5xl mx-auto space-y-5 animate-fade-in">
+    <div className="max-w-5xl mx-auto space-y-6 animate-fade-in">
       <button onClick={onBack} className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors">
         <ChevronLeft size={16} /> Back to All Bots
       </button>
 
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl flex items-center justify-center bg-[var(--color-accent)]/10">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center bg-[var(--color-accent)]/10 flex-shrink-0">
             <Icon size={20} className="text-[var(--color-accent)]" />
           </div>
-          <div>
-            <h1 className="text-xl font-extrabold text-[var(--color-text-primary)]">{bot.name}</h1>
-            <p className="text-xs text-[var(--color-text-muted)]">{bot.type} Strategy · Trading {bot.coin} · Since {bot.since}</p>
+          <div className="min-w-0">
+            <h1 className="text-xl font-extrabold text-[var(--color-text-primary)] truncate">{bot.name}</h1>
+            <p className="text-xs text-[var(--color-text-muted)] truncate">{bot.type} Strategy · Trading {bot.coin} · Since {bot.since}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <StatusPill status={bot.status} />
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <StatusPill status={bot.status} className="flex-shrink-0" />
           {bot.status !== 'stopped' && (
             <>
               <Btn variant="secondary" size="sm" onClick={() => onToggle(bot.id)}>
@@ -76,7 +76,7 @@ function BotDetail({ bot, onBack, onToggle, onStop, livePrices }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Stat label="Invested" value={`${bot.invested.toLocaleString()}`} />
         <Stat label="Current Value" value={`${bot.current.toLocaleString()}`} />
         <Stat label="Total P&L" value={`${pnl >= 0 ? '+' : ''}${pnl.toLocaleString()}`} color={pnl >= 0 ? 'text-[var(--color-accent)]' : 'text-[var(--color-danger)]'} />
@@ -93,6 +93,7 @@ function BotDetail({ bot, onBack, onToggle, onStop, livePrices }) {
       <Card>
         <CardBody>
           <SectionHeader icon={BarChart3} title="Cumulative P&L" />
+          <div className="overflow-hidden">
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={chartData}>
               <defs>
@@ -107,6 +108,7 @@ function BotDetail({ bot, onBack, onToggle, onStop, livePrices }) {
               <Area type="monotone" dataKey="pnl" stroke="var(--color-accent)" fill="url(#botPnlGrad)" strokeWidth={2} dot={false} />
             </AreaChart>
           </ResponsiveContainer>
+          </div>
         </CardBody>
       </Card>
 
@@ -136,9 +138,9 @@ function BotDetail({ bot, onBack, onToggle, onStop, livePrices }) {
                         {t.side.toUpperCase()}
                       </span>
                     </td>
-                    <td className="py-2 pr-3 text-right text-gray-300 font-mono">${t.price.toLocaleString()}</td>
+                    <td className="py-2 pr-3 text-right text-gray-300 font-mono tabular-nums">${t.price.toLocaleString()}</td>
                     <td className="py-2 pr-3 text-right text-gray-300 font-mono">{t.qty}</td>
-                    <td className={`py-2 text-right font-medium font-mono ${t.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    <td className={`py-2 text-right font-medium font-mono tabular-nums ${t.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                       {t.pnl >= 0 ? '+' : ''}${t.pnl.toFixed(2)}
                     </td>
                   </tr>
@@ -222,7 +224,7 @@ export default function MyBots({ onNavigate }) {
   }
 
   return (
-    <div className="space-y-5 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       {demoMode && (
         <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[var(--color-accent-10)] border border-[var(--color-accent-25)]">
           <div className="w-2 h-2 rounded-full bg-[var(--color-accent)] animate-pulse" />
@@ -234,7 +236,7 @@ export default function MyBots({ onNavigate }) {
         <InfoTip text="Pause to temporarily stop trading, or stop a bot to exit all positions." />
       </PageHeader>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Stat label="Total Invested" value={`$${totalInvested.toLocaleString()}`} />
         <Stat label="Current Value" value={`$${totalCurrent.toLocaleString()}`} />
         <Stat label="Total P&L" value={`${totalPnL >= 0 ? '+' : ''}${totalPnL.toLocaleString()}`} color={totalPnL >= 0 ? 'text-[var(--color-accent)]' : 'text-[var(--color-danger)]'} />
@@ -245,7 +247,7 @@ export default function MyBots({ onNavigate }) {
 
       <SectionHeader icon={Bot} title="Active Bots" badge={`${activeBots} running`} />
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 stagger">
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 stagger">
         {bots.map(bot => {
           const pnl = bot.current - bot.invested;
           const pct = ((pnl / bot.invested) * 100).toFixed(1);
@@ -254,37 +256,37 @@ export default function MyBots({ onNavigate }) {
             <Card key={bot.id} hover className="animate-fade-in">
               <CardBody className="flex flex-col gap-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-[var(--color-accent)]/10">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-[var(--color-accent)]/10 flex-shrink-0">
                       <Icon size={16} className="text-[var(--color-accent)]" />
                     </div>
-                    <div>
-                      <p className="font-bold text-sm text-[var(--color-text-primary)]">{bot.name}</p>
-                      <p className="text-[11px] text-[var(--color-text-muted)]">{bot.type} Strategy</p>
+                    <div className="min-w-0">
+                      <p className="font-bold text-sm text-[var(--color-text-primary)] truncate">{bot.name}</p>
+                      <p className="text-[11px] text-[var(--color-text-muted)] truncate">{bot.type} Strategy</p>
                     </div>
                   </div>
-                      <StatusPill status={bot.status} />
+                      <StatusPill status={bot.status} className="flex-shrink-0" />
                 </div>
 
                 {/* Risk Score Badge */}
                 <RiskBadge score={calculateRiskScore(bot)} />
 
-                <div className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)]">
-                  <Wallet size={13} /> Trading {bot.coin} · Since {bot.since}
+                <div className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)] min-w-0">
+                  <Wallet size={13} className="flex-shrink-0" /> <span className="truncate">Trading {bot.coin} · Since {bot.since}</span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-hidden">
                   <Stat label="Invested" value={`$${bot.invested.toLocaleString()}`} />
                   <Stat label="Value" value={`$${bot.current.toLocaleString()}`} />
                 </div>
 
-                <Badge variant={pnl >= 0 ? 'success' : 'danger'}>
+                <Badge className="flex-shrink-0" variant={pnl >= 0 ? 'success' : 'danger'}>
                   {pnl >= 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-                  {pnl >= 0 ? '+' : ''}${pnl.toLocaleString()} ({pct}%)
+                  <span className="tabular-nums">{pnl >= 0 ? '+' : ''}${pnl.toLocaleString()} ({pct}%)</span>
                 </Badge>
 
                 <Divider />
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Btn variant="ghost" size="sm" className="flex-1" onClick={() => setSelectedId(bot.id)}>
                     <BarChart3 size={13} /> Details
                   </Btn>

@@ -147,7 +147,7 @@ export default function AutomatedTrading({ onNavigate: _onNavigate }) {
       </PageHeader>
 
       {/* KPI Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Stat label="Active Bots" value={activeBots} sub={`${bots.length} total`} color="text-[var(--color-accent)]" />
         <Stat label="Total P&L" value={`${totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(2)}`} color={totalPnl >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'} />
         <Stat label="Total Trades" value={totalTrades} />
@@ -157,20 +157,20 @@ export default function AutomatedTrading({ onNavigate: _onNavigate }) {
       <Divider />
 
       {/* Strategy Selector */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {STRATEGIES.map(strat => {
           const Icon = strat.icon;
           const sel = selectedStrategy?.id === strat.id;
           return (
             <button key={strat.id} onClick={() => handleSelectStrategy(strat)}
               className={`card p-4 text-left transition-all ${sel ? 'ring-2 ring-[var(--color-accent)]' : 'hover:border-[var(--color-border-hover)]'}`}>
-              <div className="flex items-center gap-2 mb-2">
-                <Icon size={18} style={{ color: strat.color }} />
-                <span className="font-semibold text-sm text-[var(--color-text)]">{strat.name}</span>
+              <div className="flex items-center gap-2 mb-2 min-w-0">
+                <Icon size={18} style={{ color: strat.color }} className="flex-shrink-0" />
+                <span className="font-semibold text-sm text-[var(--color-text)] truncate">{strat.name}</span>
               </div>
-              <p className="text-xs text-[var(--color-text-muted)] mb-2">{strat.desc}</p>
+              <p className="text-xs text-[var(--color-text-muted)] mb-2 line-clamp-2">{strat.desc}</p>
               <div className="flex items-center gap-2">
-                <Badge color={strat.risk === 'Low' ? 'var(--color-success)' : strat.risk === 'Medium' ? 'var(--color-warning-alt)' : 'var(--color-danger)'}>{strat.risk} Risk</Badge>
+                <Badge className="flex-shrink-0" color={strat.risk === 'Low' ? 'var(--color-success)' : strat.risk === 'Medium' ? 'var(--color-warning-alt)' : 'var(--color-danger)'}>{strat.risk} Risk</Badge>
               </div>
             </button>
           );
@@ -182,7 +182,7 @@ export default function AutomatedTrading({ onNavigate: _onNavigate }) {
         <Card>
           <CardBody>
             <SectionHeader icon={Settings2} title={`Configure: ${selectedStrategy.name}`} />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 overflow-hidden">
               <div>
                 <label className="text-xs text-[var(--color-text-muted)] mb-1 block">Coin</label>
                 <select className="input w-full" value={selectedCoin?.symbol || ''}
@@ -220,7 +220,7 @@ export default function AutomatedTrading({ onNavigate: _onNavigate }) {
       {bots.length === 0 ? (
         <EmptyState icon={Bot} title="No bots deployed" subtitle="Select a strategy above to deploy your first automated trading bot." />
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {bots.map(bot => {
             const strat = STRATEGIES.find(s => s.id === bot.strategy);
             const coin = COINS.find(c => c.symbol === bot.coin);
@@ -230,21 +230,21 @@ export default function AutomatedTrading({ onNavigate: _onNavigate }) {
               <Card key={bot.id}>
                 <CardBody>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: strat?.color + '20' }}>
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: strat?.color + '20' }}>
                         <Icon size={20} style={{ color: strat?.color }} />
                       </div>
-                      <div>
-                        <div className="font-semibold text-sm text-[var(--color-text)]">{strat?.name} · {coin?.icon} {bot.coin}</div>
+                      <div className="min-w-0">
+                        <div className="font-semibold text-sm text-[var(--color-text)] truncate">{strat?.name} · {coin?.icon} {bot.coin}</div>
                         <div className="text-xs text-[var(--color-text-muted)]">{bot.trades} trades · {running ? 'Running' : 'Paused'}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <div className={`font-mono font-bold text-sm ${bot.pnl >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}>
+                      <div className="text-right min-w-0">
+                        <div className={`font-mono font-bold text-sm tabular-nums truncate ${bot.pnl >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}>
                           {bot.pnl >= 0 ? '+' : ''}{bot.pnl.toFixed(2)} USD
                         </div>
-                        <div className={`text-xs ${bot.pnlPct >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}>
+                        <div className={`text-xs tabular-nums ${bot.pnlPct >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}>
                           {bot.pnlPct >= 0 ? '+' : ''}{bot.pnlPct.toFixed(1)}%
                         </div>
                       </div>

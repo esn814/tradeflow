@@ -104,7 +104,7 @@ export default function CrossChainArbitrage() {
       </PageHeader>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Stat label="Opportunities" value={filtered.length} sub={`of ${opps.length} found`} color="text-[var(--color-accent)]" />
         <Stat label="Avg Spread" value={`${avgSpread}%`} color="text-[var(--color-success)]" />
         <Stat label="Profitable" value={`${profitable}/${filtered.length}`} color="text-[var(--color-info)]" />
@@ -127,7 +127,7 @@ export default function CrossChainArbitrage() {
           Min Spread:
           <input type="range" min="0.2" max="5" step="0.1" value={minSpread}
             onChange={e => setMinSpread(parseFloat(e.target.value))} className="w-24" />
-          <span className="font-mono text-[var(--color-text)]">{minSpread}%</span>
+          <span className="font-mono tabular-nums text-[var(--color-text)]">{minSpread}%</span>
         </div>
       </div>
 
@@ -136,7 +136,7 @@ export default function CrossChainArbitrage() {
       {filtered.length === 0 ? (
         <EmptyState icon={Target} title="No opportunities" subtitle="Lower the minimum spread or wait for new market conditions." />
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {filtered.map(opp => {
             const expanded = expandedOpp === opp.id;
             return (
@@ -144,34 +144,34 @@ export default function CrossChainArbitrage() {
                 <CardBody>
                   <button onClick={() => setExpandedOpp(expanded ? null : opp.id)}
                     className="w-full text-left flex flex-col sm:flex-row sm:items-center gap-3">
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="w-10 h-10 rounded-lg flex items-center justify-center text-lg" style={{ background: 'var(--color-info-20)' }}>
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center text-lg flex-shrink-0" style={{ background: 'var(--color-info-20)' }}>
                         {opp.sourceChain.icon}
                       </div>
-                      <div>
-                        <div className="font-semibold text-sm text-[var(--color-text)]">
+                      <div className="min-w-0">
+                        <div className="font-semibold text-sm text-[var(--color-text)] truncate">
                           {opp.token} · {opp.sourceChain.name} → {opp.destChain.name}
                         </div>
-                        <div className="text-xs text-[var(--color-text-muted)]">
+                        <div className="text-xs text-[var(--color-text-muted)] truncate">
                           via {opp.bridge.name} · ~{opp.timeEstimate} · Fee: ${opp.bridgeFee}
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <div className="font-mono font-bold text-sm text-[var(--color-success)]">+{opp.spread}%</div>
-                        <div className={`text-xs ${opp.netProfit > 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}>
+                      <div className="text-right min-w-0">
+                        <div className="font-mono font-bold text-sm text-[var(--color-success)] tabular-nums truncate">+{opp.spread}%</div>
+                        <div className={`text-xs tabular-nums ${opp.netProfit > 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}>
                           Net: ${opp.netProfit > 0 ? '+' : ''}{opp.netProfit}
                         </div>
                       </div>
-                      <Badge variant={opp.confidence === 'high' ? 'success' : opp.confidence === 'medium' ? 'warning' : 'danger'}>
+                      <Badge className="flex-shrink-0" variant={opp.confidence === 'high' ? 'success' : opp.confidence === 'medium' ? 'warning' : 'danger'}>
                         {opp.confidence}
                       </Badge>
                       {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                     </div>
                   </button>
                   {expanded && (
-                    <div className="mt-4 pt-4 border-t border-[var(--color-border)] grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                    <div className="mt-4 pt-4 border-t border-[var(--color-border)] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
                       <div><span className="text-[var(--color-text-muted)]">Source:</span> {opp.sourceChain.name}</div>
                       <div><span className="text-[var(--color-text-muted)]">Dest:</span> {opp.destChain.name}</div>
                       <div><span className="text-[var(--color-text-muted)]">Bridge:</span> {opp.bridge.name}</div>
@@ -200,7 +200,7 @@ export default function CrossChainArbitrage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
           <SectionHeader icon={Globe} title="Supported Chains" />
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {CHAINS.map(ch => (
               <Card key={ch.id}>
                 <CardBody className="text-center">
@@ -223,7 +223,7 @@ export default function CrossChainArbitrage() {
                     <div className="font-semibold text-sm text-[var(--color-text)]">{bp.name}</div>
                     <div className="text-xs text-[var(--color-text-muted)]">{bp.chains} chains · TVL {bp.tvl}</div>
                   </div>
-                  <Badge variant={bp.speed === 'Fast' ? 'success' : bp.speed === 'Medium' ? 'warning' : 'info'}>{bp.speed}</Badge>
+                  <Badge className="flex-shrink-0" variant={bp.speed === 'Fast' ? 'success' : bp.speed === 'Medium' ? 'warning' : 'info'}>{bp.speed}</Badge>
                 </CardBody>
               </Card>
             ))}

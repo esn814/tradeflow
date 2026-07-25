@@ -82,10 +82,10 @@ const SECTIONS = [
 
 export default function Terms() {
   return (
-    <div className="max-w-3xl mx-auto space-y-5">
+    <div className="max-w-3xl mx-auto space-y-6">
       <PageHeader icon={FileText} title="Terms of Service" subtitle={`Last updated: ${LAST_UPDATED}`} />
 
-      <Card className="border-[var(--color-warning-30)]">
+      <Card className="border-[var(--color-warning-30)] overflow-hidden">
         <CardBody>
           <div className="flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-[var(--color-warning)] mt-0.5 flex-shrink-0" />
@@ -105,9 +105,9 @@ export default function Terms() {
         return (
           <div key={i}>
             <SectionHeader icon={Icon} title={section.title} />
-            <Card>
+            <Card className="overflow-hidden">
               <CardBody>
-                <ul className="space-y-3">
+                <ul className="space-y-4">
                   {section.content.map((item, j) => (
                     <li key={j} className="flex items-start gap-3 text-sm text-[var(--color-text-secondary)] leading-relaxed">
                       <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] mt-2 flex-shrink-0" />

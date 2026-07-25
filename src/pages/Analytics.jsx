@@ -81,7 +81,7 @@ export default function Analytics({ onNavigate: _onNavigate }) {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto space-y-5">
+    <div className="max-w-6xl mx-auto space-y-6">
       {/* Demo badge */}
       {isSample && (
         <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[var(--color-warning-10)] border border-[var(--color-warning-25)]">
@@ -102,7 +102,7 @@ export default function Analytics({ onNavigate: _onNavigate }) {
       </PageHeader>
 
       {/* ── KPI Cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Stat label="Realized P&L" value={`${filteredRealPnL >= 0 ? '+' : ''}${filteredRealPnL.toLocaleString(undefined, { maximumFractionDigits: 2 })}`} icon={DollarSign} up={filteredRealPnL >= 0} />
         <Stat label="Unrealized P&L" value={`${unRealPnL >= 0 ? '+' : ''}${unRealPnL.toLocaleString(undefined, { maximumFractionDigits: 2 })}`} icon={TrendingUp} up={unRealPnL >= 0} />
         <Stat label="Sharpe Ratio" value={filteredSR.toFixed(2)} icon={Activity} up={filteredSR > 1} />
@@ -113,7 +113,7 @@ export default function Analytics({ onNavigate: _onNavigate }) {
       <Card>
         <CardBody>
           <SectionHeader icon={TrendingUp} title="Equity Curve" badge={`From $10,000`} />
-          <div className="h-64">
+          <div className="h-64 overflow-hidden">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
                 <defs>
@@ -134,7 +134,7 @@ export default function Analytics({ onNavigate: _onNavigate }) {
       </Card>
 
       {/* ── Trade Summary Stats ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Stat label="Win Rate" value={`${filteredSummary.winRate}%`} icon={Target} up={filteredSummary.winRate > 50} />
         <Stat label="Profit Factor" value={filteredSummary.profitFactor === Infinity ? '∞' : filteredSummary.profitFactor.toFixed(2)} icon={Award} up={filteredSummary.profitFactor > 1} />
         <Stat label="Best Trade" value={`+${filteredSummary.bestTrade.toLocaleString()}`} icon={ArrowUpRight} up />
@@ -162,9 +162,9 @@ export default function Analytics({ onNavigate: _onNavigate }) {
                 {strategies.map((s, i) => (
                   <tr key={s.strategy} className="border-b border-[var(--color-border-default)] hover:bg-[var(--color-surface-hover)] transition-colors">
                     <td className="py-3 pr-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full" style={{ background: STRATEGY_COLORS[i % STRATEGY_COLORS.length] }} />
-                        <span className="font-medium text-[var(--color-text-primary)]">{s.strategy}</span>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: STRATEGY_COLORS[i % STRATEGY_COLORS.length] }} />
+                        <span className="font-medium text-[var(--color-text-primary)] truncate">{s.strategy}</span>
                       </div>
                     </td>
                     <td className={`text-right py-3 px-3 font-mono ${s.realized >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}>
@@ -178,7 +178,7 @@ export default function Analytics({ onNavigate: _onNavigate }) {
                     </td>
                     <td className="text-right py-3 px-3 text-[var(--color-text-secondary)]">{s.closedCount}/{s.tradeCount}</td>
                     <td className="text-right py-3 px-3">
-                      <span className={`px-2 py-0.5 rounded text-xs font-bold ${s.winRate >= 50 ? 'bg-[var(--color-success-15)] text-[var(--color-success)]' : 'bg-[var(--color-danger-15)] text-[var(--color-danger)]'}`}>
+                      <span className={`px-2 py-0.5 rounded text-xs font-bold flex-shrink-0 ${s.winRate >= 50 ? 'bg-[var(--color-success-15)] text-[var(--color-success)]' : 'bg-[var(--color-danger-15)] text-[var(--color-danger)]'}`}>
                         {s.winRate}%
                       </span>
                     </td>
@@ -200,7 +200,7 @@ export default function Analytics({ onNavigate: _onNavigate }) {
       <Card>
         <CardBody>
           <SectionHeader icon={BarChart3} title="P&L by Strategy" />
-          <div className="h-48">
+          <div className="h-48 overflow-hidden">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={strategies.map(s => ({ name: s.strategy.length > 12 ? s.strategy.slice(0, 12) + '…' : s.strategy, pnl: s.total }))}>
                 <CartesianGrid {...CHART_GRID} />
@@ -222,7 +222,7 @@ export default function Analytics({ onNavigate: _onNavigate }) {
       <Card>
         <CardBody>
           <SectionHeader icon={Activity} title="Trade Statistics" />
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {[
               { label: 'Total Trades', value: filteredSummary.totalTrades },
               { label: 'Closed', value: filteredSummary.closedTrades },

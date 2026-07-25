@@ -11,8 +11,8 @@ export default function WalletSection({
   signIn, isAuthenticated, authSignOut, getProviderFor,
 }) {
   return (
-    <Card>
-      <CardBody className="space-y-5">
+    <Card className="overflow-hidden">
+      <CardBody className="space-y-6">
         <SectionHeader icon={Wallet} title="Connected Wallets" badge={`${connectedWallets.length} Active`} />
         <p className="text-[var(--color-text-muted)] text-xs -mt-2">Connect multiple wallets across EVM-compatible chains. Paxeer (chain 125) is recommended for full functionality.</p>
 
@@ -57,7 +57,7 @@ export default function WalletSection({
           <div key={chain.id} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs ${activeChain?.id === chain.id ? 'border' : ''}`} style={{ borderColor: chain.color + '60', background: chain.color + '10' }}>
             <span className="text-base">{chain.icon}</span>
             <span className="font-medium" style={{ color: chain.color }}>{chain.short}</span>
-            {chain.isPrimary && <Badge variant="success" className="text-[10px] px-1.5 py-0">Primary</Badge>}
+            {chain.isPrimary && <Badge variant="success" className="text-[10px] px-1.5 py-0 flex-shrink-0 whitespace-nowrap">Primary</Badge>}
             <span className="text-[var(--color-text-muted)] ml-auto">Chain {chain.id}</span>
             {connectedWallets.some(w => w.chainId === chain.id) && <Wifi className="w-3 h-3" style={{ color: chain.color }} />}
           </div>
@@ -75,17 +75,17 @@ export default function WalletSection({
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">{wallet.name}</span>
-                      {isActive && <Badge variant="default" className="text-[10px]">Active</Badge>}
-                      {wallet.verified && <Badge variant="success" className="text-[10px]"><Fingerprint className="w-3 h-3" /> Verified</Badge>}
+                      {isActive && <Badge variant="default" className="text-[10px] flex-shrink-0 whitespace-nowrap">Active</Badge>}
+                      {wallet.verified && <Badge variant="success" className="text-[10px] flex-shrink-0 whitespace-nowrap"><Fingerprint className="w-3 h-3" /> Verified</Badge>}
                     </div>
                     <div className="flex items-center gap-1 mt-0.5">
-                      <span className="font-mono text-xs text-[var(--color-text-muted)]">{shortAddr(wallet.address)}</span>
+                      <span className="font-mono text-xs text-[var(--color-text-muted)] truncate">{shortAddr(wallet.address)}</span>
                       <Btn variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); copyAddress(wallet.address); }} title="Copy"><Copy className="w-3 h-3" /></Btn>
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge style={{ background: chain?.color + '20', color: chain?.color }}>{chain?.icon} {chain?.short}</Badge>
+                  <Badge style={{ background: chain?.color + '20', color: chain?.color }} className="flex-shrink-0 whitespace-nowrap">{chain?.icon} {chain?.short}</Badge>
                   <Btn variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); window.open(`${chain?.explorer}/address/${wallet.address}`, '_blank', 'noopener,noreferrer'); }}><ExternalLink className="w-4 h-4" /></Btn>
                   <Btn variant="danger" size="sm" onClick={(e) => { e.stopPropagation(); disconnectWallet(idx); }}><Unplug className="w-3 h-3" /></Btn>
                 </div>

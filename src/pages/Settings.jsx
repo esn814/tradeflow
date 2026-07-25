@@ -146,15 +146,15 @@ export default function Settings({ onNavigate }) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-5">
+    <div className="max-w-4xl mx-auto space-y-6">
       <PageHeader icon={Shield} title="Settings" subtitle="Configure trading parameters, API keys, and risk limits">
-        <Btn variant={saved ? 'success' : 'primary'} onClick={handleSave}>
+        <Btn variant={saved ? 'success' : 'primary'} className="whitespace-nowrap" onClick={handleSave}>
           {saved ? <CheckCircle className="w-4 h-4" /> : <Save className="w-4 h-4" />}
           {saved ? 'Saved!' : 'Save Changes'}
         </Btn>
       </PageHeader>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Risk Limits */}
         <Card>
           <CardBody>
@@ -191,7 +191,7 @@ export default function Settings({ onNavigate }) {
         <Card>
           <CardBody>
             <SectionHeader icon={Key} title="API Connections" />
-            <div className="space-y-3 mb-6">
+            <div className="space-y-4 mb-6">
               {EXCHANGES.map(ex => (
                 <div key={ex.id} className="flex items-center justify-between p-3 bg-[var(--color-surface-2)] rounded-lg">
                 <div className="flex items-center gap-3">
@@ -228,7 +228,7 @@ export default function Settings({ onNavigate }) {
         <Card>
           <CardBody>
             <SectionHeader icon={Bell} title="Notifications" />
-            <div className="space-y-3">
+            <div className="space-y-4">
               <Toggle
                 label="Push Notifications"
                 desc={isPushSupported()
@@ -290,7 +290,7 @@ export default function Settings({ onNavigate }) {
                 color="var(--color-accent)"
               />
               {demoMode && (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <div className="flex items-start gap-2 p-3 bg-[var(--color-accent-10)] border border-[var(--color-accent-30)] rounded-lg">
                     <CheckCircle className="w-4 h-4 text-[var(--color-accent)] mt-0.5 flex-shrink-0" />
                     <p className="text-xs text-[var(--color-accent)]">Demo mode active. You're trading with virtual funds — no real money is at risk.</p>
@@ -344,7 +344,7 @@ export default function Settings({ onNavigate }) {
       {/* Telegram Bot Integration */}
       <Card>
         <CardBody>
-          <SectionHeader icon={Send} title="Telegram Alerts" action={<Badge variant="info">Beta</Badge>} />
+          <SectionHeader icon={Send} title="Telegram Alerts" action={<Badge className="flex-shrink-0" variant="info">Beta</Badge>} />
           <p className="text-xs text-[var(--color-text-muted)] mb-4">Get real-time trade alerts, daily P&L summaries, and bot status notifications directly in Telegram. Quick-action buttons let you pause/resume bots without opening the app.</p>
           <div className="space-y-4">
             <div>
@@ -372,7 +372,7 @@ export default function Settings({ onNavigate }) {
               <p className="text-[10px] text-[var(--color-text-muted)] mt-1">Send a message to <a href="https://t.me/userinfobot" target="_blank" rel="noopener" className="text-[var(--color-accent)] hover:underline">@userinfobot</a> to find your Chat ID.</p>
             </div>
             <Divider />
-            <div className="space-y-3">
+            <div className="space-y-4">
               <span className="text-xs text-[var(--color-text-secondary)] font-medium">Notification Types</span>
               <Toggle
                 label="Trade Execution Alerts"

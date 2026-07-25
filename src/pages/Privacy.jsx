@@ -71,10 +71,10 @@ const SECTIONS = [
 
 export default function Privacy() {
   return (
-    <div className="max-w-3xl mx-auto space-y-5">
+    <div className="max-w-3xl mx-auto space-y-6">
       <PageHeader icon={Shield} title="Privacy Policy" subtitle={`Last updated: ${LAST_UPDATED}`} />
 
-      <Card>
+      <Card className="overflow-hidden">
         <CardBody>
           <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">
             TradeFlow is a demo/educational crypto trading platform. This policy explains what data we collect,
@@ -88,9 +88,9 @@ export default function Privacy() {
         return (
           <div key={i}>
             <SectionHeader icon={Icon} title={section.title} />
-            <Card>
+            <Card className="overflow-hidden">
               <CardBody>
-                <ul className="space-y-3">
+                <ul className="space-y-4">
                   {section.content.map((item, j) => (
                     <li key={j} className="flex items-start gap-3 text-sm text-[var(--color-text-secondary)] leading-relaxed">
                       <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] mt-2 flex-shrink-0" />

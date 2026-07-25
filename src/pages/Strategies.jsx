@@ -90,7 +90,7 @@ export default function Strategies({ onNavigate }) {
   const updateParam = (key, val) => setParamValues(prev => ({ ...prev, [key]: val }));
 
   return (
-    <div className="max-w-5xl mx-auto space-y-5">
+    <div className="max-w-5xl mx-auto space-y-6">
       <PageHeader icon={Bot} title="Trading Strategies" subtitle="Explore demo trading strategies — real exchange integration coming soon">
         {!simple && (
           <Btn variant="primary" size="md" onClick={() => onNavigate('/autopilot')}>
@@ -101,7 +101,7 @@ export default function Strategies({ onNavigate }) {
 
       {simple ? (
         /* ─── Simple mode: compact list with toggles ─── */
-        <div className="space-y-3">
+        <div className="space-y-4">
           {STRATEGIES.map(s => (
             <SimpleStrategyCard key={s.id} s={s} isRunning={running[s.id]} onToggle={toggleRun} />
           ))}
@@ -123,12 +123,12 @@ export default function Strategies({ onNavigate }) {
                 <CardBody>
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-[var(--color-accent-15)] flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-lg bg-[var(--color-accent-15)] flex items-center justify-center flex-shrink-0">
                         <Icon className="w-5 h-5 text-[var(--color-accent)]" />
                       </div>
                       <div>
                         <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">{s.name}</h3>
-                        <Badge variant={RISK_BADGE_VARIANTS[s.risk] || 'warning'}>{s.risk} Risk</Badge>
+                        <Badge className="flex-shrink-0" variant={RISK_BADGE_VARIANTS[s.risk] || 'warning'}>{s.risk} Risk</Badge>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -144,7 +144,7 @@ export default function Strategies({ onNavigate }) {
                     </div>
                   </div>
                   <p className="text-xs text-[var(--color-text-secondary)] mb-3 line-clamp-2">{s.description}</p>
-                  <div className="grid grid-cols-3 gap-2 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                     <div className="bg-[var(--color-surface-2)] rounded-lg p-2">
                       <span className="text-[var(--color-text-muted)] block">Return</span>
                       <span className="text-[var(--color-profit)] font-medium">{s.returnRange}</span>
@@ -180,7 +180,7 @@ export default function Strategies({ onNavigate }) {
                           <Target size={14} className="text-[var(--color-info)]" />
                           <span className="text-xs font-bold text-[var(--color-info)]">Market Fit</span>
                         </div>
-                        <div className="grid grid-cols-4 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                           {Object.entries(s.marketFit).map(([cond, fit]) => (
                             <div key={cond} className="text-center">
                               <div className={`text-lg mb-0.5 ${fit === 'excellent' ? 'text-[var(--color-profit)]' : fit === 'good' ? 'text-[var(--color-profit-light)]' : fit === 'fair' ? 'text-[var(--color-warning)]' : 'text-[var(--color-loss)]'}`}>
@@ -212,6 +212,7 @@ export default function Strategies({ onNavigate }) {
                     )}
 
                     <SectionHeader icon={Settings2} title="Parameters" />
+                    <div className="space-y-3 min-w-0">
                     {s.params.map(p => (
                       <div key={p.key}>
                         <div className="flex justify-between text-xs mb-1">
@@ -234,6 +235,7 @@ export default function Strategies({ onNavigate }) {
                         </div>
                       </div>
                     ))}
+                    </div>
                     <div className="flex gap-2 pt-2">
                       <Btn variant="primary" size="sm" className="flex-1" onClick={e => { e.stopPropagation(); const stratParams = {}; s.params.forEach(p => { stratParams[p.key] = paramValues[p.key] ?? p.default; }); localStorage.setItem('tradeflow-strategy-' + s.id, JSON.stringify(stratParams)); setStrategyState(s.id, { params: stratParams }); setSaveSuccess(s.id); setTimeout(() => setSaveSuccess(null), 2000); }}>
                         {saveSuccess === s.id ? '✓ Saved!' : 'Save & Apply'}
@@ -261,7 +263,7 @@ export default function Strategies({ onNavigate }) {
             <CardBody>
               <SectionHeader icon={Brain} title="How AI Enhances Each Strategy" />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <div className="flex gap-3">
                     <Shield className="w-4 h-4 text-[var(--color-accent)] mt-0.5 flex-shrink-0" />
                     <div>
@@ -277,7 +279,7 @@ export default function Strategies({ onNavigate }) {
                     </div>
                   </div>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <div className="flex gap-3">
                     <Zap className="w-4 h-4 text-[var(--color-warning)] mt-0.5 flex-shrink-0" />
                     <div>

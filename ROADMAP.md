@@ -99,7 +99,8 @@ Every tier of the original roadmap has been built, verified, and deployed. Secur
 - [x] Skeleton loading states — shimmer placeholders replace "Loading…" (replace "Loading…" text)
 - [x] Web Worker for Backtester — CPU-intensive computation runs off main thread
 - [x] Remove unused Analytics computations (_summary, _realPnL, _dd, _sr)
-- [ ] Accessibility pass (aria-labels, keyboard nav, focus management)
+- [x] Accessibility pass (aria-labels, keyboard nav, focus management)
+- [x] Visual alignment overhaul — mb-6 headline spacing, p-4 lg:p-5 card padding, overflow-hidden + truncate + line-clamp, min-w-0, inline-flex pills, gap-4 grids, mobile pt-16, viewport-clamped tooltips (19 files)
 
 ### Step 4: Code Quality (~25h)
 - [x] Test coverage — 56 unit tests (marketData, Zod schemas, validateBody) (trade P&L calc, auth flow, bot CRUD, server routes)

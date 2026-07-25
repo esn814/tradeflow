@@ -42,7 +42,7 @@ export default function Referrals({ onNavigate }) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-5">
+    <div className="max-w-4xl mx-auto space-y-6">
       <PageHeader icon={Gift} title="Referral Program" subtitle="Invite friends, both earn rewards. Grow the community and get free Pro time.">
         <Btn variant="primary" onClick={handleShare}>
           <Share2 className="w-4 h-4" /> Invite Friends
@@ -50,7 +50,7 @@ export default function Referrals({ onNavigate }) {
       </PageHeader>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Stat label="Total Referrals" value={totalReferrals} color="text-[var(--color-accent)]" />
         <Stat label="Active Friends" value={activeReferrals} color="text-[var(--color-info)]" />
         <Stat label="Days Pro Earned" value={`${totalDaysEarned}d`} color="text-[var(--color-purple)]" />
@@ -85,13 +85,13 @@ export default function Referrals({ onNavigate }) {
           const reached = totalReferrals >= tier.milestone;
           return (
             <Card key={tier.milestone} hover className={reached ? '!border-[var(--color-accent)]/30' : ''}>
-              <CardBody className="text-center">
+              <CardBody className="text-center overflow-hidden">
                 <div className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center" style={{ background: tier.color + '18' }}>
                   <Icon size={24} style={{ color: tier.color }} />
                 </div>
                 <div className="text-2xl font-extrabold text-[var(--color-text-primary)] mb-1">{tier.milestone}</div>
                 <p className="text-xs text-[var(--color-text-muted)] mb-2">{tier.label}</p>
-                <Badge variant={reached ? 'success' : 'accent'}>{reached ? '✓ Reached' : tier.reward}</Badge>
+                <Badge variant={reached ? 'success' : 'accent'} className="flex-shrink-0">{reached ? '✓ Reached' : tier.reward}</Badge>
                 {!reached && (
                   <div className="mt-3">
                     <div className="h-1.5 bg-[var(--color-surface-3)] rounded-full overflow-hidden">
@@ -128,7 +128,7 @@ export default function Referrals({ onNavigate }) {
                     <td className="py-3 pr-4 text-[var(--color-text-primary)] font-medium">{r.name}</td>
                     <td className="py-3 pr-4 text-[var(--color-text-secondary)]">{r.joined}</td>
                     <td className="py-3 pr-4">
-                      <Badge variant={r.status === 'active' ? 'success' : r.status === 'pending' ? 'warning' : 'danger'}>
+                      <Badge variant={r.status === 'active' ? 'success' : r.status === 'pending' ? 'warning' : 'danger'} className="flex-shrink-0">
                         {r.status}
                       </Badge>
                     </td>

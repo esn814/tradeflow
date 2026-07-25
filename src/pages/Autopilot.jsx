@@ -68,14 +68,14 @@ export default function Autopilot({ onNavigate }) {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4 pb-8">
+    <div className="max-w-3xl mx-auto space-y-6 pb-8">
       {/* Header */}
       <div className="flex items-center justify-between pt-2">
-        <div>
-          <div className="flex items-center gap-2">
-            <Zap size={20} className="text-[var(--color-accent)]" />
-            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Autopilot</h1>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[var(--color-accent-22)] text-[var(--color-accent)]">BETA</span>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <Zap size={20} className="text-[var(--color-accent)] flex-shrink-0" />
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] truncate">Autopilot</h1>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[var(--color-accent-22)] text-[var(--color-accent)] flex-shrink-0">BETA</span>
           </div>
           <p className="text-sm text-[var(--color-text-secondary)] mt-1">Pick a strategy. Adjust risk. The bot trades 24/7. Stop anytime.</p>
         </div>
@@ -119,10 +119,10 @@ export default function Autopilot({ onNavigate }) {
 
           {/* Start/Stop controls */}
           <div ref={actionRef} className="bg-[var(--color-surface-1)] rounded-2xl border border-[var(--color-border-default)] p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">{strategy.name}</h3>
-                <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">
+            <div className="flex items-center justify-between mb-3 gap-3">
+              <div className="min-w-0">
+                <h3 className="text-sm font-semibold text-[var(--color-text-primary)] truncate">{strategy.name}</h3>
+                <p className="text-xs text-[var(--color-text-secondary)] mt-0.5 truncate">
                   Trading {strategy.pairs.join(', ')} on {strategy.timeframe} candles
                   {' | '}
                   <span className="text-red-400">SL {stopLoss}%</span>
@@ -130,7 +130,7 @@ export default function Autopilot({ onNavigate }) {
                   <span className="text-green-400">TP {takeProfit}%</span>
                 </p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
                 <button
                   onClick={() => setShowConfig(!showConfig)}
                   className="p-2 rounded-lg bg-[var(--color-surface-3)] hover:bg-[var(--color-border-hover)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition"
@@ -169,8 +169,8 @@ export default function Autopilot({ onNavigate }) {
       <TradeLog trades={trades} expanded={tradesExpanded} onToggle={() => setTradesExpanded(!tradesExpanded)} />
 
       <div className="flex items-start gap-3 bg-[var(--color-warning-8)] border border-[var(--color-warning-22)] rounded-xl p-4">
-        <AlertTriangle size={16} className="text-orange-400 shrink-0 mt-0.5" />
-        <p className="text-xs text-orange-300/80 leading-relaxed">
+        <AlertTriangle size={16} className="text-orange-400 flex-shrink-0 mt-0.5" />
+        <p className="text-xs text-orange-300/80 leading-relaxed min-w-0">
           Automated trading involves risk. This is a paper trading simulation — no real money is at risk. All trades use virtual funds with real market data for learning and testing purposes.
         </p>
       </div>

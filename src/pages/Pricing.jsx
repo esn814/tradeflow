@@ -87,7 +87,7 @@ export default function Pricing({ onNavigate }) {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
+    <div className="max-w-5xl mx-auto space-y-6">
       {/* Header */}
       <div className="text-center">
         <PageHeader icon={DollarSign} title="Simple, Transparent Pricing" subtitle="Start free, upgrade when you're ready. No hidden fees — just a platform fee on trades.">
@@ -103,7 +103,7 @@ export default function Pricing({ onNavigate }) {
             onChange={setAnnual}
           />
           <span className={`text-sm ${annual ? 'text-[var(--color-text-primary)] font-medium' : 'text-[var(--color-text-muted)]'}`}>Annual</span>
-          {annual && <Badge variant="accent">Save 17%</Badge>}
+          {annual && <Badge variant="accent" className="flex-shrink-0 whitespace-nowrap">Save 17%</Badge>}
         </div>
       </div>
 
@@ -116,9 +116,9 @@ export default function Pricing({ onNavigate }) {
           const isSelected = selected === plan.id;
 
           return (
-            <Card key={plan.id} accent={!!plan.badge} hover className="relative flex flex-col">
+            <Card key={plan.id} accent={!!plan.badge} hover className="relative flex flex-col overflow-hidden">
               {plan.badge && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[var(--color-accent)] text-[var(--color-surface-deep)] text-xs font-bold px-4 py-1 rounded-full">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[var(--color-accent)] text-[var(--color-surface-deep)] text-xs font-bold px-4 py-1 rounded-full flex-shrink-0 whitespace-nowrap">
                   {plan.badge}
                 </div>
               )}
@@ -170,7 +170,7 @@ export default function Pricing({ onNavigate }) {
       </div>
 
       {/* Fee Info */}
-      <Card>
+      <Card className="overflow-hidden">
         <CardBody>
           <h3 className="text-[var(--color-text-primary)] font-semibold mb-3">Platform Fees on All Plans</h3>
           <Divider />

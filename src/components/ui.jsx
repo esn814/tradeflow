@@ -20,18 +20,18 @@ export const Card = memo(function Card({ children, className = '', hover = false
 });
 
 export const CardBody = memo(function CardBody({ children, className = '' }) {
-  return <div className={`p-5 sm:p-6 ${className}`}>{children}</div>;
+  return <div className={`p-5 sm:p-6 overflow-hidden ${className}`}>{children}</div>;
 });
 
 export const SectionHeader = memo(function SectionHeader({ icon: Icon, title, badge, action, className = '' }) {
   return (
-    <div className={`flex items-center justify-between mb-4 ${className}`}>
-      <div className="flex items-center gap-2.5">
-        {Icon && <Icon size={16} className="text-[var(--color-accent)]" />}
-        <h2 className="text-sm font-bold text-[var(--color-text-primary)]">{title}</h2>
-        {badge && <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[var(--color-accent-14)] text-[var(--color-accent)]">{badge}</span>}
+    <div className={`flex items-center justify-between mb-5 ${className}`}>
+      <div className="flex items-center gap-2.5 min-w-0">
+        {Icon && <Icon size={16} className="text-[var(--color-accent)] flex-shrink-0" />}
+        <h2 className="text-sm font-bold text-[var(--color-text-primary)] truncate">{title}</h2>
+        {badge && <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[var(--color-accent-14)] text-[var(--color-accent)] flex-shrink-0">{badge}</span>}
       </div>
-      {action}
+      {action && <div className="flex-shrink-0 ml-2">{action}</div>}
     </div>
   );
 });
@@ -61,13 +61,13 @@ export function LinkCard({ icon: Icon, title, desc, color = 'var(--color-accent)
   return (
     <Card hover onClick={onClick} className="p-5 cursor-pointer text-left group">
       <div className="flex items-start justify-between mb-3">
-        <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: color + '18', color }}>
+        <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: color + '18', color }}>
           <Icon size={20} />
         </div>
-        {badge && <span className="text-[10px] font-bold px-2 py-0.5 rounded" style={{ background: color + '18', color }}>{badge}</span>}
+        {badge && <span className="text-[10px] font-bold px-2 py-0.5 rounded flex-shrink-0" style={{ background: color + '18', color }}>{badge}</span>}
       </div>
-      <h3 className="text-[var(--color-text-primary)] font-bold text-sm mb-1">{title}</h3>
-      <p className="text-[var(--color-text-muted)] text-xs leading-relaxed">{desc}</p>
+      <h3 className="text-[var(--color-text-primary)] font-bold text-sm mb-1 truncate">{title}</h3>
+      <p className="text-[var(--color-text-muted)] text-xs leading-relaxed line-clamp-2">{desc}</p>
       <div className="flex items-center text-[var(--color-accent)] text-xs font-semibold mt-3 group-hover:gap-2 gap-1 transition-all">
         Open <ChevronRight size={12} />
       </div>
@@ -79,8 +79,8 @@ export function Stat({ label, value, color = 'text-[var(--color-text-primary)]',
   return (
     <Card className="p-4">
       <div className="text-[11px] text-[var(--color-text-muted)] mb-1 font-medium uppercase tracking-wide">{label}</div>
-      <div className={`text-xl font-extrabold ${color} tracking-tight`}>{value}</div>
-      {sub && <div className="text-[11px] text-[var(--color-text-muted)] mt-0.5">{sub}</div>}
+      <div className={`text-xl font-extrabold ${color} tracking-tight truncate`}>{value}</div>
+      {sub && <div className="text-[11px] text-[var(--color-text-muted)] mt-0.5 truncate">{sub}</div>}
     </Card>
   );
 }
@@ -130,7 +130,7 @@ export function Badge({ children, variant = 'accent' }) {
     purple: 'bg-[var(--color-purple-18)] text-[var(--color-purple)]',
   };
   return (
-    <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded ${variants[variant]}`}>
+    <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded flex-shrink-0 whitespace-nowrap ${variants[variant]}`}>
       {children}
     </span>
   );
@@ -138,16 +138,16 @@ export function Badge({ children, variant = 'accent' }) {
 
 export function PageHeader({ icon: Icon, title, subtitle, badge, children }) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-6">
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          {Icon && <Icon size={20} className="text-[var(--color-accent)]" />}
-          <h1 className="text-2xl font-extrabold text-[var(--color-text-primary)] tracking-tight">{title}</h1>
+    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-8">
+      <div className="min-w-0">
+        <div className="flex items-center gap-2 mb-1.5">
+          {Icon && <Icon size={20} className="text-[var(--color-accent)] flex-shrink-0" />}
+          <h1 className="text-2xl font-extrabold text-[var(--color-text-primary)] tracking-tight truncate">{title}</h1>
           {badge && <Badge>{badge}</Badge>}
         </div>
-        {subtitle && <p className="text-sm text-[var(--color-text-secondary)] mt-1">{subtitle}</p>}
+        {subtitle && <p className="text-sm text-[var(--color-text-secondary)] mt-1 leading-relaxed">{subtitle}</p>}
       </div>
-      {children && <div className="flex items-center gap-2 flex-wrap">{children}</div>}
+      {children && <div className="flex items-center gap-2 flex-wrap flex-shrink-0">{children}</div>}
     </div>
   );
 }
@@ -199,7 +199,7 @@ export function StatusPill({ status, children, className = '' }) {
   const label = children || status;
   return (
     <span
-      className={`inline-flex items-center font-mono text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded ${style} ${className}`}
+      className={`inline-flex items-center font-mono text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded flex-shrink-0 whitespace-nowrap ${style} ${className}`}
       role="status"
     >
       {s === 'running' || s === 'active' || s === 'live' ? (

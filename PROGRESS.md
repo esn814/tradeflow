@@ -151,6 +151,7 @@ Key changes: SQL injection fix, VAPID keys to env vars, SameSite cookie hardenin
 - Scrollbar styling — thin 6px themed scrollbar for .app-main
 - Fixed pre-existing JSX bugs: duplicate div in Dashboard, missing Btn/Card/CardBody/SectionHeader/Badge imports
 - Fixed pre-existing lucide-react import: Grid3X → Grid3x3 in autopilotData.js
+- Visual alignment overhaul — mb-6 headline spacing, p-4 lg:p-5 card padding, overflow-hidden + truncate + line-clamp for text fitting, min-w-0 on flex children, inline-flex pill badges, gap-4 grid consistency, mobile pt-16 clearance, viewport-clamped tooltips (19 files, all pages + Sidebar/InfoTip/App.css)
 
 ---
 

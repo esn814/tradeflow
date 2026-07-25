@@ -113,7 +113,7 @@ export default function Dashboard({ onNavigate }) {
   }, [positions]);
 
   return (
-    <div className="max-w-6xl mx-auto space-y-5">
+    <div className="max-w-6xl mx-auto space-y-6">
       {demoMode && (
         <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[var(--color-accent-10)] border border-[var(--color-accent-25)]">
           <div className="w-2 h-2 rounded-full bg-[var(--color-accent)] animate-pulse" />
@@ -138,6 +138,7 @@ export default function Dashboard({ onNavigate }) {
       </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 stagger-reveal">
+        {/* stat grid — keep gap-4 */}
         {METRICS.map(m => {
           const Icon = m.icon;
           const numericValue = parseFloat(m.value.replace(/[^0-9.-]/g, ''));
@@ -149,7 +150,7 @@ export default function Dashboard({ onNavigate }) {
                   <Icon className="w-4 h-4 text-[var(--color-text-muted)]" />
                 </div>
                 <ValueFlash value={numericValue}>
-                  <div className="text-2xl font-bold text-[var(--color-text-primary)] tabular-nums">
+                  <div className="text-2xl font-bold text-[var(--color-text-primary)] tabular-nums truncate">
                     {m.value.startsWith('$') ? (
                       <AnimatedNumber value={numericValue} prefix="$" />
                     ) : m.value.includes('%') ? (
@@ -161,10 +162,12 @@ export default function Dashboard({ onNavigate }) {
                     )}
                   </div>
                 </ValueFlash>
-                <Badge variant={m.up ? 'success' : 'danger'}>
-                  {m.up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                  {m.change}
-                </Badge>
+                <div className="flex items-center min-w-0">
+                  <Badge className="flex-shrink-0" variant={m.up ? 'success' : 'danger'}>
+                    {m.up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                    {m.change}
+                  </Badge>
+                </div>
               </CardBody>
             </Card>
           );
@@ -225,15 +228,15 @@ export default function Dashboard({ onNavigate }) {
               <tbody>
                 {positions.map(p => (
                   <tr key={p.pair} className="border-b border-[var(--color-border-default)]/50 hover:bg-[var(--color-surface-3)]/30 transition-colors">
-                    <td className="py-3 pr-4 text-[var(--color-text-primary)] font-medium">{p.pair}</td>
+                    <td className="py-3 pr-4 text-[var(--color-text-primary)] font-medium truncate max-w-[120px]">{p.pair}</td>
                     {!simple && <td className="py-3 pr-4 text-[var(--color-text-secondary)]">{p.strategy}</td>}
-                    {!simple && <td className="py-3 pr-4 text-right text-gray-300">${p.entry.toLocaleString()}</td>}
-                    <td className="py-3 pr-4 text-right text-[var(--color-text-primary)]">${p.current.toLocaleString()}</td>
-                    {!simple && <td className="py-3 pr-4 text-right text-gray-300">{p.size}</td>}
-                    <td className={`py-3 pr-4 text-right font-medium ${p.pnl >= 0 ? 'text-[var(--color-profit)]' : 'text-[var(--color-loss)]'}`}>
+                    {!simple && <td className="py-3 pr-4 text-right text-gray-300 tabular-nums">${p.entry.toLocaleString()}</td>}
+                    <td className="py-3 pr-4 text-right text-[var(--color-text-primary)] tabular-nums">${p.current.toLocaleString()}</td>
+                    {!simple && <td className="py-3 pr-4 text-right text-gray-300 tabular-nums">{p.size}</td>}
+                    <td className={`py-3 pr-4 text-right font-medium tabular-nums ${p.pnl >= 0 ? 'text-[var(--color-profit)]' : 'text-[var(--color-loss)]'}`}>
                       {p.pnl >= 0 ? '+' : ''}${p.pnl.toLocaleString()}
                     </td>
-                    <td className={`py-3 text-right font-medium ${p.pnlPct >= 0 ? 'text-[var(--color-profit)]' : 'text-[var(--color-loss)]'}`}>
+                    <td className={`py-3 text-right font-medium tabular-nums ${p.pnlPct >= 0 ? 'text-[var(--color-profit)]' : 'text-[var(--color-loss)]'}`}>
                       {p.pnlPct >= 0 ? '+' : ''}{p.pnlPct}%
                     </td>
                   </tr>
@@ -261,10 +264,10 @@ export default function Dashboard({ onNavigate }) {
                 </ResponsiveContainer>
                 <div className="flex-1 space-y-2 allocation-legend">
                   {allocationData.map(d => (
-                    <div key={d.name} className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 rounded-full" style={{ background: d.color }} />
-                      <span className="text-xs text-[var(--color-text-secondary)]">{d.name}</span>
-                      <span className="text-xs text-[var(--color-text-primary)] font-mono ml-auto">${d.value.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                    <div key={d.name} className="flex items-center gap-2 min-w-0">
+                    <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: d.color }} />
+                    <span className="text-xs text-[var(--color-text-secondary)] min-w-0 truncate">{d.name}</span>
+                    <span className="text-xs text-[var(--color-text-primary)] font-mono ml-auto truncate tabular-nums flex-shrink-0">${d.value.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
                     </div>
                   ))}
                 </div>
@@ -276,15 +279,15 @@ export default function Dashboard({ onNavigate }) {
           <Card>
             <CardBody>
               <SectionHeader icon={Clock} title="Recent Activity" />
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {trades && trades.length > 0 ? (
                   trades.slice(0, 8).map((t, i) => (
                     <div key={t.id || i} className="flex items-center gap-3 p-2 rounded-lg hover:bg-[var(--color-surface-2)]/50 transition-colors">
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center ${t.side === 'buy' ? 'bg-[var(--color-success-18)]' : 'bg-[var(--color-danger-18)]'}`}>
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${t.side === 'buy' ? 'bg-[var(--color-success-18)]' : 'bg-[var(--color-danger-18)]'}`}>
                         {t.side === 'buy' ? <ArrowUpRight size={13} className="text-[var(--color-success)]" /> : <ArrowDownRight size={13} className="text-[var(--color-danger)]" />}
                       </div>
-                      <span className="text-xs text-[var(--color-text-secondary)] flex-1">{t.coin || 'Unknown'} {t.side === 'buy' ? 'bought' : 'sold'} {t.amount || ''} {t.price ? `at ${t.price}` : ''}</span>
-                      <span className="text-[10px] text-[var(--color-text-muted)] whitespace-nowrap">{t.createdAt ? new Date(t.createdAt).toLocaleDateString() : ''}</span>
+                      <span className="text-xs text-[var(--color-text-secondary)] flex-1 min-w-0 truncate">{t.coin || 'Unknown'} {t.side === 'buy' ? 'bought' : 'sold'} {t.amount || ''} {t.price ? `at ${t.price}` : ''}</span>
+                      <span className="text-[10px] text-[var(--color-text-muted)] whitespace-nowrap flex-shrink-0">{t.createdAt ? new Date(t.createdAt).toLocaleDateString() : ''}</span>
                     </div>
                   ))
                 ) : (
@@ -299,7 +302,7 @@ export default function Dashboard({ onNavigate }) {
       {/* Quick Links */}
       <Divider />
       <SectionHeader icon={Zap} title="Quick Actions" />
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 stagger">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 stagger">
         <div className="animate-fade-in">
           <LinkCard icon={Zap} title="Autopilot" desc="Let AI trade for you 24/7" color="var(--color-accent)" onClick={() => onNavigate('/autopilot')} />
         </div>

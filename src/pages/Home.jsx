@@ -29,10 +29,10 @@ function SimpleHome({ onNavigate, selectedAmount, setSelectedAmount }) {
   }, [selectedAmount, totalPnL, totalValue]);
 
   return (
-    <div className="max-w-xl mx-auto space-y-5 animate-fade-in">
+    <div className="max-w-xl mx-auto space-y-6 animate-fade-in">
       {/* Hero */}
       <div className="text-center pt-6 pb-2">
-        <Badge variant="accent"><Sparkles size={11} /> AI trades for you 24/7</Badge>
+        <Badge variant="accent" className="flex-shrink-0"><Sparkles size={11} /> AI trades for you 24/7</Badge>
         <h1 className="text-[32px] font-extrabold text-[var(--color-text-primary)] mt-4 mb-2 tracking-tight leading-tight">
           Put your money to work
         </h1>
@@ -47,7 +47,7 @@ function SimpleHome({ onNavigate, selectedAmount, setSelectedAmount }) {
       <Card>
         <CardBody>
           <SectionHeader icon={DollarSign} title="Choose your amount" />
-          <div className="grid grid-cols-5 gap-2 mb-5">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-5">
             {AMOUNTS.map(a => (
               <Btn
                 key={a}
@@ -111,7 +111,7 @@ function SimpleHome({ onNavigate, selectedAmount, setSelectedAmount }) {
       <Card>
         <CardBody>
           <SectionHeader icon={Zap} title="How it works" />
-          <div className="space-y-5 stagger">
+          <div className="space-y-6 stagger">
             {[
               { n: '1', text: 'Start with $10,000 in virtual funds — no wallet needed' },
               { n: '2', text: 'Our AI bot trades for you using real market data — buying low, selling high' },
@@ -146,14 +146,14 @@ function AdvancedHome({ onNavigate, prices, loading }) {
   });
 
   return (
-    <div className="space-y-5 max-w-5xl animate-fade-in">
+    <div className="space-y-6 max-w-5xl animate-fade-in">
       {/* Hero */}
       <Card className="relative overflow-hidden">
         <div className="glow-orb w-72 h-72 bg-[var(--color-accent)] top-[-40%] right-[-10%]" />
         <CardBody className="lg:p-8 relative">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <Badge variant="accent"><Zap size={11} /> Advanced Trading Platform</Badge>
+              <Badge variant="accent" className="flex-shrink-0"><Zap size={11} /> Advanced Trading Platform</Badge>
               <h1 className="text-2xl lg:text-3xl font-extrabold text-[var(--color-text-primary)] mt-3 mb-2 tracking-tight">
                 Your Crypto, On Autopilot
               </h1>
@@ -161,7 +161,7 @@ function AdvancedHome({ onNavigate, prices, loading }) {
                 Choose a strategy, set your amount, and let AI handle the rest.
               </p>
             </div>
-            <Badge variant={loading ? 'warning' : 'success'}>
+            <Badge variant={loading ? 'warning' : 'success'} className="flex-shrink-0">
               <span className={`w-2 h-2 rounded-full ${loading ? 'bg-[var(--color-warning)]' : 'bg-[var(--color-success)]'} animate-pulse inline-block`} />
               {loading ? 'Updating...' : 'Live Prices'}
             </Badge>
@@ -201,10 +201,10 @@ function AdvancedHome({ onNavigate, prices, loading }) {
                     <div className="text-[var(--color-text-muted)] text-[11px]">{c.symbol.toUpperCase()}/USD</div>
                   </div>
                 </div>
-                <div className="text-[var(--color-text-primary)] font-extrabold text-lg tracking-tight">
+                <div className="text-[var(--color-text-primary)] font-extrabold text-lg tracking-tight truncate">
                   {price ? `${parseFloat(price).toLocaleString(undefined, { maximumFractionDigits: 2 })}` : '—'}
                 </div>
-                <Badge variant={up ? 'success' : 'danger'}>
+                <Badge variant={up ? 'success' : 'danger'} className="flex-shrink-0">
                   {up ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
                   {up ? '+' : ''}{typeof change === 'number' ? change.toFixed(2) : '0.00'}%
                   <span className="text-[var(--color-text-muted)] font-normal ml-1">24h</span>

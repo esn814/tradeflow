@@ -32,11 +32,11 @@ export default function Security({ onNavigate }) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-5">
+    <div className="max-w-4xl mx-auto space-y-6">
       <PageHeader icon={Shield} title="Security Settings" subtitle="Protect your account with 2FA, API key management, login monitoring, and withdrawal whitelists." />
 
       {/* Two-Factor Authentication */}
-      <Card>
+      <Card className="overflow-hidden">
         <CardBody>
           <SectionHeader
             icon={Smartphone}
@@ -61,7 +61,7 @@ export default function Security({ onNavigate }) {
       <Divider />
 
       {/* API Key Management */}
-      <Card>
+      <Card className="overflow-hidden">
         <CardBody>
           <SectionHeader
             icon={Key}
@@ -108,7 +108,7 @@ export default function Security({ onNavigate }) {
       <Divider />
 
       {/* Login Activity */}
-      <Card>
+      <Card className="overflow-hidden">
         <CardBody>
           <SectionHeader icon={Globe} title="Login Activity" />
           <div className="overflow-x-auto">
@@ -136,7 +136,7 @@ export default function Security({ onNavigate }) {
                     <td className="py-3 pr-4 text-gray-300 text-sm">{login.location}</td>
                     <td className="py-3 pr-4 text-gray-300 text-sm">{login.device}</td>
                     <td className="py-3">
-                      <Badge variant={login.status === 'Success' ? 'success' : 'danger'}>
+                      <Badge variant={login.status === 'Success' ? 'success' : 'danger'} className="flex-shrink-0">
                         {login.status}
                       </Badge>
                     </td>
@@ -152,7 +152,7 @@ export default function Security({ onNavigate }) {
       <Divider />
 
       {/* Withdrawal Whitelist */}
-      <Card>
+      <Card className="overflow-hidden">
         <CardBody>
           <SectionHeader
             icon={Lock}
@@ -178,10 +178,10 @@ export default function Security({ onNavigate }) {
               <div key={addr.id} className="flex items-center justify-between p-4 bg-[var(--color-surface-2)] rounded-xl">
                 <div className="flex items-center gap-4">
                   <span className="text-[var(--color-text-primary)] font-medium">{addr.label}</span>
-                  <span className="text-[var(--color-text-secondary)] font-mono">{addr.address}</span>
+                  <span className="text-[var(--color-text-secondary)] font-mono text-xs truncate">{addr.address}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Badge variant={addr.enabled ? 'success' : 'info'}>
+                  <Badge variant={addr.enabled ? 'success' : 'info'} className="flex-shrink-0 whitespace-nowrap">
                     {addr.enabled ? 'Enabled' : 'Disabled'}
                   </Badge>
                   <button className="text-red-400 hover:text-red-300 transition-colors">
@@ -201,7 +201,7 @@ export default function Security({ onNavigate }) {
       <Divider />
 
       {/* Session Timeout */}
-      <Card>
+      <Card className="overflow-hidden">
         <CardBody>
           <SectionHeader icon={Clock} title="Session Timeout" />
           <p className="text-[var(--color-text-secondary)] mb-4 text-sm">Automatically log out after period of inactivity.</p>
@@ -211,7 +211,7 @@ export default function Security({ onNavigate }) {
               setSessionTimeout(e.target.value);
               updateSettings({ sessionTimeout: e.target.value });
             }}
-            className="bg-[var(--color-surface-2)] text-[var(--color-text-primary)] border border-[var(--color-border-strong)] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[var(--color-accent)] transition-colors"
+            className="bg-[var(--color-surface-2)] text-[var(--color-text-primary)] border border-[var(--color-border-strong)] rounded-xl px-4 py-2.5 text-sm w-full focus:outline-none focus:border-[var(--color-accent)] transition-colors"
           >
             <option value="15min">15 minutes</option>
             <option value="30min">30 minutes</option>
@@ -225,7 +225,7 @@ export default function Security({ onNavigate }) {
       <Divider />
 
       {/* Anti-Phishing Code */}
-      <Card>
+      <Card className="overflow-hidden">
         <CardBody>
           <SectionHeader icon={AlertTriangle} title="Anti-Phishing Code" />
           <p className="text-[var(--color-text-secondary)] mb-4 text-sm">This code will appear in all emails from our platform to verify authenticity.</p>

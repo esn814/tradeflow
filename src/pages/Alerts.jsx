@@ -175,7 +175,7 @@ export default function Alerts({ onNavigate }) {
 
             {/* Price Alert Fields */}
             {formType === 'price' && (
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="text-[var(--color-text-secondary)] text-xs font-medium block mb-1.5">Asset</label>
                   <select value={formAsset} onChange={e => setFormAsset(e.target.value)} className={selectClass}>
@@ -229,21 +229,21 @@ export default function Alerts({ onNavigate }) {
       )}
 
       {/* Alerts List */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         {alerts.map(alert => (
           <Card key={alert.id} accent={alert.triggered} className={alert.triggered ? 'border-[var(--color-warning)]/50 shadow-[0_0_15px_rgba(234,179,8,0.1)]' : ''}>
-            <CardBody className="flex items-center gap-4 py-4">
+            <CardBody className="flex items-center gap-4 py-4 flex-wrap sm:flex-nowrap">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${typeColor(alert.type)}`}>
                 {typeIcon(alert.type)}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 min-w-0">
                   <span className="text-[var(--color-text-primary)] font-medium text-sm">{alert.asset}</span>
-                  <Badge variant={typeBadgeVariant(alert.type)}>{alert.type}</Badge>
-                  {alert.triggered && <StatusPill status="triggered" />}
+                  <Badge className="flex-shrink-0" variant={typeBadgeVariant(alert.type)}>{alert.type}</Badge>
+                  {alert.triggered && <StatusPill className="flex-shrink-0" status="triggered" />}
                 </div>
-                <p className="text-[var(--color-text-muted)] text-xs mt-0.5">
-                  {alert.type === 'price' && `${alert.condition} $${alert.value?.toLocaleString()}`}
+                <p className="text-[var(--color-text-muted)] text-xs mt-0.5 truncate">
+                  {alert.type === 'price' && `${alert.condition} ${alert.value?.toLocaleString()}`}
                   {alert.type === 'bot' && `Alert when ${alert.condition}`}
                   {alert.type === 'portfolio' && `Alert on ${alert.condition}`}
                   {' · '}{alert.createdAt}

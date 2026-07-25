@@ -99,7 +99,7 @@ export default function CrossDexArbitrage({ onNavigate: _onNavigate }) {
       </PageHeader>
 
       {/* KPI Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Stat label="Opportunities" value={filteredOpps.length} sub={`of ${opps.length} scanned`} color="text-[var(--color-accent)]" />
         <Stat label="Avg Spread" value={`${avgSpread}%`} color="text-[var(--color-success)]" />
         <Stat label="Best Spread" value={bestOpp ? `${bestOpp.spread}%` : '—'} color="text-[var(--color-warning-alt)]" />
@@ -122,7 +122,7 @@ export default function CrossDexArbitrage({ onNavigate: _onNavigate }) {
           Min Spread:
           <input type="range" min="0.1" max="3" step="0.1" value={minSpread}
             onChange={e => setMinSpread(parseFloat(e.target.value))} className="w-24" />
-          <span className="font-mono text-[var(--color-text)]">{minSpread}%</span>
+          <span className="font-mono tabular-nums text-[var(--color-text)]">{minSpread}%</span>
         </div>
       </div>
 
@@ -131,7 +131,7 @@ export default function CrossDexArbitrage({ onNavigate: _onNavigate }) {
       {filteredOpps.length === 0 ? (
         <EmptyState icon={Target} title="No opportunities found" subtitle="Try lowering the minimum spread or scanning different chains." />
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {filteredOpps.map(opp => {
             const expanded = expandedOpp === opp.id;
             const netProfit = (parseFloat(opp.estimatedProfit) - parseFloat(opp.gasEstimate.replace('$', ''))).toFixed(2);
@@ -140,32 +140,32 @@ export default function CrossDexArbitrage({ onNavigate: _onNavigate }) {
                 <CardBody>
                   <button onClick={() => setExpandedOpp(expanded ? null : opp.id)}
                     className="w-full text-left flex flex-col sm:flex-row sm:items-center gap-3">
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="w-10 h-10 rounded-lg flex items-center justify-center text-lg" style={{ background: 'var(--color-success-20)' }}>
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center text-lg flex-shrink-0" style={{ background: 'var(--color-success-20)' }}>
                         {opp.buyDex.icon}
                       </div>
-                      <div>
-                        <div className="font-semibold text-sm text-[var(--color-text)]">
+                      <div className="min-w-0">
+                        <div className="font-semibold text-sm text-[var(--color-text)] truncate">
                           {opp.token} · {opp.buyDex.name} → {opp.sellDex.name}
                         </div>
-                        <div className="text-xs text-[var(--color-text-muted)]">
+                        <div className="text-xs text-[var(--color-text-muted)] truncate">
                           Buy ${opp.buyPrice.toLocaleString()} · Sell ${opp.sellPrice.toLocaleString()} · {opp.volume24h} vol
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <div className="font-mono font-bold text-sm text-[var(--color-success)]">+{opp.spread}%</div>
-                        <div className={`text-xs ${parseFloat(netProfit) > 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}>
+                      <div className="text-right min-w-0">
+                        <div className="font-mono font-bold text-sm text-[var(--color-success)] tabular-nums truncate">+{opp.spread}%</div>
+                        <div className={`text-xs tabular-nums ${parseFloat(netProfit) > 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}>
                           Net: ${netProfit}
                         </div>
                       </div>
-                      <Badge color={opp.confidence === 'high' ? 'var(--color-success)' : 'var(--color-warning-alt)'}>{opp.confidence}</Badge>
+                      <Badge className="flex-shrink-0" color={opp.confidence === 'high' ? 'var(--color-success)' : 'var(--color-warning-alt)'}>{opp.confidence}</Badge>
                       {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                     </div>
                   </button>
                   {expanded && (
-                    <div className="mt-4 pt-4 border-t border-[var(--color-border)] grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                    <div className="mt-4 pt-4 border-t border-[var(--color-border)] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
                       <div><span className="text-[var(--color-text-muted)]">Buy DEX:</span> {opp.buyDex.name} ({opp.buyDex.chain})</div>
                       <div><span className="text-[var(--color-text-muted)]">Sell DEX:</span> {opp.sellDex.name} ({opp.sellDex.chain})</div>
                       <div><span className="text-[var(--color-text-muted)]">Gas Est:</span> {opp.gasEstimate}</div>
@@ -190,7 +190,7 @@ export default function CrossDexArbitrage({ onNavigate: _onNavigate }) {
 
       {/* DEX Reference */}
       <SectionHeader icon={BarChart3} title="Monitored DEXes" />
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {DEXES.map(dex => (
           <Card key={dex.id}>
             <CardBody className="text-center">

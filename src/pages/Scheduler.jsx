@@ -94,7 +94,7 @@ export default function Scheduler({ onNavigate: _onNavigate }) {
   const toggleSchedule = (id, current) => updateSchedule(id, { enabled: !current });
 
   return (
-    <div className="max-w-4xl mx-auto space-y-5">
+    <div className="max-w-4xl mx-auto space-y-6">
       <PageHeader
         icon={CalendarClock}
         title="Bot Scheduler"
@@ -244,7 +244,7 @@ export default function Scheduler({ onNavigate: _onNavigate }) {
                         <div className="flex items-center gap-2">
                           <Bot className="w-3.5 h-3.5 text-[var(--color-accent)]" />
                           <span className="text-[var(--color-text-primary)] text-sm">{sch.botName}</span>
-                          <Badge variant="info">{sch.botCoin}</Badge>
+                          <Badge variant="info" className="flex-shrink-0">{sch.botCoin}</Badge>
                         </div>
                       </td>
                       <td className="py-3 px-2">
@@ -263,12 +263,12 @@ export default function Scheduler({ onNavigate: _onNavigate }) {
                         </div>
                       </td>
                       <td className="py-3 px-2 text-center">
-                        <Badge variant={sch.enabled ? 'success' : 'warning'}>
+                        <Badge variant={sch.enabled ? 'success' : 'warning'} className="flex-shrink-0">
                           {sch.enabled ? 'Active' : 'Paused'}
                         </Badge>
                       </td>
                       <td className="py-3 px-2">
-                        <div className="flex items-center justify-end gap-1">
+                        <div className="flex items-center justify-end gap-1 flex-shrink-0">
                           <Btn
                             variant="ghost"
                             size="sm"

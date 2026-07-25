@@ -14,38 +14,38 @@ function TraderCard({ trader, isFollowing, _followSettings, onFollow, onUnfollow
       <CardBody>
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[var(--color-surface-2)] flex items-center justify-center text-lg">
-              {trader.avatar}
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold text-[var(--color-text-primary)] text-sm">{trader.name}</span>
-                {trader.verified && <Shield size={12} className="text-[var(--color-accent)]" />}
-                {trader.topTrader && <Award size={12} className="text-[var(--color-warning)]" />}
+          <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-xl bg-[var(--color-surface-2)] flex items-center justify-center text-lg flex-shrink-0">
+          {trader.avatar}
+          </div>
+          <div className="min-w-0">
+          <div className="flex items-center gap-1.5 min-w-0">
+          <span className="font-bold text-[var(--color-text-primary)] text-sm truncate">{trader.name}</span>
+                {trader.verified && <Shield size={12} className="text-[var(--color-accent)] flex-shrink-0" />}
+                {trader.topTrader && <Award size={12} className="text-[var(--color-warning)] flex-shrink-0" />}
               </div>
               <span className="text-xs text-[var(--color-text-muted)]">{trader.strategy}</span>
             </div>
           </div>
-          <div className={`px-2 py-0.5 rounded text-[10px] font-bold`} style={{ background: `${RISK_COLORS[trader.risk]}15`, color: RISK_COLORS[trader.risk] }}>
+          <div className={`px-2 py-0.5 rounded text-[10px] font-bold flex-shrink-0`} style={{ background: `${RISK_COLORS[trader.risk]}15`, color: RISK_COLORS[trader.risk] }}>
             {RISK_LABELS[trader.risk]}
           </div>
         </div>
 
         {/* Stats row */}
-        <div className="grid grid-cols-3 gap-3 mb-3">
-          <div className="text-center">
-            <div className={`text-sm font-bold ${trader.pnl30d >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+          <div className="text-center min-w-0">
+            <div className={`text-sm font-bold tabular-nums truncate ${trader.pnl30d >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}>
               {trader.pnl30d >= 0 ? '+' : ''}{trader.pnlPct30d}%
             </div>
             <div className="text-[10px] text-[var(--color-text-muted)]">30d P&L</div>
           </div>
-          <div className="text-center">
-            <div className="text-sm font-bold text-[var(--color-text-primary)]">{trader.winRate}%</div>
+          <div className="text-center min-w-0">
+            <div className="text-sm font-bold text-[var(--color-text-primary)] tabular-nums truncate">{trader.winRate}%</div>
             <div className="text-[10px] text-[var(--color-text-muted)]">Win Rate</div>
           </div>
-          <div className="text-center">
-            <div className="text-sm font-bold text-[var(--color-text-primary)]">{trader.followers.toLocaleString()}</div>
+          <div className="text-center min-w-0">
+            <div className="text-sm font-bold text-[var(--color-text-primary)] tabular-nums truncate">{trader.followers.toLocaleString()}</div>
             <div className="text-[10px] text-[var(--color-text-muted)]">Followers</div>
           </div>
         </div>
@@ -66,11 +66,11 @@ function TraderCard({ trader, isFollowing, _followSettings, onFollow, onUnfollow
           {expanded ? 'Less' : 'More'} details
         </button>
         {expanded && (
-          <div className="grid grid-cols-2 gap-2 mb-3 p-3 rounded-lg bg-[var(--color-surface-2)] text-xs">
-            <div><span className="text-[var(--color-text-muted)]">30d P&L:</span> <span className={`font-mono ${trader.pnl30d >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}>${trader.pnl30d.toLocaleString()}</span></div>
-            <div><span className="text-[var(--color-text-muted)]">Trades:</span> <span className="font-mono">{trader.trades30d}</span></div>
-            <div><span className="text-[var(--color-text-muted)]">Strategy:</span> <span>{trader.strategy}</span></div>
-            <div><span className="text-[var(--color-text-muted)]">Avg Hold:</span> <span className="font-mono">{trader.avgHoldTime}</span></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3 p-3 rounded-lg bg-[var(--color-surface-2)] text-xs">
+            <div className="min-w-0"><span className="text-[var(--color-text-muted)]">30d P&L:</span> <span className={`font-mono tabular-nums truncate ${trader.pnl30d >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}>${trader.pnl30d.toLocaleString()}</span></div>
+            <div className="min-w-0"><span className="text-[var(--color-text-muted)]">Trades:</span> <span className="font-mono tabular-nums">{trader.trades30d}</span></div>
+            <div className="min-w-0"><span className="text-[var(--color-text-muted)]">Strategy:</span> <span className="truncate">{trader.strategy}</span></div>
+            <div className="min-w-0"><span className="text-[var(--color-text-muted)]">Avg Hold:</span> <span className="font-mono">{trader.avgHoldTime}</span></div>
           </div>
         )}
 
@@ -78,15 +78,15 @@ function TraderCard({ trader, isFollowing, _followSettings, onFollow, onUnfollow
         <div className="flex items-center gap-2">
           {isFollowing ? (
             <>
-              <Btn variant="secondary" size="sm" className="flex-1" onClick={() => onUnfollow(trader.id)}>
+              <Btn variant="secondary" size="sm" className="flex-1 whitespace-nowrap" onClick={() => onUnfollow(trader.id)}>
                 <Copy size={12} /> Following
               </Btn>
-              <Btn variant="ghost" size="sm" onClick={() => onSettings(trader.id)}>
+              <Btn variant="ghost" size="sm" className="whitespace-nowrap" onClick={() => onSettings(trader.id)}>
                 Settings
               </Btn>
             </>
           ) : (
-            <Btn variant="primary" size="sm" className="flex-1" onClick={() => onFollow(trader.id)}>
+            <Btn variant="primary" size="sm" className="flex-1 whitespace-nowrap" onClick={() => onFollow(trader.id)}>
               <Copy size={12} /> Copy Trader
             </Btn>
           )}
@@ -127,7 +127,7 @@ export default function CopyTrading({ onNavigate: _onNavigate }) {
   }, [traders]);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-5">
+    <div className="max-w-4xl mx-auto space-y-6">
       <PageHeader icon={Users} title="Copy Trading" subtitle="Discover top-performing traders and automatically copy their strategies">
         <Btn variant="primary" size="sm" onClick={() => {}}>
           <Zap size={12} /> Auto-Copy {followedCount > 0 && `(${followedCount} active)`}
@@ -135,7 +135,7 @@ export default function CopyTrading({ onNavigate: _onNavigate }) {
       </PageHeader>
 
       {/* KPI Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Stat label="Top Trader P&L" value={`+${topPnl.pnlPct30d}%`} sublabel={topPnl.name} icon={TrendingUp} up />
         <Stat label="Avg Win Rate" value={`${avgWinRate}%`} icon={BarChart3} up={avgWinRate > 50} />
         <Stat label="Following" value={String(followedCount)} icon={Copy} />

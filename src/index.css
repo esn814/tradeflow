@@ -771,6 +771,110 @@ button, .sidebar-link, [role="button"] {
   border-radius: 4px;
 }
 
+/* ═══════════════════════════════════════════════════════
+   GLOBAL UI ALIGNMENT & SPACING OVERHAUL (2026-07-24)
+   Fixes: headline-to-card gaps, pill overflow, text clipping,
+   consistent section spacing, responsive card internals
+   ═══════════════════════════════════════════════════════ */
+
+/* ── 1. Page section spacing — consistent gap between page header and first card ── */
+.page-content > .page-section-first,
+.page-content > *:first-child {
+  margin-top: 0;
+}
+
+/* ── 2. Section spacing — consistent gap between sections ── */
+.section-gap {
+  margin-top: 1.5rem; /* 24px */
+}
+
+/* ── 3. Card internal spacing — prevent text from touching card edges ── */
+.card .card-body {
+  padding: 1.25rem 1.5rem; /* 20px 24px */
+  overflow: hidden;
+}
+
+/* ── 4. Badge / pill text overflow protection ── */
+.badge, [role="status"],
+.inline-flex.items-center.gap-1 {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── 5. Prevent pills from blocking adjacent text in flex rows ── */
+.alert-row .badge,
+.alert-row [role="status"] {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* ── 6. Stat card value overflow protection ── */
+.stat-value, .card .text-2xl, .card .text-xl {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* ── 7. Table cell text wrapping ── */
+th, td {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* ── 8. Consistent section header spacing ── */
+.section-header + * {
+  margin-top: 1rem; /* 16px gap after section headers */
+}
+
+/* ── 9. Form label spacing ── */
+.form-label + .form-control,
+label + input,
+label + select,
+label + textarea {
+  margin-top: 0.375rem; /* 6px */
+}
+
+/* ── 10. Button text overflow protection ── */
+button {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── 11. Card hover effect overflow fix ── */
+.card {
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── 12. Divider spacing consistency ── */
+.divider + * {
+  margin-top: 1rem;
+}
+
+* + .divider {
+  margin-top: 1rem;
+}
+
+/* ── 13. Grid gap consistency ── */
+.grid {
+  gap: 1rem; /* 16px default grid gap */
+}
+
+/* ── 14. Mobile: prevent horizontal overflow in cards ── */
+@media (max-width: 640px) {
+  .card .card-body {
+    padding: 1rem; /* Tighter padding on mobile */
+  }
+
+  .stat-value, .card .text-2xl {
+    font-size: 1.25rem; /* Smaller text on mobile to prevent overflow */
+  }
+}
+
 /* ── Scrollbar styling (thin, themed) ── */
 .app-main::-webkit-scrollbar {
   width: 6px;

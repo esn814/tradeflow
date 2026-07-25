@@ -182,7 +182,7 @@ export default function Backtester({ onNavigate }) {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-5">
+    <div className="max-w-5xl mx-auto space-y-6">
       <PageHeader icon={BarChart3} title="Backtester" subtitle="Test strategies against real market data from Paxeer">
         <InfoTip text="Run backtests against real historical candle data from Paxeer to evaluate strategy performance before risking real capital." />
       </PageHeader>
@@ -190,7 +190,7 @@ export default function Backtester({ onNavigate }) {
       <Card>
         <CardBody>
           <SectionHeader icon={Play} title="Configuration" />
-          <div className="flex flex-wrap items-end gap-4">
+          <div className="flex flex-wrap items-end gap-4 min-w-0">
             <div className="flex-1 min-w-[180px]">
               <label className="text-xs text-[var(--color-text-secondary)] font-medium block mb-1.5">Strategy</label>
               <select
@@ -257,7 +257,7 @@ export default function Backtester({ onNavigate }) {
 
       {result && (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-9 gap-4">
             {[
               { label: 'Total Return', value: `${result.stats.totalReturn}%`, color: result.stats.totalReturn >= 0 ? 'text-[var(--color-profit)]' : 'text-[var(--color-loss)]' },
               { label: 'Final Value', value: `${result.stats.finalValue.toLocaleString()}`, color: 'text-[var(--color-text-primary)]' },
@@ -278,6 +278,7 @@ export default function Backtester({ onNavigate }) {
           <Card>
             <CardBody>
               <SectionHeader icon={BarChart3} title="Equity Curve" />
+              <div className="overflow-hidden">
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={result.equity}>
                   <defs>
@@ -293,12 +294,13 @@ export default function Backtester({ onNavigate }) {
                   <Area type="monotone" dataKey="value" stroke={result.stats.totalReturn >= 0 ? 'var(--color-profit)' : 'var(--color-loss)'} fill="url(#eqGrad)" strokeWidth={2} dot={false} />
                 </AreaChart>
               </ResponsiveContainer>
+              </div>
             </CardBody>
           </Card>
 
           <Divider />
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-hidden">
             <Card>
               <CardBody>
                 <SectionHeader icon={Activity} title="Monthly Returns" />
@@ -334,7 +336,7 @@ export default function Backtester({ onNavigate }) {
                         <tr key={i} className="border-b border-[var(--color-border-default)]/30">
                           <td className="py-2 pr-3 text-[var(--color-text-secondary)]">#{t.day}</td>
                           <td className="py-2 pr-3">
-                            <Badge variant={t.type === 'buy' ? 'success' : 'danger'}>
+                            <Badge className="flex-shrink-0" variant={t.type === 'buy' ? 'success' : 'danger'}>
                               {t.type.toUpperCase()}
                             </Badge>
                           </td>
