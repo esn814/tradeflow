@@ -26,7 +26,7 @@ router.get('/', (req, res) => {
       hasCompletedOnboarding: !!row.has_completed_onboarding,
       antiPhishingCode: row.anti_phishing_code || '',
     });
-  } catch (err) { logger.error({ err }; res.status(500).json({ error: 'Failed to fetch settings' }); }
+  } catch (err) { logger.error({ err }, res.status(500).json({ error: 'Failed to fetch settings' }); }
 });
 
 // PUT /api/settings — update user settings
@@ -59,7 +59,7 @@ router.put('/', (req, res) => {
       req.userId
     );
     res.json({ ok: true });
-  } catch (err) { logger.error({ err }; res.status(500).json({ error: 'Failed to update settings' }); }
+  } catch (err) { logger.error({ err }, res.status(500).json({ error: 'Failed to update settings' }); }
 });
 
 // GET /api/settings/demo-trades — fetch demo trade history
@@ -70,7 +70,7 @@ router.get('/demo-trades', (req, res) => {
       id: r.id, pair: r.pair, side: r.side, price: r.price,
       qty: r.qty, pnl: r.pnl, strategy: r.strategy, timestamp: r.timestamp,
     })));
-  } catch (err) { logger.error({ err }; res.status(500).json({ error: 'Failed to fetch demo trades' }); }
+  } catch (err) { logger.error({ err }, res.status(500).json({ error: 'Failed to fetch demo trades' }); }
 });
 
 // POST /api/settings/demo-trades — record a demo trade
@@ -83,7 +83,7 @@ router.post('/demo-trades', (req, res) => {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(tradeId, req.userId, pair, side, price, qty, pnl || 0, strategy, timestamp || Date.now());
     res.status(201).json({ ok: true, id: tradeId });
-  } catch (err) { logger.error({ err }; res.status(500).json({ error: 'Failed to record demo trade' }); }
+  } catch (err) { logger.error({ err }, res.status(500).json({ error: 'Failed to record demo trade' }); }
 });
 
 export default router;

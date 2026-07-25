@@ -21,7 +21,7 @@ router.get('/', (req, res) => {
       value: r.value, active: !!r.active, triggered: !!r.triggered,
       createdAt: r.created_at, meta: r.meta ? JSON.parse(r.meta) : null,
     })));
-  } catch (err) { logger.error({ err }; res.status(500).json({ error: 'Failed to fetch alerts' }); }
+  } catch (err) { logger.error({ err }, res.status(500).json({ error: 'Failed to fetch alerts' }); }
 });
 
 router.post('/', validateBody(createAlertSchema), (req, res) => {
@@ -31,7 +31,7 @@ router.post('/', validateBody(createAlertSchema), (req, res) => {
       INSERT INTO alerts (user_id,type,asset,condition,value,active,triggered,meta) VALUES (?,?,?,?,?,1,0,?)
     `).run(req.userId, type, asset, condition, value, meta?JSON.stringify(meta):null);
     res.status(201).json({ ok: true, id: result.lastInsertRowid });
-  } catch (err) { logger.error({ err }; res.status(500).json({ error: 'Failed to create alert' }); }
+  } catch (err) { logger.error({ err }, res.status(500).json({ error: 'Failed to create alert' }); }
 });
 
 router.put('/:id', validateBody(updateAlertSchema), (req, res) => {
@@ -45,7 +45,7 @@ router.put('/:id', validateBody(updateAlertSchema), (req, res) => {
     `).run(type, asset, condition, value, active!=null?(active?1:0):null, triggered!=null?(triggered?1:0):null, meta?JSON.stringify(meta):null, req.params.id, req.userId);
     if (result.changes === 0) return res.status(404).json({ error: 'Alert not found' });
     res.json({ ok: true });
-  } catch (err) { logger.error({ err }; res.status(500).json({ error: 'Failed to update alert' }); }
+  } catch (err) { logger.error({ err }, res.status(500).json({ error: 'Failed to update alert' }); }
 });
 
 router.delete('/:id', (req, res) => {
@@ -53,7 +53,7 @@ router.delete('/:id', (req, res) => {
     const result = getDb().prepare(`DELETE FROM alerts WHERE id=? AND user_id=?`).run(req.params.id, req.userId);
     if (result.changes === 0) return res.status(404).json({ error: 'Alert not found' });
     res.json({ ok: true });
-  } catch (err) { logger.error({ err }; res.status(500).json({ error: 'Failed to delete alert' }); }
+  } catch (err) { logger.error({ err }, res.status(500).json({ error: 'Failed to delete alert' }); }
 });
 
 export default router;

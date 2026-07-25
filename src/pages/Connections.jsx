@@ -1,6 +1,6 @@
 import { Wallet, Shield } from 'lucide-react';
 import InfoTip from '../components/InfoTip';
-import { Card, CardBody, SectionHeader, Stat, PageHeader, Divider, LinkCard } from '../components/ui';
+import { SectionHeader, Stat, PageHeader, Divider, LinkCard } from '../components/ui';
 import { EXCHANGES } from '../data/chains';
 import { useWallets } from '../hooks/useWallets';
 import { useExchanges } from '../hooks/useExchanges';

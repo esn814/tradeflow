@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAppStore } from '../context/AppStore';
 import { Shield, Lock, Key, Eye, EyeOff, Smartphone, Globe, Clock, AlertTriangle, CheckCircle, Plus, Trash2, Copy, Settings, Wallet } from 'lucide-react';
 import { Card, CardBody, SectionHeader, Btn, Badge, PageHeader, Divider, Toggle, LinkCard } from '../components/ui';
@@ -10,13 +10,16 @@ export default function Security({ onNavigate }) {
   const [whitelistEnabled, setWhitelistEnabled] = useState(settings.whitelistEnabled ?? true);
   const [sessionTimeout, setSessionTimeout] = useState(settings.sessionTimeout ?? '30min');
   const [antiPhishingCode, _setAntiPhishingCode] = useState(() => {
-    const saved = settings.antiPhishingCode;
-    if (saved) return saved;
+    if (settings.antiPhishingCode) return settings.antiPhishingCode;
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    const code = Array.from({ length: 10 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-    updateSettings({ antiPhishingCode: code });
-    return code;
+    return Array.from({ length: 10 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
   });
+
+  useEffect(() => {
+    if (!settings.antiPhishingCode && antiPhishingCode) {
+      updateSettings({ antiPhishingCode });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [showPhishingCode, setShowPhishingCode] = useState(false);
 
   const [apiKeys] = useState(settings.apiKeys || []);
