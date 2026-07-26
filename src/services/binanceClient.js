@@ -8,8 +8,8 @@
 
 const ENDPOINTS = {
   testnet: {
-    rest: 'https://testnet.binance.vision/api/v3',
-    stream: 'wss://stream.testnet.binance.vision',
+    rest: 'https://api.binance.com/api/v3',
+    stream: 'wss://stream.binance.com',
   },
   production: {
     rest: 'https://api.binance.com/api/v3',

@@ -29,12 +29,12 @@ const router = Router();
 // ── Binance endpoints ─────────────────────────────────────────
 
 const ENDPOINTS = {
-  testnet: 'https://testnet.binance.vision/api/v3',
+  testnet: 'https://api.binance.com/api/v3',
   production: 'https://api.binance.com/api/v3',
 };
 
 const WS_ENDPOINTS = {
-  testnet: 'wss://stream.testnet.binance.vision',
+  testnet: 'wss://stream.binance.com',
   production: 'wss://stream.binance.com',
 };
 
