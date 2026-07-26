@@ -18,6 +18,7 @@ import settingsRouter from './routes/settings.js';
 import copyTradingRouter from './routes/copy-trading.js';
 import pushRouter from './routes/push.js';
 import socialRouter from './routes/social.js';
+import binanceRouter from './routes/binance.js';
 import { startAlertChecker } from './services/alertChecker.js';
 import { startBackupScheduler, createBackup, listBackups, restoreBackup } from './backup.js';
 
@@ -172,6 +173,7 @@ app.use('/api/settings', writeLimiter, settingsRouter);
 app.use('/api/copy-trading', writeLimiter, copyTradingRouter);
 app.use('/api/push', writeLimiter, pushRouter);
 app.use('/api/social', socialRouter);
+app.use('/api/binance', binanceRouter);
 
 // Backup endpoints — no path disclosure, rate limited
 app.get('/api/backup', authMiddleware, (req, res) => {

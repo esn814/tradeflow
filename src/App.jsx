@@ -34,6 +34,7 @@ const AutomatedTrading = lazy(() => import('./pages/AutomatedTrading'))
 const Community    = lazy(() => import('./pages/Community'))
 const Privacy     = lazy(() => import('./pages/Privacy'))
 const Terms       = lazy(() => import('./pages/Terms'))
+const ExchangeSettings = lazy(() => import('./pages/ExchangeSettings'))
 
 function Loading() {
   return (
@@ -153,6 +154,7 @@ function AppContent() {
                 <Route path="/settings"     element={<AnimatedPage><Settings {...routeProps} /></AnimatedPage>} />
                 <Route path="/help"         element={<AnimatedPage><Help {...routeProps} /></AnimatedPage>} />
                 <Route path="/privacy"      element={<AnimatedPage><Privacy {...routeProps} /></AnimatedPage>} />
+                <Route path="/exchange"      element={<AnimatedPage><ExchangeSettings {...routeProps} /></AnimatedPage>} />
                 <Route path="/terms"        element={<AnimatedPage><Terms {...routeProps} /></AnimatedPage>} />
                 <Route path="*"             element={<AnimatedPage><NotFound onNavigate={handleNavigate} /></AnimatedPage>} />
               </Routes>

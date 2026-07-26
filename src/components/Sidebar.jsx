@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import {
   Home, Zap, BarChart3, Shield, TrendingUp, Settings, X, Menu, HelpCircle,
   LayoutDashboard, Bell, Layers, FlaskConical, Link2, DollarSign, ShieldAlert,
-  CalendarClock, Gift, Users, ArrowRightLeft, Bot, Globe
+  CalendarClock, Gift, Users, ArrowRightLeft, Bot, Globe, Plug
 } from 'lucide-react'
 import { useAppStore } from '../context/AppStore'
 import { useAuth } from '../context/AuthContext'
@@ -42,6 +42,7 @@ const navGroups = [
   {
     label: 'Account',
     links: [
+      { to: '/exchange', icon: Plug, label: 'Exchange', badge: 'NEW' },
       { to: '/connections', icon: Link2, label: 'Connections' },
       { to: '/security', icon: Shield, label: 'Security' },
       { to: '/settings', icon: Settings, label: 'Settings' },

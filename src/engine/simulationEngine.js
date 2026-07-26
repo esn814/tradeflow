@@ -36,6 +36,10 @@ export class SimulationEngine {
     this.tickCount = 0;
     this.running = false;
 
+    // FIX #1: Optional TradeExecutor bridge — when set, buy/sell signals
+    // are forwarded to the executor instead of simulated internally.
+    this.executor = options.executor || null;
+
     // Global metrics
     this.metrics = {
       totalTrades: 0,
@@ -252,10 +256,30 @@ export class SimulationEngine {
     }
   }
 
-  /** Execute a buy trade */
+  /** Execute a buy trade — routes through TradeExecutor when connected */
   _executeBuy(botId, bot, trade) {
     if (bot.balance < trade.cost) return;
 
+    // FIX #1: Bridge to TradeExecutor for live/dry-run execution
+    if (this.executor) {
+      const result = this.executor.execute({
+        action: 'buy', coin: trade.coin, amount: trade.amount, price: trade.price,
+        cost: trade.cost, reason: trade.reason, botId,
+      });
+      // Handle async executor (returns Promise in live mode)
+      if (result && typeof result.then === 'function') {
+        result.then(r => { if (r.executed) this._applyBuy(botId, bot, trade); });
+      } else if (result.executed) {
+        this._applyBuy(botId, bot, trade);
+      }
+      return;
+    }
+
+    // Fallback: internal simulation
+    this._applyBuy(botId, bot, trade);
+  }
+
+  _applyBuy(botId, bot, trade) {
     bot.balance -= trade.cost;
     bot.holdings += trade.amount;
     bot.tradeCount++;
@@ -276,15 +300,32 @@ export class SimulationEngine {
     this._recordTrade(botId, bot, tradeRecord);
   }
 
-  /** Execute a sell trade */
+  /** Execute a sell trade — routes through TradeExecutor when connected */
   _executeSell(botId, bot, trade) {
     if (bot.holdings < trade.amount) return;
 
+    // FIX #1: Bridge to TradeExecutor for live/dry-run execution
+    if (this.executor) {
+      const result = this.executor.execute({
+        action: 'sell', coin: trade.coin, amount: trade.amount, price: trade.price,
+        cost: trade.revenue, reason: trade.reason, botId,
+      });
+      if (result && typeof result.then === 'function') {
+        result.then(r => { if (r.executed) this._applySell(botId, bot, trade); });
+      } else if (result.executed) {
+        this._applySell(botId, bot, trade);
+      }
+      return;
+    }
+
+    this._applySell(botId, bot, trade);
+  }
+
+  _applySell(botId, bot, trade) {
     bot.holdings -= trade.amount;
     const revenue = trade.amount * trade.price;
     bot.balance += revenue;
 
-    // Calculate PnL for this trade (simplified: compare to average cost)
     const avgCost = bot.initialBalance > 0 ? (bot.initialBalance - bot.balance) / Math.max(bot.holdings, 0.0001) : trade.price;
     const pnl = (trade.price - avgCost) * trade.amount;
 
