@@ -5,4 +5,4 @@ export { default as PerformanceStats } from './PerformanceStats';
 export { default as RiskSelector } from './RiskSelector';
 export { default as StrategyCard } from './StrategyCard';
 export { default as TradeLog } from './TradeLog';
-export { STRATEGIES, RISK_PROFILES, generateTrade } from './autopilotData';
+export { STRATEGY_META, RISK_PROFILES } from '../../strategies';

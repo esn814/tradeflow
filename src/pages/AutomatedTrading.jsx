@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import {
-  Bot, Play, Pause, Settings2, TrendingUp,
-  Shield, Loader2,
-  Zap, Target, BarChart3,
+  Bot, Play, Pause, Settings2,
+  Loader2,
+  Zap,
   Trash2,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -11,71 +11,59 @@ import {
   Card, CardBody, SectionHeader, Btn, Badge, Stat, PageHeader,
   Divider, EmptyState, Input,
 } from '../components/ui';
+import { ALL_STRATEGIES, getStrategy } from '../strategies/index.js';
 
-/* ─── Strategy definitions with real-swap params ─── */
-const STRATEGIES = [
-  {
-    id: 'dca',
-    name: 'DCA (Dollar Cost Average)',
-    desc: 'Automatically buy a fixed dollar amount at regular intervals. Smooths volatility, reduces timing risk.',
-    icon: TrendingUp,
-    color: 'var(--color-success)',
-    risk: 'Low',
-    params: [
-      { key: 'amount', label: 'Buy Amount (USD)', type: 'number', default: 50, min: 10, step: 10 },
-      { key: 'interval', label: 'Interval (hours)', type: 'number', default: 4, min: 1, step: 1 },
-      { key: 'stopLoss', label: 'Stop Loss (%)', type: 'number', default: 15, min: 1, max: 50, step: 1 },
-      { key: 'takeProfit', label: 'Take Profit (%)', type: 'number', default: 25, min: 1, max: 100, step: 1 },
-    ],
-    tips: 'Best for: long-term accumulation, volatile markets. Avoid in strong downtrends.',
-  },
-  {
-    id: 'grid',
-    name: 'Grid Trading',
-    desc: 'Place buy/sell orders at evenly-spaced price levels. Profits from price oscillation in a range.',
-    icon: BarChart3,
-    color: 'var(--color-info)',
-    risk: 'Medium',
-    params: [
-      { key: 'upperPrice', label: 'Upper Price', type: 'number', default: 0, min: 0, step: 100 },
-      { key: 'lowerPrice', label: 'Lower Price', type: 'number', default: 0, min: 0, step: 100 },
-      { key: 'gridCount', label: 'Grid Levels', type: 'number', default: 10, min: 3, max: 50, step: 1 },
-      { key: 'investPerGrid', label: 'Invest/Grid (USD)', type: 'number', default: 100, min: 10, step: 10 },
-      { key: 'stopLoss', label: 'Stop Loss (%)', type: 'number', default: 10, min: 1, max: 50, step: 1 },
-    ],
-    tips: 'Best for: sideways/ranging markets. Avoid in strong trending markets.',
-  },
-  {
-    id: 'mean-reversion',
-    name: 'Mean Reversion',
-    desc: 'Buy when price dips below its moving average, sell when it rallies back. Mean-reverting assets only.',
-    icon: Target,
-    color: 'var(--color-purple)',
-    risk: 'Medium',
-    params: [
-      { key: 'lookback', label: 'MA Lookback (periods)', type: 'number', default: 20, min: 5, max: 100, step: 1 },
-      { key: 'entryZScore', label: 'Entry Z-Score', type: 'number', default: -2, min: -4, max: -0.5, step: 0.1 },
-      { key: 'exitZScore', label: 'Exit Z-Score', type: 'number', default: 0.5, min: -1, max: 3, step: 0.1 },
-      { key: 'positionSize', label: 'Position Size (%)', type: 'number', default: 10, min: 1, max: 50, step: 1 },
-      { key: 'stopLoss', label: 'Stop Loss (%)', type: 'number', default: 12, min: 1, max: 50, step: 1 },
-    ],
-    tips: 'Best for: established, liquid pairs with mean-reverting behavior. Avoid meme coins.',
-  },
-  {
-    id: 'trailing-stop',
-    name: 'Trailing Stop',
-    desc: 'Hold a position and automatically sell when price drops by a set percentage from its peak.',
-    icon: Shield,
-    color: 'var(--color-warning-alt)',
-    risk: 'Low',
-    params: [
-      { key: 'trailPct', label: 'Trail Distance (%)', type: 'number', default: 5, min: 1, max: 30, step: 0.5 },
-      { key: 'positionSize', label: 'Position Size (%)', type: 'number', default: 20, min: 1, max: 100, step: 1 },
-      { key: 'takeProfit', label: 'Take Profit (%)', type: 'number', default: 30, min: 1, max: 200, step: 1 },
-    ],
-    tips: 'Best for: protecting gains in uptrends. Set tight trails for volatile assets.',
-  },
-];
+/* ─── Real-swap param schemas (strategy metadata comes from unified registry) ─── */
+const REAL_SWAP_PARAMS = {
+  dca: [
+    { key: 'amount', label: 'Buy Amount (USD)', type: 'number', default: 50, min: 10, step: 10 },
+    { key: 'interval', label: 'Interval (hours)', type: 'number', default: 4, min: 1, step: 1 },
+    { key: 'stopLoss', label: 'Stop Loss (%)', type: 'number', default: 15, min: 1, max: 50, step: 1 },
+    { key: 'takeProfit', label: 'Take Profit (%)', type: 'number', default: 25, min: 1, max: 100, step: 1 },
+  ],
+  grid: [
+    { key: 'upperPrice', label: 'Upper Price', type: 'number', default: 0, min: 0, step: 100 },
+    { key: 'lowerPrice', label: 'Lower Price', type: 'number', default: 0, min: 0, step: 100 },
+    { key: 'gridCount', label: 'Grid Levels', type: 'number', default: 10, min: 3, max: 50, step: 1 },
+    { key: 'investPerGrid', label: 'Invest/Grid (USD)', type: 'number', default: 100, min: 10, step: 10 },
+    { key: 'stopLoss', label: 'Stop Loss (%)', type: 'number', default: 10, min: 1, max: 50, step: 1 },
+  ],
+  meanReversion: [
+    { key: 'lookback', label: 'MA Lookback (periods)', type: 'number', default: 20, min: 5, max: 100, step: 1 },
+    { key: 'entryZScore', label: 'Entry Z-Score', type: 'number', default: -2, min: -4, max: -0.5, step: 0.1 },
+    { key: 'exitZScore', label: 'Exit Z-Score', type: 'number', default: 0.5, min: -1, max: 3, step: 0.1 },
+    { key: 'positionSize', label: 'Position Size (%)', type: 'number', default: 10, min: 1, max: 50, step: 1 },
+    { key: 'stopLoss', label: 'Stop Loss (%)', type: 'number', default: 12, min: 1, max: 50, step: 1 },
+  ],
+  trailingStop: [
+    { key: 'trailPct', label: 'Trail Distance (%)', type: 'number', default: 5, min: 1, max: 30, step: 0.5 },
+    { key: 'positionSize', label: 'Position Size (%)', type: 'number', default: 20, min: 1, max: 100, step: 1 },
+    { key: 'takeProfit', label: 'Take Profit (%)', type: 'number', default: 30, min: 1, max: 200, step: 1 },
+  ],
+};
+
+/* Color map by risk level */
+const RISK_COLORS = {
+  'Low': 'var(--color-success)',
+  'Low-Medium': 'var(--color-success)',
+  'Medium': 'var(--color-warning-alt)',
+  'Medium-High': 'var(--color-warning-alt)',
+  'High': 'var(--color-danger)',
+};
+
+/* Strategies for this page — filter unified registry to those with real-swap params */
+const STRATEGIES = ALL_STRATEGIES
+  .filter(s => REAL_SWAP_PARAMS[s.id])
+  .map(s => ({
+    id: s.id,
+    name: s.name,
+    desc: s.description,
+    icon: s.icon,
+    color: RISK_COLORS[s.risk] || 'var(--color-accent)',
+    risk: s.risk,
+    params: REAL_SWAP_PARAMS[s.id],
+    tips: `Best for: ${s.whenToUse} Avoid: ${s.whenToAvoid}`,
+  }));
 
 const COINS = [
   { symbol: 'BTC', name: 'Bitcoin', price: 67420, icon: '₿' },

@@ -3,7 +3,7 @@ import { Zap, Shield, TrendingUp, Repeat, Grid3x3, ArrowRight, ArrowLeft, CheckC
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import InfoTip from '../components/InfoTip';
 import { Card, CardBody, Btn, Badge, PageHeader, Divider, Input } from '../components/ui';
-import { STRATEGIES } from '../data/marketData';
+import { ALL_STRATEGIES } from '../strategies/index.js';
 import { useAppStore } from '../context/AppStore';
 
 const BOTS = [
@@ -41,7 +41,7 @@ export default function Invest({ onNavigate }) {
   const [riskDisclaimerOpen, setRiskDisclaimerOpen] = useState(false);
 
   const bot = BOTS.find(b => b.id === selectedBot);
-  const strategy = STRATEGIES.find(s => s.id === selectedBot);
+  const strategy = ALL_STRATEGIES.find(s => s.id === selectedBot);
 
   // Build projection chart data from bot return range
   const projectionData = bot ? (() => {
@@ -126,7 +126,7 @@ export default function Invest({ onNavigate }) {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="text-center">
                       <p className="text-xs text-[var(--color-text-muted)] mb-1">Monthly Return</p>
-                      <p className="text-sm font-semibold text-[var(--color-accent)]">{strategy.returnRange}</p>
+                      <p className="text-sm font-semibold text-[var(--color-accent)]">{strategy.avgReturn}</p>
                     </div>
                     <div className="text-center">
                       <p className="text-xs text-[var(--color-text-muted)] mb-1">Best Market</p>

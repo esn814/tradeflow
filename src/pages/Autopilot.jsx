@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Zap, Play, Pause, Settings2, Clock, AlertTriangle, LayoutDashboard, BarChart3 } from 'lucide-react';
-import { useLivePrices } from '../data/liveData';
 import { useMode, useAppStore } from '../context/AppStore';
 import { Divider, SectionHeader, LinkCard } from '../components/ui';
+import { useSimulation } from '../hooks/useSimulation';
+import { STRATEGY_META, RISK_PROFILES } from '../strategies';
 import {
-  STRATEGIES, RISK_PROFILES, generateTrade,
   MarketScanner, AmountSelector, StrategyCard,
   RiskSelector, ConfigPanel, PerformanceStats, TradeLog,
 } from '../components/autopilot';
@@ -12,60 +12,71 @@ import {
 export default function Autopilot({ onNavigate }) {
   const { settings, updateSettings } = useAppStore();
   const { simple: _simple } = useMode();
-  const { prices, loading } = useLivePrices(['btc', 'eth', 'sol', 'pax'], 30000);
+
+  // Use real simulation engine instead of random generation
+  const sim = useSimulation({
+    coins: ['BTC', 'ETH', 'SOL', 'AVAX', 'MATIC'],
+    startingBalance: 10000,
+    tickIntervalMs: 1500,
+  });
 
   const [strategyId, setStrategyId] = useState(() => settings.autopilotStrategy || '');
   const [riskProfileId, setRiskProfileId] = useState(() => settings.autopilotRisk || 'moderate');
-  const [tradeAmount, setTradeAmount] = useState(() => settings.autopilotAmount || 100);
+  const [tradeAmount, setTradeAmount] = useState(() => settings.autopilotAmount || 1000);
   const [showConfig, setShowConfig] = useState(false);
   const [running, setRunning] = useState(false);
-  const [trades, setTrades] = useState([]);
   const [tradesExpanded, setTradesExpanded] = useState(false);
   const [stopLoss, setStopLoss] = useState(3);
   const [takeProfit, setTakeProfit] = useState(6);
+  const [activeBotId, setActiveBotId] = useState(null);
 
-  const actionRef = useRef(null);
-  const intervalRef = useRef(null);
-
-  const strategy = STRATEGIES.find(s => s.id === strategyId);
+  const strategy = STRATEGY_META.find(s => s.id === strategyId);
   const riskProfile = RISK_PROFILES.find(p => p.id === riskProfileId) || RISK_PROFILES[1];
 
   /* Adjust SL/TP when strategy or risk profile changes */
   useEffect(() => {
-    const strat = STRATEGIES.find(s => s.id === strategyId);
-    if (strat) {
-      const rp = RISK_PROFILES.find(p => p.id === riskProfileId) || RISK_PROFILES[1];
-      setStopLoss(+(strat.params.stopLoss * rp.slMultiplier).toFixed(1));
-      setTakeProfit(+(strat.params.takeProfit * rp.tpMultiplier).toFixed(1));
+    if (strategy) {
+      setStopLoss(+(strategy.riskDefaults.stopLoss * riskProfile.slMultiplier).toFixed(1));
+      setTakeProfit(+(strategy.riskDefaults.takeProfit * riskProfile.tpMultiplier).toFixed(1));
     }
   }, [strategyId, riskProfileId]);
 
-  /* Trade generation loop */
-  useEffect(() => {
-    if (running && strategy) {
-      const tick = () => {
-        const trade = generateTrade(strategy, prices, stopLoss, takeProfit, riskProfile.sizeMultiplier, tradeAmount);
-        setTrades(prev => [trade, ...prev].slice(0, 200));
-      };
-      tick();
-      intervalRef.current = setInterval(tick, 3000 + Math.random() * 4000);
-      return () => clearInterval(intervalRef.current);
-    }
-    return () => clearInterval(intervalRef.current);
-  }, [running, strategy, prices, stopLoss, takeProfit, riskProfile.sizeMultiplier, tradeAmount]);
-
   const handleStart = () => {
     if (!strategyId) return;
-    setTrades([]);
-    setRunning(true);
-    updateSettings({ autopilotStrategy: strategyId, autopilotRisk: riskProfileId, autopilotAmount: tradeAmount });
+
+    // Create a real bot using the simulation engine
+    const botConfig = sim.startBot({
+      strategyId,
+      riskProfile: riskProfileId,
+      tradeAmount,
+      paramOverrides: {},
+    });
+
+    if (botConfig) {
+      setActiveBotId(botConfig.id);
+      setRunning(true);
+      updateSettings({
+        autopilotStrategy: strategyId,
+        autopilotRisk: riskProfileId,
+        autopilotAmount: tradeAmount,
+      });
+    }
   };
 
   const handleStop = () => {
+    if (activeBotId) {
+      sim.stopBot(activeBotId);
+      setActiveBotId(null);
+    }
     setRunning(false);
-    clearInterval(intervalRef.current);
     updateSettings({ autopilotStrategy: strategyId, autopilotRisk: riskProfileId });
   };
+
+  // Get live prices from the engine for the MarketScanner
+  const enginePrices = {};
+  for (const [sym, data] of Object.entries(sim.prices)) {
+    enginePrices[sym.toLowerCase()] = data;
+  }
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-8">
@@ -87,7 +98,7 @@ export default function Autopilot({ onNavigate }) {
         )}
       </div>
 
-      <MarketScanner prices={prices} loading={loading} />
+      <MarketScanner prices={enginePrices} loading={!sim.running && sim.tickCount === 0} />
       <AmountSelector value={tradeAmount} onChange={setTradeAmount} />
 
       {/* Strategy selection */}
@@ -96,7 +107,7 @@ export default function Autopilot({ onNavigate }) {
           <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">Choose a Strategy</h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
-          {STRATEGIES.map(s => (
+          {STRATEGY_META.map(s => (
             <StrategyCard key={s.id} strat={s} selected={strategyId} onSelect={setStrategyId} />
           ))}
         </div>
@@ -118,12 +129,12 @@ export default function Autopilot({ onNavigate }) {
           )}
 
           {/* Start/Stop controls */}
-          <div ref={actionRef} className="bg-[var(--color-surface-1)] rounded-2xl border border-[var(--color-border-default)] p-5">
+          <div className="bg-[var(--color-surface-1)] rounded-2xl border border-[var(--color-border-default)] p-5">
             <div className="flex items-center justify-between mb-3 gap-3">
               <div className="min-w-0">
                 <h3 className="text-sm font-semibold text-[var(--color-text-primary)] truncate">{strategy.name}</h3>
                 <p className="text-xs text-[var(--color-text-secondary)] mt-0.5 truncate">
-                  Trading {strategy.pairs.join(', ')} on {strategy.timeframe} candles
+                  Trading {strategy.pairs.join(', ')} · {strategy.timeframe} timeframe
                   {' | '}
                   <span className="text-red-400">SL {stopLoss}%</span>
                   {' / '}
@@ -156,17 +167,24 @@ export default function Autopilot({ onNavigate }) {
               </div>
             </div>
             {running && (
-              <div className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)]">
-                <Clock size={12} />
-                <span>Active with SL {stopLoss}% / TP {takeProfit}%</span>
+              <div className="flex items-center gap-4 text-xs text-[var(--color-text-secondary)]">
+                <div className="flex items-center gap-1.5">
+                  <Clock size={12} />
+                  <span>Active with SL {stopLoss}% / TP {takeProfit}%</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-mono tabular-nums">{sim.metrics.totalTrades} trades</span>
+                  <span>·</span>
+                  <span className="font-mono tabular-nums">{sim.metrics.tradesPerSecond} tps</span>
+                </div>
               </div>
             )}
           </div>
         </>
       )}
 
-      {trades.length > 0 && <PerformanceStats trades={trades} />}
-      <TradeLog trades={trades} expanded={tradesExpanded} onToggle={() => setTradesExpanded(!tradesExpanded)} />
+      {sim.trades.length > 0 && <PerformanceStats trades={sim.trades} />}
+      <TradeLog trades={sim.trades} expanded={tradesExpanded} onToggle={() => setTradesExpanded(!tradesExpanded)} />
 
       <div className="flex items-start gap-3 bg-[var(--color-warning-8)] border border-[var(--color-warning-22)] rounded-xl p-4">
         <AlertTriangle size={16} className="text-orange-400 flex-shrink-0 mt-0.5" />

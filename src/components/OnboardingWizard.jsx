@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Rocket, ChevronRight, ChevronLeft, Sparkles } from 'lucide-react';
 import { Btn, Card, CardBody, Badge } from './ui';
-import { STRATEGIES } from '../data/marketData';
+import { getStrategy } from '../strategies/index.js';
 
 const EXPERIENCE_LEVELS = [
   { id: 'beginner', label: 'Beginner', desc: 'New to crypto trading', icon: '🌱' },
@@ -60,7 +60,7 @@ export default function OnboardingWizard({ onComplete }) {
 
   const handleFinish = () => {
     const recommended = recommendStrategy(answers.experience, answers.automation);
-    const strategy = STRATEGIES.find(s => s.id === recommended);
+    const strategy = getStrategy(recommended);
     onComplete({
       ...answers,
       recommendedStrategy: recommended,

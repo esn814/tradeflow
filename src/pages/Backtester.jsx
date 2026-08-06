@@ -3,7 +3,8 @@ import { BarChart3, Play, RotateCcw, Activity, Zap, Bot } from 'lucide-react';
 import InfoTip from '../components/InfoTip';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar, Cell } from 'recharts';
 import { CHART_GRID, CHART_AXIS_TICK, CHART_AXIS, CHART_TOOLTIP_STYLE } from '../data/chartTheme';
-import { generateOHLCV, computeSMA, computeRSI, computeBollinger, STRATEGIES, calculateSortino, calculateCalmar } from '../data/marketData';
+import { generateOHLCV, computeSMA, computeRSI, computeBollinger, calculateSortino, calculateCalmar } from '../data/marketData';
+import { ALL_STRATEGIES } from '../strategies/index.js';
 import { fetchCandles } from '../data/liveData';
 import { Card, CardBody, SectionHeader, Btn, Badge, Stat, PageHeader, Divider, EmptyState, LinkCard } from '../components/ui';
 
@@ -69,7 +70,7 @@ export default function Backtester({ onNavigate }) {
                 onChange={e => { setStrategy(e.target.value); setResult(null); }}
                 className={selectClass}
               >
-                {STRATEGIES.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                {ALL_STRATEGIES.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
             <div className="min-w-[140px]">

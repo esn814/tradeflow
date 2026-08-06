@@ -106,7 +106,7 @@ export function useBinance(coins = DEFAULT_COINS) {
       if (clientRef.current) { clientRef.current.destroy(); clientRef.current = null; }
 
       // Create client
-      const client = new BinanceClient({ apiKey, apiSecret, environment: env, proxyUrl: PROXY_URL });
+      const client = new BinanceClient({ apiKey, apiSecret, environment: 'production' });
 
       // Verify key works
       const verify = await client.verifyKey();

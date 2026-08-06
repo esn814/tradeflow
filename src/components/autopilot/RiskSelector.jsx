@@ -1,5 +1,5 @@
 import { Target } from 'lucide-react';
-import { RISK_PROFILES } from './autopilotData';
+import { RISK_PROFILES } from '../../strategies';
 import InfoTip from '../InfoTip';
 
 export default function RiskSelector({ selected, onSelect, strategy }) {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Bot, ChevronRight, Play, Pause, Settings2, Zap, TrendingUp, Shield, BarChart3, Brain, Network, BookOpen, CheckCircle, XCircle, Target, Copy } from 'lucide-react';
-import { STRATEGIES } from '../data/marketData';
+import { ALL_STRATEGIES } from '../strategies/index.js';
 import { Card, CardBody, SectionHeader, Btn, Badge, PageHeader, Divider, LinkCard } from '../components/ui';
 import { useMode, useAppStore } from '../context/AppStore';
 
@@ -64,7 +64,7 @@ export default function Strategies({ onNavigate }) {
   const [active, setActive] = useState(null);
   const [running, setRunning] = useState(() => {
     const init = {};
-    STRATEGIES.forEach(s => {
+    ALL_STRATEGIES.forEach(s => {
       init[s.id] = strategyStates[s.id]?.enabled ?? true;
     });
     return init;
@@ -73,9 +73,9 @@ export default function Strategies({ onNavigate }) {
   const [copySuccess, setCopySuccess] = useState(null);
   const [paramValues, setParamValues] = useState(() => {
     const init = {};
-    STRATEGIES.forEach(s => {
+    ALL_STRATEGIES.forEach(s => {
       const saved = strategyStates[s.id]?.params;
-      s.params.forEach(p => { init[p.key] = saved?.[p.key] ?? p.default; });
+      s.uiParams.forEach(p => { init[p.key] = saved?.[p.key] ?? p.default; });
     });
     return init;
   });
@@ -102,14 +102,14 @@ export default function Strategies({ onNavigate }) {
       {simple ? (
         /* ─── Simple mode: compact list with toggles ─── */
         <div className="space-y-4">
-          {STRATEGIES.map(s => (
+          {ALL_STRATEGIES.map(s => (
             <SimpleStrategyCard key={s.id} s={s} isRunning={running[s.id]} onToggle={toggleRun} />
           ))}
         </div>
       ) : (
         /* ─── Full mode: detailed strategy cards ─── */
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {STRATEGIES.map(s => {
+          {ALL_STRATEGIES.map(s => {
             const Icon = ICONS[s.id] || Bot;
             const isActive = active === s.id;
             const isRunning = running[s.id];
@@ -147,7 +147,7 @@ export default function Strategies({ onNavigate }) {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                     <div className="bg-[var(--color-surface-2)] rounded-lg p-2">
                       <span className="text-[var(--color-text-muted)] block">Return</span>
-                      <span className="text-[var(--color-profit)] font-medium">{s.returnRange}</span>
+                      <span className="text-[var(--color-profit)] font-medium">{s.avgReturn}</span>
                     </div>
                     <div className="bg-[var(--color-surface-2)] rounded-lg p-2">
                       <span className="text-[var(--color-text-muted)] block">Market</span>
@@ -213,7 +213,7 @@ export default function Strategies({ onNavigate }) {
 
                     <SectionHeader icon={Settings2} title="Parameters" />
                     <div className="space-y-3 min-w-0">
-                    {s.params.map(p => (
+                    {s.uiParams.map(p => (
                       <div key={p.key}>
                         <div className="flex justify-between text-xs mb-1">
                           <span className="text-[var(--color-text-secondary)]">{p.label}</span>
@@ -237,13 +237,13 @@ export default function Strategies({ onNavigate }) {
                     ))}
                     </div>
                     <div className="flex gap-2 pt-2">
-                      <Btn variant="primary" size="sm" className="flex-1" onClick={e => { e.stopPropagation(); const stratParams = {}; s.params.forEach(p => { stratParams[p.key] = paramValues[p.key] ?? p.default; }); localStorage.setItem('tradeflow-strategy-' + s.id, JSON.stringify(stratParams)); setStrategyState(s.id, { params: stratParams }); setSaveSuccess(s.id); setTimeout(() => setSaveSuccess(null), 2000); }}>
+                      <Btn variant="primary" size="sm" className="flex-1" onClick={e => { e.stopPropagation(); const stratParams = {}; s.uiParams.forEach(p => { stratParams[p.key] = paramValues[p.key] ?? p.default; }); localStorage.setItem('tradeflow-strategy-' + s.id, JSON.stringify(stratParams)); setStrategyState(s.id, { params: stratParams }); setSaveSuccess(s.id); setTimeout(() => setSaveSuccess(null), 2000); }}>
                         {saveSuccess === s.id ? '✓ Saved!' : 'Save & Apply'}
                       </Btn>
-                      <Btn variant="success" size="sm" onClick={e => { e.stopPropagation(); const stratParams = {}; s.params.forEach(p => { stratParams[p.key] = paramValues[p.key] ?? p.default; }); const cloned = { id: `clone-${s.id}-${Date.now()}`, name: `${s.name} (Copy)`, type: s.name.split(' ')[0], strategy: s.id, params: stratParams, copiedFrom: s.name, copiedAt: Date.now() }; localStorage.setItem('tradeflow-copied-strategy', JSON.stringify(cloned)); setCopySuccess(s.id); setTimeout(() => setCopySuccess(null), 2000); }}>
+                      <Btn variant="success" size="sm" onClick={e => { e.stopPropagation(); const stratParams = {}; s.uiParams.forEach(p => { stratParams[p.key] = paramValues[p.key] ?? p.default; }); const cloned = { id: `clone-${s.id}-${Date.now()}`, name: `${s.name} (Copy)`, type: s.name.split(' ')[0], strategy: s.id, params: stratParams, copiedFrom: s.name, copiedAt: Date.now() }; localStorage.setItem('tradeflow-copied-strategy', JSON.stringify(cloned)); setCopySuccess(s.id); setTimeout(() => setCopySuccess(null), 2000); }}>
                         <Copy size={13} /> {copySuccess === s.id ? '✓ Copied!' : 'Copy'}
                       </Btn>
-                      <Btn variant="secondary" size="sm" onClick={e => { e.stopPropagation(); const defaults = {}; s.params.forEach(p => { defaults[p.key] = p.default; }); setParamValues(prev => ({ ...prev, ...defaults })); }}>
+                      <Btn variant="secondary" size="sm" onClick={e => { e.stopPropagation(); const defaults = {}; s.uiParams.forEach(p => { defaults[p.key] = p.default; }); setParamValues(prev => ({ ...prev, ...defaults })); }}>
                         Reset
                       </Btn>
                     </div>

@@ -1,5 +1,5 @@
 # TradeFlow — Task Tracker
-*Last audited against source: 2026-07-23*
+*Last audited against source: 2026-08-06*
 
 ---
 
@@ -147,6 +147,33 @@
 | JWT expiry | 5 min (httpOnly refresh cookie) |
 | Rate limits | 100 global, 20 auth, 10 trade/min, 2 backup/hr |
 
+## ✅ Phase 2: Wire Real Data — DONE (2026-08-06)
+
+- [x] `liveData.js` — real-time prices from 5 exchanges (Binance, CoinGecko, CoinCap, Bybit, Paxeer Data API) with median aggregation
+- [x] `fetchCandles()` — real OHLCV candle data from Paxeer Data API
+- [x] `useLiveStream` — WebSocket live price stream with 30s polling fallback
+- [x] `useLivePrices` — multi-symbol live price hook
+- [x] Dashboard wired: `useLiveStream` + `fetchCandles` + `useWalletPortfolio` (real wallet data)
+- [x] Backtester wired: `fetchCandles` with `generateOHLCV` fallback only
+- [x] RiskManager wired: `fetchCandles` + `useLivePrices` → real ATR, Kelly, drawdown, position sizing
+- [x] `RealPriceProvider` in SimulationEngine — feeds real prices to strategy execution
+- [x] Unified strategy registry (`src/strategies/index.js`) — single source of truth for all 10 strategies
+- [x] `useSimulation` hook (`src/hooks/useSimulation.js`) — real engine-backed simulation with localStorage persistence
+
+---
+
+## 🔲 Phase 3: Fix UI — NOT STARTED
+
+---
+
+## 🔲 Phase 4: Improve Strategies — NOT STARTED
+
+---
+
+## 🔲 Phase 5: Polish — NOT STARTED
+
+---
+
 ## 🔜 Next Up (Post Security Audit)
 
 - [ ] Set ADMIN_ADDRESSES env var on Render — enables backup restore admin check (5 min)
@@ -154,3 +181,6 @@
 - [ ] Test coverage expansion — edge cases for auth, trades, alerts, copy trading (~25h)
 - [ ] P&L analytics refinement — realized/unrealized, per-strategy breakdown, dedicated UI (2 weeks)
 - [ ] Real exchange integration — real API key auth + order placement, strategies no longer DEMO-labeled (40-60h, separate project)
+- [ ] Generate proper logo/icons
+- [ ] Browser testing of all flows
+- [ ] Add real trade alerts
