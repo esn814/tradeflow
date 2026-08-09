@@ -140,6 +140,7 @@ function AppContent() {
                 <Route path="/referrals"    element={<AnimatedPage><RequireAuth><Referrals {...routeProps} /></RequireAuth></AnimatedPage>} />
                 <Route path="/strategies"   element={<AnimatedPage><RequireAuth><Strategies {...routeProps} /></RequireAuth></AnimatedPage>} />
                 <Route path="/backtester"   element={<AnimatedPage><RequireAuth><Backtester {...routeProps} /></RequireAuth></AnimatedPage>} />
+                <Route path="/live-trading"  element={<AnimatedPage><RequireAuth><AutomatedTrading {...routeProps} /></RequireAuth></AnimatedPage>} />
                 <Route path="/alerts"       element={<AnimatedPage><RequireAuth><Alerts {...routeProps} /></RequireAuth></AnimatedPage>} />
                 <Route path="/risk"         element={<AnimatedPage><RequireAuth><RiskManager {...routeProps} /></RequireAuth></AnimatedPage>} />
                 <Route path="/analytics"    element={<AnimatedPage><RequireAuth><Analytics {...routeProps} /></RequireAuth></AnimatedPage>} />

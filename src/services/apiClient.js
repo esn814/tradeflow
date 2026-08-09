@@ -62,7 +62,7 @@ async function refreshToken() {
 }
 
 // ── Generic fetch wrapper with auth, auto-refresh, error handling ─
-async function apiFetch(path, options = {}) {
+export async function apiFetch(path, options = {}) {
   const headers = { 'Content-Type': 'application/json', ...options.headers };
   if (_token) headers['Authorization'] = `Bearer ${_token}`;
 
