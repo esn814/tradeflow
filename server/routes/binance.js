@@ -29,7 +29,7 @@ const router = Router();
 // ── Binance endpoints ─────────────────────────────────────────
 
 const ENDPOINTS = {
-  testnet: 'https://api.binance.com/api/v3',
+  testnet: 'https://testnet.binance.vision/api/v3',
   production: 'https://api.binance.com/api/v3',
 };
 
