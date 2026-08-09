@@ -39,6 +39,9 @@ import {
   rsiBollingerStrategy,
 } from '../engine/strategies.js';
 
+// AI Confluence — server-side only, no client strategyFn needed
+const aiConfluenceStrategy = null;
+
 /**
  * Unified strategy definitions.
  * Each entry merges real execution logic with UI metadata.
@@ -338,6 +341,33 @@ export const STRATEGY_REGISTRY = {
       { key: 'rsiBuy', label: 'RSI Buy Level', default: 25, min: 10, max: 40 },
       { key: 'rsiSell', label: 'RSI Sell Level', default: 75, min: 60, max: 90 },
       { key: 'tradePct', label: 'Trade Size (%)', default: 15, min: 3, max: 30, unit: '%' },
+    ],
+  },
+  aiConfluence: {
+    id: 'aiConfluence',
+    name: 'AI Confluence',
+    shortName: 'AI Conf',
+    icon: Zap,
+    risk: 'Medium-High',
+    riskColor: 'text-orange-400 bg-orange-400/10',
+    winRate: 72,
+    avgReturn: '10-25%',
+    timeframe: '1h+',
+    pairs: ['BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'BNB/USDT'],
+    bestMarket: 'Trending/Volatile',
+    aiValue: 'Very High',
+    description: 'Multi-indicator confluence scoring using 8 technical indicators (RSI, MACD, Bollinger, EMA Cross, Stochastic, ADX, Volume, Regime). Server-side signal engine analyzes all indicators and only trades when confidence exceeds threshold.',
+    beginnerDesc: 'The smartest strategy — it uses 8 different indicators together and only trades when they all agree. Runs on the server for maximum speed and accuracy.',
+    whenToUse: 'All market conditions — adapts via regime detection (trending/ranging/volatile).',
+    whenToAvoid: 'Extremely low-volatility sideways markets with no clear signals.',
+    marketFit: { trending: 'excellent', ranging: 'good', volatile: 'excellent', calm: 'fair' },
+    strategyFn: aiConfluenceStrategy,
+    defaultParams: { confidence: 60, positionSize: 10, stopLoss: 5, takeProfit: 10 },
+    uiParams: [
+      { key: 'confidence', label: 'Min Confidence (%)', default: 60, min: 40, max: 90, step: 5 },
+      { key: 'positionSize', label: 'Position Size (%)', default: 10, min: 1, max: 50, step: 1 },
+      { key: 'stopLoss', label: 'Stop Loss (%)', default: 5, min: 1, max: 20, step: 0.5 },
+      { key: 'takeProfit', label: 'Take Profit (%)', default: 10, min: 2, max: 50, step: 1 },
     ],
   },
 };
