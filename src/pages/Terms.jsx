@@ -8,7 +8,7 @@ const SECTIONS = [
     icon: Zap,
     title: 'Service Description',
     content: [
-      'TradeFlow is a demo and educational crypto trading platform.',
+      'TradeFlow is an automated crypto trading platform.',
       'All trading strategies, P&L calculations, and portfolio data are simulated or for demonstration purposes only.',
       'Demo mode uses virtual funds ($10K default) with real market prices. No real money is at risk in demo mode.',
       'We reserve the right to modify, suspend, or discontinue any part of the service at any time.',

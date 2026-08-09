@@ -116,6 +116,21 @@ export async function verifySiwe(message, signature) {
   return res;
 }
 
+// Demo token — allows demo users to access backend features
+export async function getDemoToken() {
+  try {
+    const res = await apiFetch('/auth/demo-token', { method: 'POST' });
+    if (res.token) {
+      setAuthToken(res.token, res.address);
+      return true;
+    }
+    return false;
+  } catch (err) {
+    console.warn('[apiClient] Failed to get demo token:', err.message);
+    return false;
+  }
+}
+
 // FIX #1: Restore session on app load using refresh token cookie
 export async function restoreSession() {
   const refreshed = await refreshToken();

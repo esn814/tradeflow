@@ -34,12 +34,12 @@ export default function Disclaimer() {
       }}>
         <div style={{ flex: 1, minWidth: 200 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 4 }}>
-            ⚠️ Not Financial Advice
+            ⚠️ Trading Involves Risk
           </div>
           <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', lineHeight: 1.5 }}>
-            TradeFlow is a <strong>demo/educational tool only</strong>. Trading strategies, P&L calculations,
-            and portfolio data are simulated or for demonstration purposes. Nothing on this platform constitutes
-            financial advice. Past performance does not guarantee future results. You are solely responsible for
+            TradeFlow connects to real exchanges (Binance testnet) and executes automated trades.
+            <strong> You can lose money.</strong> Nothing on this platform constitutes financial advice.
+            Past performance does not guarantee future results. You are solely responsible for
             any investment decisions you make.
           </div>
         </div>
@@ -63,8 +63,8 @@ export default function Disclaimer() {
       fontSize: 11, color: 'var(--color-text-muted)', lineHeight: 1.5,
       borderTop: '1px solid var(--color-border)',
     }}>
-      TradeFlow is a demo trading platform for educational purposes only.
-      Not financial advice. Past performance does not guarantee future results.
+      TradeFlow — Automated crypto trading with real exchange integration.
+      Not financial advice. Trading involves risk. Past performance does not guarantee future results.
     </div>
   )
 }

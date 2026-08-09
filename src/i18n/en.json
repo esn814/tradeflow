@@ -49,9 +49,9 @@
   },
   "disclaimer": {
     "title": "Not Financial Advice",
-    "body": "TradeFlow is a demo/educational tool only. Trading strategies, P&L calculations, and portfolio data are simulated or for demonstration purposes. Nothing on this platform constitutes financial advice. Past performance does not guarantee future results.",
+    "body": "TradeFlow connects to real exchanges and executes automated trades. You can lose money. Nothing on this platform constitutes financial advice. Past performance does not guarantee future results.",
     "understand": "I Understand",
-    "footer": "TradeFlow is a demo trading platform for educational purposes only. Not financial advice."
+    "footer": "TradeFlow — Automated crypto trading. Not financial advice. Trading involves risk."
   },
   "home": {
     "title": "TradeFlow",
@@ -108,6 +108,6 @@
     "forbidden": "You don't have permission to access this"
   },
   "footer": {
-    "disclaimer": "TradeFlow is a demo trading platform for educational purposes only. Not financial advice. Past performance does not guarantee future results."
+    "disclaimer": "TradeFlow — Automated crypto trading. Not financial advice. Trading involves risk. Past performance does not guarantee future results."
   }
 }

@@ -110,6 +110,8 @@ function AppContent() {
       if (!settings.hasCompletedOnboarding) {
         updateSettings({ hasCompletedOnboarding: true, demoMode: true, virtualBalance: settings.virtualBalance || 10000 })
       }
+      // Fetch a real JWT for the demo user so backend API calls work
+      import('./services/apiClient.js').then(m => m.getDemoToken()).catch(() => {})
     }
   }, [isAuthenticated]) // eslint-disable-line react-hooks/exhaustive-deps
 
