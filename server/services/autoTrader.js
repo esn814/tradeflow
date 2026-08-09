@@ -17,6 +17,7 @@
  * Risk enforcement is HARD — if any limit is hit, the bot auto-stops.
  */
 
+import { randomBytes } from 'crypto';
 import { getDb } from '../db.js';
 import { BinanceServer } from './binanceServer.js';
 import { STRATEGIES } from './strategies.js';
@@ -325,7 +326,7 @@ class BotRuntime {
   _recordTrade(signal, price, tradeResult) {
     try {
       const db = getDb();
-      const tradeId = `lt-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const tradeId = `lt-${Date.now()}-${randomBytes(8).toString('hex')}`;
 
       // Use actual fill data when available, fall back to expected
       const fillPrice = tradeResult.avgFillPrice || price;
@@ -524,16 +525,14 @@ export async function startBot(botId, userId) {
   const keys = db.prepare('SELECT * FROM exchange_keys WHERE user_id = ? ORDER BY verified_at DESC LIMIT 1').get(userId);
   if (!keys) throw new Error('No exchange API keys configured. Add your Binance API keys first.');
 
-  // Decrypt keys (supports legacy base64 and new AES-256-GCM)
+  // Decrypt keys (AES-256-GCM only — no legacy fallback)
   const { decrypt } = await import('./crypto.js');
   let apiKey, apiSecret;
   try {
     apiKey = decrypt(keys.api_key_encrypted);
     apiSecret = decrypt(keys.api_secret_encrypted);
   } catch {
-    // Fallback: legacy base64 encoding
-    apiKey = Buffer.from(keys.api_key_encrypted, 'base64').toString('utf-8');
-    apiSecret = Buffer.from(keys.api_secret_encrypted, 'base64').toString('utf-8');
+    throw new Error('API key decryption failed. Please re-enter your exchange keys in Settings → Connections.');
   }
 
   // Verify strategy exists

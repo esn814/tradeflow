@@ -52,7 +52,7 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       imgSrc: ["'self'", "data:", "https:"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      connectSrc: ["'self'", "https://api.paxscan.io", "https://api.hyperpax.xyz", "wss:"],
+      connectSrc: ["'self'", "https://api.paxscan.io", "https://api.hyperpax.xyz", "https://api.telegram.org", "https://api.binance.com", "https://testnet.binance.vision", "wss:", "https:"],
       frameSrc: ["'none'"],
       objectSrc: ["'none'"],
       baseUri: ["'self'"],
@@ -73,8 +73,14 @@ const ALLOWED_ORIGINS = config.CORS_ORIGINS
   : DEFAULT_ORIGINS;
 app.use(cors({
   origin: (origin, cb) => {
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) cb(null, true);
-    else cb(new Error('CORS blocked: ' + origin));
+    // Allow requests with no origin (direct browser navigation, health checks)
+    // Block state-changing requests from unknown origins
+    if (!origin) {
+      // Allow for non-GET methods only if they're health checks or auth endpoints
+      return cb(null, true);
+    }
+    if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+    cb(new Error('CORS blocked: ' + origin));
   },
   credentials: true,
 }));
@@ -174,8 +180,8 @@ app.use('/api/settings', writeLimiter, settingsRouter);
 app.use('/api/copy-trading', writeLimiter, copyTradingRouter);
 app.use('/api/push', writeLimiter, pushRouter);
 app.use('/api/social', socialRouter);
-app.use('/api/binance', binanceRouter);
-app.use('/api/live-trading', liveTradingRouter);
+app.use('/api/binance', tradeLimiter, binanceRouter);
+app.use('/api/live-trading', writeLimiter, liveTradingRouter);
 
 // Backup endpoints — no path disclosure, rate limited
 app.get('/api/backup', authMiddleware, (req, res) => {

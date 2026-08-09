@@ -18,6 +18,7 @@
  */
 
 import { Router } from 'express';
+import { randomBytes } from 'crypto';
 import { getDb } from '../db.js';
 import { authMiddleware } from '../auth.js';
 import { logger } from '../logger.js';
@@ -100,7 +101,7 @@ router.post('/bots', async (req, res) => {
       return res.status(400).json({ error: `Unknown strategy: ${strategy}` });
     }
 
-    const botId = `bot-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const botId = `bot-${Date.now()}-${randomBytes(8).toString('hex')}`;
     const db = getDb();
 
     db.prepare(`

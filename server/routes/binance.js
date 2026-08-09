@@ -158,7 +158,7 @@ router.post('/balances', requireKeys, async (req, res) => {
     res.json({ ok: true, balances });
   } catch (err) {
     logger.error({ err }, '[binance-proxy] balances failed');
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Failed to fetch balances. Please check your API keys.' });
   }
 });
 
@@ -168,13 +168,32 @@ router.post('/balances', requireKeys, async (req, res) => {
  */
 router.post('/order', requireKeys, async (req, res) => {
   try {
-    const { apiKey, apiSecret, environment, ...orderParams } = req.binance ? req.body : {};
+    const { symbol, side, type, quantity, price, stopPrice, timeInForce, ...rest } = req.body;
     const keys = req.binance;
+
+    // Validate order parameters
+    const allowedSides = ['BUY', 'SELL'];
+    const allowedTypes = ['MARKET', 'LIMIT', 'STOP_LOSS_LIMIT', 'TAKE_PROFIT_LIMIT'];
+    if (!symbol || !allowedSides.includes(side) || !allowedTypes.includes(type)) {
+      return res.status(400).json({ error: 'Invalid order parameters: symbol, side, or type invalid' });
+    }
+    if (!quantity || isNaN(quantity) || Number(quantity) <= 0) {
+      return res.status(400).json({ error: 'Invalid quantity' });
+    }
+    if (type !== 'MARKET' && (!price || isNaN(price) || Number(price) <= 0)) {
+      return res.status(400).json({ error: 'Invalid price for limit order' });
+    }
+
+    const orderParams = { symbol, side, type, quantity };
+    if (price) orderParams.price = price;
+    if (stopPrice) orderParams.stopPrice = stopPrice;
+    if (timeInForce) orderParams.timeInForce = timeInForce;
+
     const result = await binancePrivateRequest('POST', '/order', orderParams, keys.apiKey, keys.apiSecret, keys.environment);
     res.status(result.status).json(result.data);
   } catch (err) {
     logger.error({ err }, '[binance-proxy] order failed');
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Order placement failed. Please check your API keys and parameters.' });
   }
 });
 

@@ -136,28 +136,15 @@ router.post('/verify', async (req, res) => {
 // ── Demo token endpoint — allows demo users to access live trading features ──
 router.post('/demo-token', (req, res) => {
   try {
-    // Create or get demo user
     const demoAddress = '0xDemo000000000000000000000000000000000000';
     const user = upsertUser(demoAddress);
 
-    // Issue a real JWT for the demo user
+    // Demo token with restricted scope — can only read data and manage own bots
     const token = jwt.sign(
-      { userId: user.id, address: user.address },
+      { userId: user.id, address: user.address, demo: true },
       JWT_SECRET,
       { algorithm: JWT_ALGORITHM, expiresIn: '24h' }
     );
-
-    // Issue refresh token
-    const refreshToken = randomBytes(32).toString('hex');
-    storeRefreshToken(refreshToken, user.id, user.address);
-
-    res.cookie('tf_rt', refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-      maxAge: REFRESH_TTL_MS,
-      path: '/api/auth',
-    });
 
     res.json({ token, address: user.address });
   } catch (err) {
