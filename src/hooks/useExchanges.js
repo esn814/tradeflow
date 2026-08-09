@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useAppStore } from '../context/AppStore';
 import { encryptExchangeKeys, sanitize } from '../utils/crypto';
+import { apiFetch } from '../services/apiClient';
 
 export function useExchanges() {
   const { settings, updateSettings } = useAppStore();
@@ -16,6 +17,22 @@ export function useExchanges() {
     const apiSecret = sanitize(exchangeForm['API Secret'] || '');
     if (!apiKey || !apiSecret) return;
     try {
+      // Save to backend (encrypted server-side with AES-256-GCM)
+      try {
+        await apiFetch('/live-trading/keys', {
+          method: 'POST',
+          body: JSON.stringify({
+            exchange: exchangeId,
+            apiKey,
+            apiSecret,
+            environment: 'testnet',
+          }),
+        });
+      } catch (backendErr) {
+        console.warn('[useExchanges] Backend key save failed (non-fatal):', backendErr.message);
+      }
+
+      // Also save locally for the UI
       const encrypted = await encryptExchangeKeys({ [exchangeId]: { key: apiKey, secret: apiSecret } });
       const updated = { ...exchangeKeys, [exchangeId]: { encrypted, keyPreview: apiKey.slice(0, 8) + '••••••••', connectedAt: 'Just now' } };
       setExchangeKeys(updated);
