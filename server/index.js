@@ -6,7 +6,6 @@ import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import pinoHttp from 'pino-http';
-import * as Sentry from '@sentry/node';
 import rateLimit from 'express-rate-limit';
 import { getDb } from './db.js';
 import authRouter, { authMiddleware } from './auth.js';
@@ -28,8 +27,14 @@ const ADMIN_ADDRESSES = (process.env.ADMIN_ADDRESSES || '').split(',').map(a => 
 const app = express();
 const PORT = config.PORT;
 
-// ── Sentry (must be before all middleware) ─────────────────────
-if (config.SENTRY_DSN) {
+// ── Sentry (optional — gracefully disabled if not installed) ─────────────────────
+let Sentry = null;
+try {
+  Sentry = await import('@sentry/node');
+} catch {
+  // @sentry/node not installed — Sentry disabled
+}
+if (config.SENTRY_DSN && Sentry) {
   Sentry.init({
     dsn: config.SENTRY_DSN,
     environment: config.NODE_ENV,
@@ -225,7 +230,7 @@ app.post('/api/backup/restore', backupLimiter, authMiddleware, (req, res) => {
 });
 
 // Sentry error handler (must be after routes, before custom error handler)
-if (config.SENTRY_DSN) {
+if (config.SENTRY_DSN && Sentry) {
   app.use(Sentry.setupExpressErrorHandler());
 }
 
