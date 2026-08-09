@@ -230,9 +230,9 @@ export default function Dashboard({ onNavigate }) {
                   <tr key={p.pair} className="border-b border-[var(--color-border-default)]/50 hover:bg-[var(--color-surface-3)]/30 transition-colors">
                     <td className="py-3 pr-4 text-[var(--color-text-primary)] font-medium truncate max-w-[120px]">{p.pair}</td>
                     {!simple && <td className="py-3 pr-4 text-[var(--color-text-secondary)]">{p.strategy}</td>}
-                    {!simple && <td className="py-3 pr-4 text-right text-gray-300 tabular-nums">${p.entry.toLocaleString()}</td>}
+                    {!simple && <td className="py-3 pr-4 text-right text-[var(--color-text-muted)] tabular-nums">${p.entry.toLocaleString()}</td>}
                     <td className="py-3 pr-4 text-right text-[var(--color-text-primary)] tabular-nums">${p.current.toLocaleString()}</td>
-                    {!simple && <td className="py-3 pr-4 text-right text-gray-300 tabular-nums">{p.size}</td>}
+                    {!simple && <td className="py-3 pr-4 text-right text-[var(--color-text-muted)] tabular-nums">{p.size}</td>}
                     <td className={`py-3 pr-4 text-right font-medium tabular-nums ${p.pnl >= 0 ? 'text-[var(--color-profit)]' : 'text-[var(--color-loss)]'}`}>
                       {p.pnl >= 0 ? '+' : ''}${p.pnl.toLocaleString()}
                     </td>
@@ -254,7 +254,7 @@ export default function Dashboard({ onNavigate }) {
             <CardBody>
               <SectionHeader icon={BarChart3} title="Portfolio Allocation" />
               <div className="allocation-layout flex items-center gap-4">
-                <ResponsiveContainer width="60%" height={200}>
+                <ResponsiveContainer width="100%" height={200}>
                   <PieChart>
                     <Pie data={allocationData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
                       {allocationData.map((d, i) => <Cell key={i} fill={d.color} />)}

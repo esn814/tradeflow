@@ -138,8 +138,8 @@ function BotDetail({ bot, onBack, onToggle, onStop, livePrices }) {
                         {t.side.toUpperCase()}
                       </span>
                     </td>
-                    <td className="py-2 pr-3 text-right text-gray-300 font-mono tabular-nums">${t.price.toLocaleString()}</td>
-                    <td className="py-2 pr-3 text-right text-gray-300 font-mono">{t.qty}</td>
+                    <td className="py-2 pr-3 text-right text-[var(--color-text-muted)] font-mono tabular-nums">${t.price.toLocaleString()}</td>
+                    <td className="py-2 pr-3 text-right text-[var(--color-text-muted)] font-mono">{t.qty}</td>
                     <td className={`py-2 text-right font-medium font-mono tabular-nums ${t.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                       {t.pnl >= 0 ? '+' : ''}${t.pnl.toFixed(2)}
                     </td>

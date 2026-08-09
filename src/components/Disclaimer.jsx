@@ -23,21 +23,12 @@ export default function Disclaimer() {
 
   if (!acknowledged) {
     return (
-      <div style={{
-        position: 'relative',
-        zIndex: 10,
-        background: 'linear-gradient(135deg, rgba(220,38,38,0.95), rgba(185,28,28,0.95))',
-        backdropFilter: 'blur(12px)',
-        borderTop: '1px solid rgba(255,255,255,0.15)',
-        padding: '14px 20px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        gap: 16, flexWrap: 'wrap',
-      }}>
-        <div style={{ flex: 1, minWidth: 200 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 4 }}>
+      <div className="disclaimer disclaimer--warning">
+        <div className="disclaimer__content">
+          <div className="disclaimer__title">
             ⚠️ Trading Involves Risk
           </div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', lineHeight: 1.5 }}>
+          <div className="disclaimer__text">
             TradeFlow connects to real exchanges (Binance testnet) and executes automated trades.
             <strong> You can lose money.</strong> Nothing on this platform constitutes financial advice.
             Past performance does not guarantee future results. You are solely responsible for
@@ -46,11 +37,7 @@ export default function Disclaimer() {
         </div>
         <button
           onClick={handleAcknowledge}
-          style={{
-            background: '#fff', color: '#b91c1c', border: 'none',
-            padding: '10px 24px', borderRadius: 10, fontSize: 13, fontWeight: 700,
-            cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
-          }}
+          className="disclaimer__btn"
         >
           I Understand
         </button>
@@ -59,11 +46,7 @@ export default function Disclaimer() {
   }
 
   return (
-    <div style={{
-      textAlign: 'center', padding: '8px 16px',
-      fontSize: 11, color: 'var(--color-text-muted)', lineHeight: 1.5,
-      borderTop: '1px solid var(--color-border)',
-    }}>
+    <div className="disclaimer disclaimer--footer">
       TradeFlow — Automated crypto trading with real exchange integration.
       Not financial advice. Trading involves risk. Past performance does not guarantee future results.
     </div>
