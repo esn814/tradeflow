@@ -19,6 +19,7 @@ import copyTradingRouter from './routes/copy-trading.js';
 import pushRouter from './routes/push.js';
 import socialRouter from './routes/social.js';
 import binanceRouter from './routes/binance.js';
+import liveTradingRouter from './routes/liveTrading.js';
 import { startAlertChecker } from './services/alertChecker.js';
 import { startBackupScheduler, createBackup, listBackups, restoreBackup } from './backup.js';
 
@@ -174,6 +175,7 @@ app.use('/api/copy-trading', writeLimiter, copyTradingRouter);
 app.use('/api/push', writeLimiter, pushRouter);
 app.use('/api/social', socialRouter);
 app.use('/api/binance', binanceRouter);
+app.use('/api/live-trading', liveTradingRouter);
 
 // Backup endpoints — no path disclosure, rate limited
 app.get('/api/backup', authMiddleware, (req, res) => {
@@ -232,6 +234,14 @@ const server = app.listen(PORT, () => {
   logger.info({ port: PORT }, `TradeFlow API v1.1 running on port ${PORT}`);
   startAlertChecker(60_000);
   startBackupScheduler();
+
+  // Restore any bots that were running before restart
+  try {
+    const { restoreRunningBots } = await import('./services/autoTrader.js');
+    await restoreRunningBots();
+  } catch (err) {
+    logger.warn({ err: err.message }, 'Failed to restore running bots (non-fatal)');
+  }
 });
 
 // Graceful shutdown

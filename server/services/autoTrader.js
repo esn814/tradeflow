@@ -525,12 +525,13 @@ export async function startBot(botId, userId) {
   if (!keys) throw new Error('No exchange API keys configured. Add your Binance API keys first.');
 
   // Decrypt keys (supports legacy base64 and new AES-256-GCM)
-  const { decrypt, isEncrypted } = await import('./crypto.js');
+  const { decrypt } = await import('./crypto.js');
   let apiKey, apiSecret;
-  if (isEncrypted(keys.api_key_encrypted)) {
+  try {
     apiKey = decrypt(keys.api_key_encrypted);
     apiSecret = decrypt(keys.api_secret_encrypted);
-  } else {
+  } catch {
+    // Fallback: legacy base64 encoding
     apiKey = Buffer.from(keys.api_key_encrypted, 'base64').toString('utf-8');
     apiSecret = Buffer.from(keys.api_secret_encrypted, 'base64').toString('utf-8');
   }
