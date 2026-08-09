@@ -28,6 +28,7 @@ import { logger } from '../logger.js';
 
 /** @type {Map<string, BotRuntime>} */
 const runtimes = new Map();
+const botLocks = new Map();
 
 class BotRuntime {
   constructor(bot, binance, userId) {
@@ -60,14 +61,25 @@ class BotRuntime {
     if (this._running) return;
     this._running = true;
     logger.info({ botId: this.botId, strategy: this.strategyName, coin: this.coin }, '[AutoTrader] Bot started');
-    this._tick(); // Run first tick immediately
-    this._timer = setInterval(() => this._tick(), this.intervalMs);
+    this._tick().finally(() => {
+      if (this._running) this._startLoop();
+    });
+  }
+
+  /** Use setTimeout with re-scheduling to prevent overlapping ticks */
+  _startLoop() {
+    this._timer = setTimeout(() => {
+      if (!this._running) return;
+      this._tick().finally(() => {
+        if (this._running) this._startLoop();
+      });
+    }, this.intervalMs);
   }
 
   stop(reason = 'manual') {
     this._running = false;
     if (this._timer) {
-      clearInterval(this._timer);
+      clearTimeout(this._timer);
       this._timer = null;
     }
     // Persist final state before stopping
@@ -360,9 +372,8 @@ class BotRuntime {
       this.dailyTradeCount++;
 
       // Update bot stats
-      const db2 = getDb();
       const isWin = pnl > 0;
-      db2.prepare(`
+      db.prepare(`
         UPDATE live_bots SET
           total_trades = total_trades + 1,
           total_pnl = total_pnl + ?,
@@ -478,7 +489,7 @@ class BotRuntime {
       } else {
         db.prepare('UPDATE live_bots SET last_tick_at = datetime(\'now\'), updated_at = datetime(\'now\') WHERE id = ?').run(this.botId);
       }
-    } catch {}
+    } catch (err) { logger.warn({ botId: this.botId, err: err.message }, '[AutoTrader] _persistState error'); }
   }
 
   _updateBotStatus(status, errorMessage, reason) {
@@ -486,7 +497,7 @@ class BotRuntime {
       const db = getDb();
       db.prepare('UPDATE live_bots SET status = ?, error_message = ?, updated_at = datetime(\'now\') WHERE id = ?')
         .run(status, errorMessage || reason || null, this.botId);
-    } catch {}
+    } catch (err) { logger.warn({ botId: this.botId, err: err.message }, '[AutoTrader] _updateBotStatus error'); }
   }
 
   getStatus() {
@@ -590,7 +601,7 @@ export function stopBot(botId, reason = 'manual') {
     try {
       const db = getDb();
       db.prepare('UPDATE live_bots SET status = \'stopped\', updated_at = datetime(\'now\') WHERE id = ?').run(botId);
-    } catch {}
+    } catch (err) { logger.warn({ botId, err: err.message }, '[AutoTrader] stopBot DB update error'); }
     return { botId, running: false, reason };
   }
 
@@ -639,7 +650,7 @@ export async function restoreRunningBots() {
         logger.error({ botId: bot.id, err: err.message }, '[AutoTrader] Failed to restore bot');
         try {
           db.prepare("UPDATE live_bots SET status = 'error', error_message = ? WHERE id = ?").run(err.message, bot.id);
-        } catch {}
+        } catch (dbErr) { logger.warn({ botId: bot.id, err: dbErr.message }, '[AutoTrader] Failed to update error status'); }
       }
     }
   } catch (err) {

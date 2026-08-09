@@ -52,6 +52,18 @@ router.post('/keys', async (req, res) => {
       return res.status(400).json({ error: 'exchange, apiKey, and apiSecret are required' });
     }
 
+    // Validate exchange against allowlist
+    const ALLOWED_EXCHANGES = ['binance', 'coinbase', 'kraken', 'bybit', 'bitget', 'okx'];
+    if (!ALLOWED_EXCHANGES.includes(exchange.toLowerCase())) {
+      return res.status(400).json({ error: `Unsupported exchange: ${exchange}. Allowed: ${ALLOWED_EXCHANGES.join(', ')}` });
+    }
+
+    // Validate environment
+    const allowedEnvs = ['testnet', 'production'];
+    if (!allowedEnvs.includes(environment)) {
+      return res.status(400).json({ error: `Invalid environment: ${environment}. Must be testnet or production` });
+    }
+
     const encryptedKey = encrypt(apiKey);
     const encryptedSecret = encrypt(apiSecret);
     const keyPreview = apiKey.slice(0, 8) + '••••••••';
@@ -101,13 +113,29 @@ router.post('/bots', async (req, res) => {
       return res.status(400).json({ error: `Unknown strategy: ${strategy}` });
     }
 
+    // Validate and clamp risk config
+    const safeMaxTradeUsd = Math.min(Math.max(Number(riskConfig.maxTradeUsd) || 1000, 1), 100000);
+    const safeMaxPositionUsd = Math.min(Math.max(Number(riskConfig.maxPositionUsd) || 5000, 1), 500000);
+    const safeMaxDailyLoss = Math.min(Math.max(Number(riskConfig.maxDailyLoss) || 500, 1), 50000);
+    const safeMaxDrawdown = Math.min(Math.max(Number(riskConfig.maxDrawdown) || 10, 1), 50);
+    const safeConfig = {
+      ...riskConfig,
+      maxTradeUsd: safeMaxTradeUsd,
+      maxPositionUsd: safeMaxPositionUsd,
+      maxDailyLoss: safeMaxDailyLoss,
+      maxDrawdown: safeMaxDrawdown,
+    };
+
+    // Validate and clamp interval (30s minimum to avoid Binance rate limits)
+    const safeIntervalMs = Math.max(30000, Math.min(Number(intervalMs) || 60000, 3600000));
+
     const botId = `bot-${Date.now()}-${randomBytes(8).toString('hex')}`;
     const db = getDb();
 
     db.prepare(`
       INSERT INTO live_bots (id, user_id, name, coin, strategy, config, risk_config, interval_ms, status)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'stopped')
-    `).run(botId, req.userId, name, coin.toUpperCase(), strategy, JSON.stringify(config), JSON.stringify(riskConfig), intervalMs);
+    `).run(botId, req.userId, name, coin.toUpperCase(), strategy, JSON.stringify(config), JSON.stringify(safeConfig), safeIntervalMs);
 
     const bot = db.prepare('SELECT * FROM live_bots WHERE id = ?').get(botId);
     res.status(201).json({
@@ -231,10 +259,14 @@ router.post('/bots/:id/start', async (req, res) => {
     const bot = db.prepare('SELECT * FROM live_bots WHERE id = ? AND user_id = ?').get(req.params.id, req.userId);
     if (!bot) return res.status(404).json({ error: 'Bot not found' });
 
-    // Check for exchange keys
+    // Check for exchange keys matching the bot's expected exchange
     const keys = db.prepare('SELECT * FROM exchange_keys WHERE user_id = ?').get(req.userId);
     if (!keys) {
       return res.status(400).json({ error: 'No exchange API keys configured. Add keys in Settings → Connections.' });
+    }
+    // Verify keys are for a supported exchange (binance for now)
+    if (keys.exchange && keys.exchange.toLowerCase() !== 'binance') {
+      return res.status(400).json({ error: `Bot requires Binance keys, but found ${keys.exchange} keys. Add Binance keys in Settings → Connections.` });
     }
 
     const result = await startBot(bot.id, req.userId);
