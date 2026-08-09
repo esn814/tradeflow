@@ -19,7 +19,7 @@ router.get('/', (req, res) => {
       params: r.params ? JSON.parse(r.params) : null,
       active: !!r.active, lastRun: r.last_run, createdAt: r.created_at,
     })));
-  } catch (err) { logger.error({ err }, res.status(500).json({ error: 'Failed to fetch schedules' }); }
+  } catch (err) { logger.error({ err }, '[schedules] Fetch failed'); res.status(500).json({ error: 'Failed to fetch schedules' }); }
 });
 
 router.post('/', (req, res) => {
@@ -34,7 +34,7 @@ router.post('/', (req, res) => {
       WHERE schedules.user_id = excluded.user_id
     `).run(scheduleId, req.userId, action, cron, params?JSON.stringify(params):null, datetime('now'), datetime('now'));
     res.status(201).json({ ok: true, id: scheduleId });
-  } catch (err) { logger.error({ err }, res.status(500).json({ error: 'Failed to create schedule' }); }
+  } catch (err) { logger.error({ err }, '[schedules] Create failed'); res.status(500).json({ error: 'Failed to create schedule' }); }
 });
 
 router.put('/:id', (req, res) => {
@@ -46,7 +46,7 @@ router.put('/:id', (req, res) => {
     `).run(action, cron, params?JSON.stringify(params):null, active!=null?(active?1:0):null, req.params.id, req.userId);
     if (result.changes === 0) return res.status(404).json({ error: 'Schedule not found' });
     res.json({ ok: true });
-  } catch (err) { logger.error({ err }, res.status(500).json({ error: 'Failed to update schedule' }); }
+  } catch (err) { logger.error({ err }, '[schedules] Update failed'); res.status(500).json({ error: 'Failed to update schedule' }); }
 });
 
 router.delete('/:id', (req, res) => {
@@ -54,7 +54,7 @@ router.delete('/:id', (req, res) => {
     const result = getDb().prepare(`DELETE FROM schedules WHERE id=? AND user_id=?`).run(req.params.id, req.userId);
     if (result.changes === 0) return res.status(404).json({ error: 'Schedule not found' });
     res.json({ ok: true });
-  } catch (err) { logger.error({ err }, res.status(500).json({ error: 'Failed to delete schedule' }); }
+  } catch (err) { logger.error({ err }, '[schedules] Delete failed'); res.status(500).json({ error: 'Failed to delete schedule' }); }
 });
 
 export default router;

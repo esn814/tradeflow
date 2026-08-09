@@ -1,5 +1,10 @@
 // Alert Checker — periodically checks price alert conditions and sends push notifications
-import webpush from 'web-push';
+let webpush = null;
+try {
+  webpush = (await import('web-push')).default;
+} catch {
+  // web-push not installed — push notifications disabled
+}
 import { getDb } from '../db.js';
 import { logger } from '../logger.js';
 import config from '../config.js';
@@ -8,6 +13,10 @@ let configured = false;
 
 function ensureVapid() {
   if (configured) return;
+  if (!webpush) {
+    logger.warn('[alertChecker] web-push not installed — push notifications disabled');
+    return;
+  }
   if (!config.VAPID_PUBLIC_KEY || !config.VAPID_PRIVATE_KEY) {
     logger.warn('[alertChecker] VAPID keys not set — push notifications disabled');
     return;
@@ -61,6 +70,7 @@ function checkCondition(condition, currentPrice, threshold, priceData) {
 }
 
 async function sendPush(subscription, payload) {
+  if (!webpush) return false;
   try {
     await webpush.sendNotification(
       {

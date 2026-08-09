@@ -22,7 +22,7 @@ router.get('/', (req, res) => {
       status: r.status, strategy: r.strategy, createdAt: r.created_at,
       config: r.config ? JSON.parse(r.config) : null,
     })));
-  } catch (err) { logger.error({ err }, res.status(500).json({ error: 'Failed to fetch bots' }); }
+  } catch (err) { logger.error({ err }, '[bots] Fetch failed'); res.status(500).json({ error: 'Failed to fetch bots' }); }
 });
 
 router.post('/', validateBody(createBotSchema), (req, res) => {
@@ -41,7 +41,7 @@ router.post('/', validateBody(createBotSchema), (req, res) => {
       WHERE bots.user_id = excluded.user_id
     `).run(id, req.userId, name, type, coin, invested || 0, currentValue || 0, status || 'active', strategy, config ? JSON.stringify(config) : null, now, now);
     res.status(201).json({ ok: true, id });
-  } catch (err) { logger.error({ err }, res.status(500).json({ error: 'Failed to create bot' }); }
+  } catch (err) { logger.error({ err }, '[bots] Create failed'); res.status(500).json({ error: 'Failed to create bot' }); }
 });
 
 router.put('/:id', validateBody(updateBotSchema), (req, res) => {
@@ -57,7 +57,7 @@ router.put('/:id', validateBody(updateBotSchema), (req, res) => {
     `).run(name, type, coin, invested, currentValue, status, strategy, config ? JSON.stringify(config) : null, now, req.params.id, req.userId);
     if (result.changes === 0) return res.status(404).json({ error: 'Bot not found' });
     res.json({ ok: true });
-  } catch (err) { logger.error({ err }, res.status(500).json({ error: 'Failed to update bot' }); }
+  } catch (err) { logger.error({ err }, '[bots] Update failed'); res.status(500).json({ error: 'Failed to update bot' }); }
 });
 
 router.delete('/:id', (req, res) => {
@@ -65,7 +65,7 @@ router.delete('/:id', (req, res) => {
     const result = getDb().prepare(`DELETE FROM bots WHERE id=? AND user_id=?`).run(req.params.id, req.userId);
     if (result.changes === 0) return res.status(404).json({ error: 'Bot not found' });
     res.json({ ok: true });
-  } catch (err) { logger.error({ err }, res.status(500).json({ error: 'Failed to delete bot' }); }
+  } catch (err) { logger.error({ err }, '[bots] Delete failed'); res.status(500).json({ error: 'Failed to delete bot' }); }
 });
 
 export default router;

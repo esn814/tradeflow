@@ -96,7 +96,10 @@ async function safe(path, options) {
   try {
     return await apiFetch(path, options);
   } catch (err) {
-    console.warn(`[apiClient] ${options?.method || 'GET'} ${path} failed:`, err.message);
+    const method = options?.method || 'GET';
+    console.warn(`[apiClient] ${method} ${path} failed:`, err.message);
+    // Re-throw write errors so callers can handle them
+    if (method !== 'GET') throw err;
     return null;
   }
 }

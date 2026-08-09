@@ -55,6 +55,7 @@ class BotRuntime {
     this._timer = null;
     this._running = false;
     this._saveCounter = 0;
+    this._lastTradeDate = new Date().toISOString().slice(0, 10);
   }
 
   start() {
@@ -306,6 +307,14 @@ class BotRuntime {
     if (rc.maxDailyTrades && this.dailyTradeCount >= rc.maxDailyTrades) {
       return { ok: false, reason: `Max daily trades reached: ${this.dailyTradeCount}` };
     }
+
+    // Reset daily counters if UTC date has changed
+    const today = new Date().toISOString().slice(0, 10);
+    if (this._lastTradeDate && this._lastTradeDate !== today) {
+      this.dailyPnl = 0;
+      this.dailyTradeCount = 0;
+    }
+    this._lastTradeDate = today;
 
     // Max position size (in USD)
     if (signal.action === 'buy' && rc.maxPositionUsd) {

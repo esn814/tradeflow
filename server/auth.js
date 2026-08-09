@@ -25,11 +25,17 @@ const SIWE_DOMAIN = process.env.SIWE_DOMAIN || 'tradeflow.cloud.hyperpaxeer.com'
 const nonces = new Map();
 const MAX_NONCES = 10_000;
 
-// Clean up old nonces every 5 minutes
+// Clean up old nonces every 5 minutes (with cap to prevent unbounded growth)
 setInterval(() => {
   const cutoff = Date.now() - 5 * 60 * 1000;
   for (const [k, v] of nonces) {
     if (v.ts < cutoff) nonces.delete(k);
+  }
+  // Hard cap: if still over limit after cleanup, evict oldest entries
+  if (nonces.size > MAX_NONCES) {
+    const entries = [...nonces.entries()].sort((a, b) => a[1].ts - b[1].ts);
+    const toEvict = entries.slice(0, entries.length - MAX_NONCES);
+    for (const [k] of toEvict) nonces.delete(k);
   }
 }, 5 * 60 * 1000);
 
@@ -56,7 +62,7 @@ setInterval(() => {
   try {
     const db = getDb();
     db.prepare('DELETE FROM refresh_tokens WHERE expires_at < ?').run(Date.now());
-  } catch {}
+  } catch (err) { logger.warn({ err: err.message }, '[Auth] Refresh token cleanup error'); }
 }, 5 * 60 * 1000);
 
 const router = Router();
@@ -67,7 +73,7 @@ router.post('/nonce', (req, res) => {
     return res.status(429).json({ error: 'Too many pending requests. Try again shortly.' });
   }
   const nonce = randomBytes(16).toString('hex');
-  nonces.set(nonce, { ts: Date.now() });
+  nonces.set(nonce, { ts: Date.now(), ip: req.ip });
   res.json({ nonce });
 });
 

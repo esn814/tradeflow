@@ -19,7 +19,7 @@ router.get('/', (req, res) => {
       id: r.id, traderId: r.trader_id, followedAt: r.followed_at,
       copySettings: r.copy_settings ? JSON.parse(r.copy_settings) : null,
     })));
-  } catch (err) { logger.error({ err }, res.status(500).json({ error: 'Failed to fetch followed traders' }); }
+  } catch (err) { logger.error({ err }, '[copy-trading] Fetch failed'); res.status(500).json({ error: 'Failed to fetch followed traders' }); }
 });
 
 // POST /api/copy-trading — follow a trader
@@ -31,7 +31,7 @@ router.post('/', (req, res) => {
       INSERT OR IGNORE INTO followed_traders (user_id, trader_id, copy_settings) VALUES (?, ?, ?)
     `).run(req.userId, traderId, copySettings ? JSON.stringify(copySettings) : null);
     res.status(201).json({ ok: true });
-  } catch (err) { logger.error({ err }, res.status(500).json({ error: 'Failed to follow trader' }); }
+  } catch (err) { logger.error({ err }, '[copy-trading] Follow failed'); res.status(500).json({ error: 'Failed to follow trader' }); }
 });
 
 // PUT /api/copy-trading/:id — update copy settings
@@ -43,7 +43,7 @@ router.put('/:id', (req, res) => {
     `).run(copySettings ? JSON.stringify(copySettings) : null, req.params.id, req.userId);
     if (result.changes === 0) return res.status(404).json({ error: 'Follow not found' });
     res.json({ ok: true });
-  } catch (err) { logger.error({ err }, res.status(500).json({ error: 'Failed to update copy settings' }); }
+  } catch (err) { logger.error({ err }, '[copy-trading] Update settings failed'); res.status(500).json({ error: 'Failed to update copy settings' }); }
 });
 
 // DELETE /api/copy-trading/:id — unfollow a trader
@@ -52,7 +52,7 @@ router.delete('/:id', (req, res) => {
     const result = getDb().prepare(`DELETE FROM followed_traders WHERE id = ? AND user_id = ?`).run(req.params.id, req.userId);
     if (result.changes === 0) return res.status(404).json({ error: 'Follow not found' });
     res.json({ ok: true });
-  } catch (err) { logger.error({ err }, res.status(500).json({ error: 'Failed to unfollow trader' }); }
+  } catch (err) { logger.error({ err }, '[copy-trading] Unfollow failed'); res.status(500).json({ error: 'Failed to unfollow trader' }); }
 });
 
 // GET /api/copy-trading/history — copy trade history
@@ -69,7 +69,7 @@ router.get('/history', (req, res) => {
       id: r.id, traderId: r.trader_id, pair: r.pair, side: r.side,
       price: r.price, qty: r.qty, pnl: r.pnl, timestamp: r.timestamp,
     })));
-  } catch (err) { logger.error({ err }, res.status(500).json({ error: 'Failed to fetch copy trade history' }); }
+  } catch (err) { logger.error({ err }, '[copy-trading] Fetch history failed'); res.status(500).json({ error: 'Failed to fetch copy trade history' }); }
 });
 
 // POST /api/copy-trading/history — record a copy trade
@@ -82,7 +82,7 @@ router.post('/history', (req, res) => {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(tradeId, req.userId, traderId, pair, side, price, qty, pnl || 0, timestamp || Date.now());
     res.status(201).json({ ok: true, id: tradeId });
-  } catch (err) { logger.error({ err }, res.status(500).json({ error: 'Failed to record copy trade' }); }
+  } catch (err) { logger.error({ err }, '[copy-trading] Record trade failed'); res.status(500).json({ error: 'Failed to record copy trade' }); }
 });
 
 export default router;
