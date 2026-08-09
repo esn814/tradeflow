@@ -24,7 +24,8 @@ export default function Disclaimer() {
   if (!acknowledged) {
     return (
       <div style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9998,
+        position: 'relative',
+        zIndex: 10,
         background: 'linear-gradient(135deg, rgba(220,38,38,0.95), rgba(185,28,28,0.95))',
         backdropFilter: 'blur(12px)',
         borderTop: '1px solid rgba(255,255,255,0.15)',
