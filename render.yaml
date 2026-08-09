@@ -1,24 +1,26 @@
 services:
   - type: web
-    name: tradeflow-api
+    name: tradeflow-api-v3
     runtime: node
-    plan: free
     region: oregon
-    rootDirectory: server
-    buildCommand: npm install
-    startCommand: node index.js
+    plan: free
+    buildCommand: cd server && npm install
+    startCommand: cd server && node index.js
     healthCheckPath: /api/health
-    nodeVersion: 18.19.1
     envVars:
       - key: NODE_ENV
         value: production
+      - key: NODE_VERSION
+        value: 18.19.1
       - key: JWT_SECRET
         generateValue: true
+      - key: ENCRYPTION_KEY
+        value: 462ad6ce5a91307b46aaee94aa1c3b9e75ebbc7e429d12d67b02b6e3ae667067
       - key: CORS_ORIGINS
-        sync: false
+        value: https://tradeflow-black.vercel.app,https://tradeflow.cloud.hyperpaxeer.com,http://localhost:5173
       - key: DB_PATH
-        value: /app/data/tradeflow.db
+        value: /opt/render/project/src/data/tradeflow.db
     disk:
-      name: tradeflow-data
-      mountPath: /app/data
+      name: tradeflow-data-v3
+      mountPath: /opt/render/project/src/data
       sizeGB: 1
