@@ -18,7 +18,7 @@
  */
 
 import { Router } from 'express';
-import { randomBytes } from 'crypto';
+import { randomBytes, createHmac } from 'crypto';
 import { getDb } from '../db.js';
 import { authMiddleware } from '../auth.js';
 import { logger } from '../logger.js';
@@ -27,6 +27,16 @@ import {
   startBot, stopBot, getBotStatus, getAllRunningBots,
   getAvailableStrategies,
 } from '../services/autoTrader.js';
+
+const BINANCE_ENDPOINTS = {
+  testnet: 'https://testnet.binance.vision/api/v3',
+  production: 'https://api.binance.com/api/v3',
+};
+
+function getEndpoints(env) {
+  const environment = env === 'production' ? 'production' : 'testnet';
+  return { rest: BINANCE_ENDPOINTS[environment], environment };
+}
 
 const router = Router();
 router.use(authMiddleware);
@@ -95,6 +105,49 @@ router.get('/keys', (req, res) => {
   } catch (err) {
     logger.error({ err }, '[live-trading] Failed to list keys');
     res.status(500).json({ error: 'Failed to list keys' });
+  }
+});
+
+// ── Test Exchange Connection ─────────────────────────────────
+router.post('/keys/test', async (req, res) => {
+  try {
+    const { exchange } = req.body;
+    if (!exchange) {
+      return res.status(400).json({ error: 'exchange is required' });
+    }
+
+    const db = getDb();
+    const keyRow = db.prepare('SELECT * FROM exchange_keys WHERE user_id = ? AND exchange = ?')
+      .get(req.userId, exchange.toLowerCase());
+    if (!keyRow) {
+      return res.status(404).json({ error: `No ${exchange} keys found. Add keys first.` });
+    }
+
+    const apiKey = decrypt(keyRow.api_key_encrypted);
+    const apiSecret = decrypt(keyRow.api_secret_encrypted);
+    const env = keyRow.environment || 'testnet';
+
+    // Test by calling Binance account endpoint
+    const { rest } = getEndpoints(env);
+    const timestamp = Date.now();
+    const qs = `timestamp=${timestamp}&recvWindow=5000`;
+    const signature = createHmac('sha256', apiSecret).update(qs).digest('hex');
+    const url = `${rest}/account?${qs}&signature=${signature}`;
+
+    const resp = await fetch(url, {
+      headers: { 'X-MBX-APIKEY': apiKey },
+      signal: AbortSignal.timeout(10000),
+    });
+    const data = await resp.json();
+
+    if (resp.ok && data.accountType) {
+      res.json({ ok: true, environment: env, accountType: data.accountType, permissions: data.permissions || [] });
+    } else {
+      res.status(400).json({ error: data.msg || `Binance returned status ${resp.status}` });
+    }
+  } catch (err) {
+    logger.error({ err }, '[live-trading] Key test failed');
+    res.status(500).json({ error: err.message || 'Connection test failed' });
   }
 });
 
