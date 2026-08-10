@@ -6,8 +6,9 @@
     "node": ">=18.0.0 <19.0.0"
   },
   "scripts": {
-    "start": "node index.js",
-    "dev": "node --watch index.js"
+    "start": "node dist/server.cjs",
+    "dev": "node --watch index.js",
+    "build": "esbuild index.js --bundle --platform=node --target=node18 --format=cjs --outfile=dist/server.cjs --external:express --external:cors --external:helmet --external:cookie-parser --external:pino-http --external:express-rate-limit --external:@sentry/node --external:better-sqlite3 --external:ethers --external:jsonwebtoken --external:pino --external:pino-pretty --external:siwe --external:web-push --sourcemap"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.2",
@@ -24,5 +25,8 @@
     "siwe": "^3.0.0",
     "web-push": "^3.6.7"
   },
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
 }
