@@ -1,7 +1,4 @@
-.env
-.env.*
-.git
 node_modules
-*.test.js
-*.keystore
-vapid-keys.json
+.git
+dist
+.env
