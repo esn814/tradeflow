@@ -6,9 +6,9 @@ WORKDIR /app
 COPY package*.json ./
 COPY server/package*.json ./server/
 
-# Install dependencies (including devDependencies for esbuild)
-RUN npm install
-RUN cd server && npm install
+# Install ALL dependencies (including devDependencies for vite + esbuild)
+RUN npm install --include=dev
+RUN cd server && npm install --include=dev
 
 # Copy source code
 COPY . .
