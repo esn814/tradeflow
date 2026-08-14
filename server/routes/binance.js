@@ -23,6 +23,7 @@
 import { Router } from 'express';
 import crypto from 'crypto';
 import { logger } from '../logger.js';
+import { authMiddleware } from '../auth.js';
 
 const router = Router();
 
@@ -96,7 +97,7 @@ function requireKeys(req, res, next) {
  * Verify API key by calling GET /account (private endpoint).
  * Returns account info + balances on success.
  */
-router.post('/connect', requireKeys, async (req, res) => {
+router.post('/connect', authMiddleware, requireKeys, async (req, res) => {
   try {
     const { apiKey, apiSecret, environment } = req.binance;
 
@@ -137,7 +138,7 @@ router.post('/connect', requireKeys, async (req, res) => {
  * POST /api/binance/balances
  * Get account balances.
  */
-router.post('/balances', requireKeys, async (req, res) => {
+router.post('/balances', authMiddleware, requireKeys, async (req, res) => {
   try {
     const { apiKey, apiSecret, environment } = req.binance;
     const result = await binancePrivateRequest('GET', '/account', {}, apiKey, apiSecret, environment);
@@ -166,7 +167,7 @@ router.post('/balances', requireKeys, async (req, res) => {
  * POST /api/binance/order
  * Place an order (market, limit, stop-loss-limit).
  */
-router.post('/order', requireKeys, async (req, res) => {
+router.post('/order', authMiddleware, requireKeys, async (req, res) => {
   try {
     const { symbol, side, type, quantity, price, stopPrice, timeInForce, ...rest } = req.body;
     const keys = req.binance;
@@ -201,7 +202,7 @@ router.post('/order', requireKeys, async (req, res) => {
  * DELETE /api/binance/order
  * Cancel an order.
  */
-router.delete('/order', requireKeys, async (req, res) => {
+router.delete('/order', authMiddleware, requireKeys, async (req, res) => {
   try {
     const { symbol, orderId } = req.query;
     const { apiKey, apiSecret, environment } = req.binance;
@@ -217,7 +218,7 @@ router.delete('/order', requireKeys, async (req, res) => {
  * POST /api/binance/open-orders
  * Get open orders.
  */
-router.post('/open-orders', requireKeys, async (req, res) => {
+router.post('/open-orders', authMiddleware, requireKeys, async (req, res) => {
   try {
     const { symbol } = req.body;
     const { apiKey, apiSecret, environment } = req.binance;
@@ -234,7 +235,7 @@ router.post('/open-orders', requireKeys, async (req, res) => {
  * POST /api/binance/trades
  * Get recent trades (fills) for a symbol.
  */
-router.post('/trades', requireKeys, async (req, res) => {
+router.post('/trades', authMiddleware, requireKeys, async (req, res) => {
   try {
     const { symbol, limit = 50 } = req.body;
     const { apiKey, apiSecret, environment } = req.binance;

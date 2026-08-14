@@ -23,6 +23,18 @@ import { BinanceServer } from './binanceServer.js';
 import { STRATEGIES } from './strategies.js';
 import { computeSignals } from './signalEngine.js';
 import { logger } from '../logger.js';
+import {
+  kellyPositionSize,
+  calculateWinLossStats,
+  updateTrailingStop,
+  checkTakeProfitLevels,
+  DEFAULT_TP_LEVELS,
+  checkCircuitBreaker,
+  atrBasedLevels,
+  updatePositionState,
+  createPositionState,
+  calculateBreakEvenTarget,
+} from './riskManager.js';
 
 // ── In-memory bot runtimes ────────────────────────────────────
 
@@ -212,10 +224,76 @@ class BotRuntime {
         this.state = { ...this.state, ...signal._setState };
       }
 
-      // 9. Record trade
+      // 9. Advanced risk management — trailing stops + multi-TP
+      if (this.state.holdings > 0.0001 && this.state.entryPrice) {
+        const riskResult = updatePositionState(
+          {
+            entryPrice: this.state.entryPrice,
+            trailingStop: this.state.trailingStop,
+            trailPct: this.state.trailPct || 0.025,
+            tpLevels: this.state.tpLevels || DEFAULT_TP_LEVELS,
+            hitTpLevels: new Set(this.state.hitTpLevels || []),
+            highestPrice: this.state.highestPrice,
+          },
+          price,
+          this.state.holdings
+        );
+
+        // Update state with risk manager changes
+        this.state.trailingStop = riskResult.state.trailingStop;
+        this.state.highestPrice = riskResult.state.highestPrice;
+        if (riskResult.state.hitTpLevels) {
+          this.state.hitTpLevels = [...riskResult.state.hitTpLevels];
+        }
+
+        // Execute any risk-triggered sells (trailing stop or TP)
+        for (const action of riskResult.actions) {
+          if (action.type === 'trailing_stop_hit' || action.type === 'take_profit') {
+            const sellSignal = {
+              action: 'sell',
+              coin: this.coin,
+              amount: action.sellAmount,
+              price,
+              reason: action.reason,
+            };
+            const riskTradeResult = await this._executeTrade(sellSignal, price);
+            if (riskTradeResult) {
+              this._recordTrade(sellSignal, price, riskTradeResult);
+              this._updatePosition(sellSignal, price, riskTradeResult);
+              this.state.holdings = Math.max(0, this.state.holdings - action.sellAmount);
+            }
+          }
+        }
+      }
+
+      // 10. Record trade
       if (tradeResult) {
         this._recordTrade(signal, price, tradeResult);
         this._updatePosition(signal, price, tradeResult);
+
+        // Track entry price for trailing stops and multi-TP
+        if (signal.action === 'buy') {
+          if (!this.state.entryPrice) {
+            this.state.entryPrice = tradeResult.avgFillPrice || price;
+            this.state.trailPct = this.riskConfig.trailPct || 0.025;
+            this.state.highestPrice = price;
+          } else {
+            // Average into existing position
+            const existingQty = this.state.holdings || 0;
+            const newQty = tradeResult.filledQty || signal.amount;
+            const existingCost = this.state.entryPrice * existingQty;
+            const newCost = (tradeResult.avgFillPrice || price) * newQty;
+            this.state.entryPrice = (existingCost + newCost) / (existingQty + newQty);
+          }
+        }
+
+        // Reset entry tracking on full close
+        if (signal.action === 'sell' && (this.state.holdings || 0) < 0.0001) {
+          this.state.entryPrice = null;
+          this.state.trailingStop = 0;
+          this.state.hitTpLevels = [];
+          this.state.highestPrice = 0;
+        }
       }
 
       this._updateBotTick(price);
@@ -316,6 +394,47 @@ class BotRuntime {
     }
     this._lastTradeDate = today;
 
+    // Kelly Criterion position sizing (if enabled and we have trade history)
+    if (signal.action === 'buy' && rc.useKelly !== false) {
+      const trades = this._getRecentTrades(50);
+      const stats = calculateWinLossStats(trades, 50);
+      if (!stats.insufficient) {
+        const kelly = kellyPositionSize({
+          winRate: stats.winRate,
+          avgWin: stats.avgWin,
+          avgLoss: stats.avgLoss,
+          balance,
+          kellyFraction: rc.kellyFraction || 0.25,
+          maxAllocation: rc.maxKellyAllocation || 0.25,
+        });
+        if (kelly.positionSize > 0) {
+          const tradeValue = signal.amount * price;
+          if (tradeValue > kelly.positionSize * 1.5) {
+            // Allow 50% tolerance over Kelly to avoid blocking small trades
+            logger.info({
+              botId: this.botId,
+              tradeValue,
+              kellySize: kelly.positionSize,
+              kellyReason: kelly.reason,
+            }, '[AutoTrader] Trade exceeds Kelly size (warning, not blocking)');
+          }
+        }
+      }
+    }
+
+    // Fee-aware profit check for sells
+    if (signal.action === 'sell' && this.state.entryPrice) {
+      const breakEven = calculateBreakEvenTarget();
+      const gainPct = (price - this.state.entryPrice) / this.state.entryPrice;
+      if (gainPct > 0 && gainPct < breakEven) {
+        logger.info({
+          botId: this.botId,
+          gainPct: (gainPct * 100).toFixed(3),
+          breakEven: (breakEven * 100).toFixed(3),
+        }, '[AutoTrader] Sell below break-even (warning, not blocking)');
+      }
+    }
+
     // Max position size (in USD)
     if (signal.action === 'buy' && rc.maxPositionUsd) {
       const currentPositionUsd = (this.state.holdings || 0) * price;
@@ -342,6 +461,18 @@ class BotRuntime {
     }
 
     return { ok: true };
+  }
+
+  /** Get recent trades for Kelly calculation */
+  _getRecentTrades(limit = 50) {
+    try {
+      const db = getDb();
+      return db.prepare(
+        'SELECT action, pnl FROM live_trades WHERE bot_id = ? ORDER BY created_at DESC LIMIT ?'
+      ).all(this.botId, limit);
+    } catch {
+      return [];
+    }
   }
 
   _recordTrade(signal, price, tradeResult) {

@@ -22,7 +22,6 @@ const navGroups = [
       { to: '/invest', icon: TrendingUp, label: 'Invest' },
       { to: '/my-bots', icon: BarChart3, label: 'My Bots' },
       { to: '/automated-trading', icon: Bot, label: 'Auto Trading', badge: 'LIVE' },
-      { to: '/live-trading', icon: Zap, label: 'Live Trading', badge: 'NEW' },
       { to: '/strategies', icon: Layers, label: 'Strategies' },
       { to: '/backtester', icon: FlaskConical, label: 'Backtester' },
       { to: '/cross-dex-arb', icon: ArrowRightLeft, label: 'Cross-DEX Arb', badge: 'NEW' },

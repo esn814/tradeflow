@@ -22,7 +22,13 @@ dist-ssr
 *.sln
 *.sw?
 
+# Build artifacts
+dist/
+dist-ssr/
+coverage/
+
 # Signing keystores
+*.jks
 *.keystore
 
 # Environment files
@@ -43,3 +49,27 @@ server/data/backups/
 
 # VAPID keys (use env vars instead)
 server/vapid-keys.json
+
+# Temporary scripts and one-off utilities
+fix.sh
+PUSH_NOW.py
+push_all_fixes.py
+run_push.sh
+push_changes.sh
+cleanup_and_push.sh
+stress-test-app.mjs
+
+# Stale platform setup docs (use .env.example instead)
+DIGITALOCEAN_SETUP.md
+FLYIO_SETUP.md
+RAILWAY_SETUP.md
+
+# Temporary APK builds
+tradeflow-debug.apk
+tradeflow.apk
+
+# Cache
+.npm_cache/
+
+# Codify code graph
+.codegraph/

@@ -139,17 +139,19 @@ router.post('/verify', async (req, res) => {
   }
 });
 
-// ── Demo token endpoint — allows demo users to access live trading features ──
+// ── Demo token endpoint — allows demo users to explore the UI ──
+// Rate limited globally by authLimiter. Demo tokens are scoped: marked with `demo: true`
+// so downstream code can restrict demo users from real trading operations.
 router.post('/demo-token', (req, res) => {
   try {
     const demoAddress = '0xDemo000000000000000000000000000000000000';
     const user = upsertUser(demoAddress);
 
-    // Demo token with restricted scope — can only read data and manage own bots
+    // Demo token with 1h expiry and demo flag — shorter than real auth
     const token = jwt.sign(
       { userId: user.id, address: user.address, demo: true },
       JWT_SECRET,
-      { algorithm: JWT_ALGORITHM, expiresIn: '24h' }
+      { algorithm: JWT_ALGORITHM, expiresIn: '1h' }
     );
 
     res.json({ token, address: user.address });

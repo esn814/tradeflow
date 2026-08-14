@@ -518,6 +518,114 @@ function rsiBollingerStrategy({ price, priceData, bot, tickCount, balance, state
   return { _setState: newState };
 }
 
+// ── StepGrid Strategy ──────────────────────────────────────
+// Advanced grid with ATR-based spacing, trend-aware pausing, and price trailing.
+// Inspired by Gunbot's StepGrid — consistently their best-performing strategy.
+
+export function stepGridStrategy({ price, priceData, bot, state, balance }) {
+  if (!price || price <= 0) return null;
+
+  const baseSpacing = bot.config?.baseSpacing || 0.01;    // 1% base grid spacing
+  const orderPct = bot.config?.orderPct || 0.08;           // 8% of balance per order
+  const atrPeriod = bot.config?.atrPeriod || 14;
+  const trendPauseThreshold = bot.config?.trendPause || 0.5; // ADX threshold to pause buys in downtrend
+
+  const history = priceData?.history || [];
+  if (history.length < atrPeriod + 5) {
+    return { _setState: { holdings: state.holdings || 0 } };
+  }
+
+  // Calculate ATR for dynamic spacing
+  const atr = computeATRFromPrices(history.slice(-atrPeriod - 1), atrPeriod);
+  const atrPct = atr && price > 0 ? atr / price : baseSpacing;
+  const dynamicSpacing = Math.max(atrPct * 0.8, baseSpacing * 0.5); // Never less than half base
+
+  // Detect trend to pause buying in downtrends
+  const prices = [...history, price];
+  const ema20 = computeEMA(prices, 20);
+  const ema50 = computeEMA(prices, 50);
+  const inDowntrend = ema20 && ema50 && ema20 < ema50;
+
+  // Regime for position scaling
+  const tradePct = regimeAdjustedSize(priceData, orderPct);
+
+  const holdings = state.holdings || 0;
+  let lastBuyPrice = state.lastBuyPrice || 0;
+  let lastSellPrice = state.lastSellPrice || price;
+  let stepCount = state.stepCount || 0;
+
+  // Initialize
+  if (!lastBuyPrice) {
+    return {
+      _setState: {
+        holdings,
+        lastBuyPrice: price,
+        lastSellPrice: price,
+        stepCount: 0,
+        trailingStop: 0,
+        highestPrice: price,
+      },
+    };
+  }
+
+  // Calculate steps from last buy
+  const priceChange = (price - lastBuyPrice) / lastBuyPrice;
+  const stepsDown = Math.floor(Math.abs(priceChange) / dynamicSpacing);
+
+  const sellChange = (price - lastSellPrice) / lastSellPrice;
+  const stepsUp = Math.floor(Math.abs(sellChange) / dynamicSpacing);
+
+  // BUY: Price dropped by one or more grid steps, not in strong downtrend
+  if (stepsDown > 0 && priceChange < 0 && !inDowntrend && balance >= 1 && volumeConfirms(priceData)) {
+    const buyCost = balance * tradePct * Math.min(stepsDown, 3); // Scale up for deeper dips, cap at 3x
+    if (buyCost >= 1) {
+      const coinAmount = buyCost / price;
+      return {
+        action: 'buy', coin: bot.coin, amount: coinAmount, price, cost: buyCost,
+        reason: `StepGrid buy: ${stepsDown} steps down (${(priceChange * 100).toFixed(1)}%), spacing ${(dynamicSpacing * 100).toFixed(2)}%`,
+        _setState: {
+          holdings: holdings + coinAmount,
+          lastBuyPrice: price,
+          lastSellPrice,
+          stepCount: stepCount + 1,
+          trailingStop: state.trailingStop || 0,
+          highestPrice: state.highestPrice || price,
+        },
+      };
+    }
+  }
+
+  // SELL: Price rose by one or more grid steps from last sell
+  if (stepsUp > 0 && sellChange > 0 && holdings > 0.0001) {
+    const sellAmount = holdings * tradePct * Math.min(stepsUp, 3);
+    if (sellAmount * price >= 10) {
+      return {
+        action: 'sell', coin: bot.coin, amount: sellAmount, price, revenue: sellAmount * price,
+        reason: `StepGrid sell: ${stepsUp} steps up (${(sellChange * 100).toFixed(1)}%), spacing ${(dynamicSpacing * 100).toFixed(2)}%`,
+        _setState: {
+          holdings: holdings - sellAmount,
+          lastBuyPrice,
+          lastSellPrice: price,
+          stepCount: stepCount + 1,
+          trailingStop: state.trailingStop || 0,
+          highestPrice: state.highestPrice || price,
+        },
+      };
+    }
+  }
+
+  return {
+    _setState: {
+      holdings,
+      lastBuyPrice,
+      lastSellPrice,
+      stepCount,
+      trailingStop: state.trailingStop || 0,
+      highestPrice: Math.max(state.highestPrice || price, price),
+    },
+  };
+}
+
 // ── Confluence (Signal Engine) Strategy ─────────────────────
 // Wraps the multi-indicator confluence engine as a standard strategy.
 
@@ -574,6 +682,7 @@ function confluenceStrategy({ price, priceData, bot, tickCount, balance, state }
 export const STRATEGIES = {
   dca: { name: 'DCA', fn: dcaStrategy, description: 'Dollar-cost average with auto-rebalancing' },
   grid: { name: 'Grid', fn: gridStrategy, description: 'Buy/sell at predefined grid levels' },
+  stepGrid: { name: 'StepGrid', fn: stepGridStrategy, description: 'ATR-adaptive grid with trend awareness (best for ranging markets)' },
   trend: { name: 'Trend', fn: trendStrategy, description: 'Follow MA crossover momentum' },
   momentum: { name: 'Momentum', fn: momentumStrategy, description: 'Buy winners, sell losers' },
   meanReversion: { name: 'Mean Reversion', fn: meanReversionStrategy, description: 'Buy dips, sell rallies' },

@@ -32,7 +32,7 @@ router.post('/', (req, res) => {
         action=excluded.action, cron=excluded.cron, params=excluded.params,
         active=excluded.active, updated_at=excluded.updated_at
       WHERE schedules.user_id = excluded.user_id
-    `).run(scheduleId, req.userId, action, cron, params?JSON.stringify(params):null, datetime('now'), datetime('now'));
+    `).run(scheduleId, req.userId, action, cron, params?JSON.stringify(params):null, new Date().toISOString(), new Date().toISOString());
     res.status(201).json({ ok: true, id: scheduleId });
   } catch (err) { logger.error({ err }, '[schedules] Create failed'); res.status(500).json({ error: 'Failed to create schedule' }); }
 });

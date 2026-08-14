@@ -1,0 +1,362 @@
+[meta]
+name = "TradeFlow Crypto Trading Platform"
+version = "2.0"
+active_feature = "phase2-realtime"
+author = "TradeFlow Team"
+description = "Full-stack crypto trading platform with React frontend, Express backend, signal engine, risk management, and live Binance integration."
+
+# ──────────────────────────────────────────────
+# Phase 1: Quick Wins (Risk Management)
+# ──────────────────────────────────────────────
+
+[feature.phase1-risk]
+title = "Risk Management & Position Sizing"
+status = "in_progress"
+priority = "critical"
+
+[task.1.1]
+title = "Create riskManager.js — Kelly Criterion, trailing stops, multi-TP, circuit breaker"
+status = "pending"
+do = [
+  "Implement Kelly Criterion position sizing with configurable fraction",
+  "Add trailing stop-loss that locks gains as price rises",
+  "Implement multi-TP levels (2%, 4%, 8%) with partial exits",
+  "Add circuit breaker: auto-pause all bots at 15% portfolio drawdown",
+  "Add fee-aware target calculation for Binance round-trip fees",
+  "Add ATR-based dynamic stop-loss and take-profit levels",
+]
+symbols = ["riskManager"]
+touches = ["server/services/riskManager.js"]
+verify_cmd = "node -e \"const rm = require('./server/services/riskManager'); console.log('riskManager loaded OK')\""
+requires = []
+
+[task.1.2]
+title = "Enhance autoTrader.js with risk management integration"
+status = "pending"
+do = [
+  "Import riskManager and call position sizing on every trade entry",
+  "Implement trailing stop execution on each price tick",
+  "Add multi-TP partial exit logic",
+  "Track entry price for trailing stop calculations",
+  "Add Kelly sizing warnings when fraction exceeds threshold",
+  "Log fee-aware profit/loss after each trade",
+]
+symbols = ["autoTrader"]
+touches = ["server/services/autoTrader.js"]
+verify_cmd = "node -e \"const at = require('./server/services/autoTrader'); console.log('autoTrader loaded OK')\""
+requires = ["task.1.1"]
+
+[task.1.3]
+title = "Add StepGrid strategy — ATR-dynamic grid, trend-aware, scale-up"
+status = "pending"
+do = [
+  "Implement grid spacing based on ATR instead of fixed percentage",
+  "Add trend detection to pause grids in strong trends",
+  "Implement scale-up on dips for accumulation",
+  "Register stepGrid in STRATEGIES export object",
+]
+symbols = ["stepGridStrategy", "STRATEGIES"]
+touches = ["server/services/strategies.js"]
+verify_cmd = "node -e \"const s = require('./server/services/strategies'); if(!s.STRATEGIES.stepGrid) throw new Error('stepGrid not registered'); console.log('stepGrid registered OK')\""
+requires = []
+
+[task.1.4]
+title = "Add risk-stats API endpoint and risk config fields"
+status = "pending"
+do = [
+  "Add GET /risk-stats/:botId endpoint returning Kelly sizing, win/loss stats, fee analysis, TP levels",
+  "Add trailPct, kellyFraction, useKelly fields to bot creation schema",
+  "Validate new risk config fields with Zod",
+]
+symbols = ["riskStatsEndpoint"]
+touches = ["server/routes/liveTrading.js", "server/schemas.js"]
+verify_cmd = "grep -q 'risk-stats' server/routes/liveTrading.js"
+requires = ["task.1.1"]
+
+# ──────────────────────────────────────────────
+# Phase 2: Real-Time Data Infrastructure
+# ──────────────────────────────────────────────
+
+[feature.phase2-realtime]
+title = "Real-Time Data Infrastructure"
+status = "pending"
+priority = "high"
+
+[task.2.1]
+title = "Add WebSocket price streams from Binance"
+status = "pending"
+do = [
+  "Add ws package to server dependencies",
+  "Create server/services/websocketManager.js — Binance WebSocket streams for real-time price, order book, trade data",
+  "Implement auto-reconnection with exponential backoff (1s → 2s → 4s → 8s → 16s)",
+  "Replace REST polling in autoTrader.js with WebSocket price feed",
+]
+symbols = ["websocketManager"]
+touches = ["server/services/websocketManager.js", "server/package.json", "server/services/autoTrader.js"]
+verify_cmd = "test -f server/services/websocketManager.js"
+requires = []
+
+[task.2.2]
+title = "Replace frontend polling with WebSocket push"
+status = "pending"
+do = [
+  "Create WebSocket client hook in frontend",
+  "Replace polling in src/data/liveData.js with WebSocket push",
+  "Add connection status indicator to Dashboard",
+  "Handle reconnection gracefully in UI",
+]
+symbols = ["useWebSocket"]
+touches = ["src/hooks/", "src/data/liveData.js", "src/pages/Dashboard.jsx"]
+verify_cmd = "grep -q 'WebSocket\\|useWebSocket' src/data/liveData.js"
+requires = ["task.2.1"]
+
+[task.2.3]
+title = "Database upgrade — SQLite to PostgreSQL"
+status = "pending"
+do = [
+  "Add PostgreSQL driver (pg) to server dependencies",
+  "Create migration runner for PostgreSQL schema",
+  "Migrate existing SQLite data to PostgreSQL",
+  "Add TimescaleDB extension for time-series optimization",
+  "Add Redis for caching current prices, order states, bot states",
+]
+touches = ["server/db.js", "server/migrate.js", "server/package.json"]
+verify_cmd = "grep -q 'pg\\|postgres' server/package.json"
+requires = []
+
+[task.2.4]
+title = "Real-time monitoring dashboard"
+status = "pending"
+do = [
+  "Add real-time P&L streaming per position and per strategy",
+  "Add system health dashboard — WebSocket connection status, API rate limits, order latency",
+  "Add strategy performance metrics — rolling Sharpe, win rate, max drawdown, profit factor",
+]
+touches = ["server/routes/", "src/pages/"]
+verify_cmd = "test -f src/pages/Monitoring.jsx || test -f src/pages/SystemHealth.jsx"
+requires = ["task.2.1"]
+
+# ──────────────────────────────────────────────
+# Phase 3: New Data Signals
+# ──────────────────────────────────────────────
+
+[feature.phase3-signals]
+title = "New Data Signals — Funding, Sentiment, On-Chain"
+status = "pending"
+priority = "medium"
+
+[task.3.1]
+title = "Funding rate and open interest signals"
+status = "pending"
+do = [
+  "Create server/services/fundingRateService.js — fetch from Binance Futures API (free)",
+  "Add funding rate signal to signalEngine.js — extreme rates (>0.1%/8h) = contrarian signal",
+  "Add open interest tracking — rising OI + falling price = trend continuation",
+  "Integrate CoinGlass API ($29/mo) for liquidation data and OI-weighted funding",
+]
+symbols = ["fundingRateService"]
+touches = ["server/services/fundingRateService.js", "server/services/signalEngine.js"]
+verify_cmd = "test -f server/services/fundingRateService.js"
+requires = []
+
+[task.3.2]
+title = "Sentiment data integration"
+status = "pending"
+do = [
+  "Integrate LunarCrush API ($50/mo) — social volume, social dominance, weighted sentiment",
+  "Add Fear & Greed Index — free API, good sentiment filter",
+  "Add sentiment as position sizing filter — reduce size during extreme fear/greed",
+]
+touches = ["server/services/signalEngine.js"]
+verify_cmd = "grep -q 'sentiment\\|fearGreed' server/services/signalEngine.js"
+requires = []
+
+[task.3.3]
+title = "On-chain analytics (lower priority)"
+status = "pending"
+do = [
+  "Integrate CryptoQuant API ($29/mo) for exchange inflow/outflow",
+  "Integrate Whale Alert API (free tier) for whale transaction tracking",
+  "Add MVRV Z-Score for macro cycle identification",
+]
+touches = ["server/services/"]
+verify_cmd = "echo 'on-chain tasks are optional'"
+requires = []
+
+# ──────────────────────────────────────────────
+# Phase 4: Multi-Exchange Support
+# ──────────────────────────────────────────────
+
+[feature.phase4-exchange]
+title = "Multi-Exchange Support via CCXT"
+status = "pending"
+priority = "medium"
+
+[task.4.1]
+title = "CCXT integration and unified exchange adapter"
+status = "pending"
+do = [
+  "Add ccxt package to server dependencies",
+  "Create server/services/exchangeAdapter.js — unified interface over CCXT",
+  "Refactor BinanceServer to use CCXT internally",
+  "Add Coinbase, Kraken, Bybit adapters",
+  "Add fee tier optimization — track 30d volume per exchange, route to lowest-fee venue",
+]
+symbols = ["exchangeAdapter"]
+touches = ["server/services/exchangeAdapter.js", "server/services/binanceServer.js", "server/package.json"]
+verify_cmd = "grep -q 'ccxt' server/package.json"
+requires = []
+
+[task.4.2]
+title = "Cross-exchange arbitrage"
+status = "pending"
+do = [
+  "Monitor price discrepancies across exchanges in real-time",
+  "Implement simultaneous buy/sell execution on different venues",
+  "Add pre-funded account management per exchange",
+]
+touches = ["server/services/"]
+verify_cmd = "echo 'arbitrage requires multi-exchange first'"
+requires = ["task.4.1"]
+
+# ──────────────────────────────────────────────
+# Phase 5: ML / AI Intelligence
+# ──────────────────────────────────────────────
+
+[feature.phase5-ml]
+title = "ML / AI Intelligence"
+status = "pending"
+priority = "medium"
+
+[task.5.1]
+title = "XGBoost direction predictor"
+status = "pending"
+do = [
+  "Create server/services/mlEngine.js — XGBoost classifier for 4h direction prediction",
+  "Feature engineering — combine 8 indicators + funding rate + sentiment + order book imbalance",
+  "Walk-forward optimization — rolling training window, prevent overfitting",
+  "Target 53-58% directional accuracy — enough for alpha with proper sizing",
+  "Install xgboost.js or use Python subprocess",
+]
+symbols = ["mlEngine"]
+touches = ["server/services/mlEngine.js"]
+verify_cmd = "test -f server/services/mlEngine.js"
+requires = []
+
+[task.5.2]
+title = "Order book analysis"
+status = "pending"
+do = [
+  "Implement bid/ask imbalance (OIB) — short-term predictive power",
+  "Add depth analysis — large resting orders as support/resistance",
+  "Connect to L2 order book via exchange WebSocket",
+]
+touches = ["server/services/"]
+verify_cmd = "echo 'order book analysis'"
+requires = ["task.2.1"]
+
+[task.5.3]
+title = "Advanced signal fusion — ensemble model"
+status = "pending"
+do = [
+  "Build ensemble model — weighted average of XGBoost + existing confluence scoring",
+  "Add regime detection as meta-feature — model switches behavior by market regime",
+  "Backtest ML models with realistic fees, slippage, survivorship bias",
+]
+touches = ["server/services/signalEngine.js", "server/services/mlEngine.js"]
+verify_cmd = "echo 'signal fusion'"
+requires = ["task.5.1"]
+
+# ──────────────────────────────────────────────
+# Phase 6: Platform Features
+# ──────────────────────────────────────────────
+
+[feature.phase6-platform]
+title = "Platform Features — Backtest, TradingView, Marketplace"
+status = "pending"
+priority = "low"
+
+[task.6.1]
+title = "Backtesting improvements"
+status = "pending"
+do = [
+  "Walk-forward optimization — training → validation → roll forward",
+  "Monte Carlo simulation — confidence intervals on returns/drawdown",
+  "Realistic fee/slippage modeling — maker/taker by tier, spread, funding rates",
+  "Survivorship bias handling — include delisted coins, dead pairs",
+  "Regime-segmented results — show performance by trending/ranging/volatile",
+]
+touches = ["src/pages/Backtester.jsx", "server/routes/"]
+verify_cmd = "echo 'backtesting improvements'"
+requires = []
+
+[task.6.2]
+title = "TradingView webhook integration"
+status = "pending"
+do = [
+  "Add POST /api/live-trading/webhook endpoint",
+  "Parse TradingView alert JSON and map to bot action",
+  "Add webhook authentication (shared secret)",
+]
+touches = ["server/routes/liveTrading.js"]
+verify_cmd = "grep -q 'webhook' server/routes/liveTrading.js"
+requires = []
+
+[task.6.3]
+title = "Strategy marketplace"
+status = "pending"
+do = [
+  "Community strategy sharing — publish, browse, fork strategies",
+  "Strategy versioning — Git-based with performance history per version",
+  "Copy strategy configs — not just copy trading, copy entire strategy setups",
+]
+touches = ["server/routes/", "src/pages/"]
+verify_cmd = "echo 'strategy marketplace'"
+requires = []
+
+[task.6.4]
+title = "Paper trading realism"
+status = "pending"
+do = [
+  "Same code path as live — only execution layer differs",
+  "Realistic slippage based on order book depth",
+  "Simulate execution latency (50-200ms random delay)",
+  "Support partial fills, respect lot size/tick size rules",
+]
+touches = ["server/services/"]
+verify_cmd = "echo 'paper trading'"
+requires = []
+
+# ──────────────────────────────────────────────
+# Phase 7: Execution Enhancements
+# ──────────────────────────────────────────────
+
+[feature.phase7-execution]
+title = "Advanced Order Types & Execution Algorithms"
+status = "pending"
+priority = "low"
+
+[task.7.1]
+title = "Advanced order types"
+status = "pending"
+do = [
+  "OCO orders (One-Cancels-Other) — Binance native support",
+  "Stop-limit orders — wire to strategies",
+  "Trailing stop orders at exchange level (Binance native trailing stop)",
+  "Iceberg orders — large orders split into smaller visible chunks",
+]
+touches = ["server/services/binanceServer.js", "server/services/autoTrader.js"]
+verify_cmd = "echo 'advanced order types'"
+requires = []
+
+[task.7.2]
+title = "Execution algorithms — TWAP, VWAP, smart routing"
+status = "pending"
+do = [
+  "TWAP (Time-Weighted Average Price) — split orders over time",
+  "VWAP (Volume-Weighted Average Price) — split by volume profile",
+  "Smart order routing — split across venues for best execution",
+]
+touches = ["server/services/"]
+verify_cmd = "echo 'execution algorithms'"
+requires = ["task.4.1"]

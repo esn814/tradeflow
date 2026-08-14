@@ -17,8 +17,8 @@ services:
       - key: CORS_ORIGINS
         sync: false
       - key: DB_PATH
-        value: /app/data/tradeflow.db
+        value: /data/tradeflow.db
     disk:
-      name: tradeflow-data
-      mountPath: /app/data
+      name: tradeflow-data-v3
+      mountPath: /data
       sizeGB: 1

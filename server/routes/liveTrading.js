@@ -27,6 +27,12 @@ import {
   startBot, stopBot, getBotStatus, getAllRunningBots,
   getAvailableStrategies,
 } from '../services/autoTrader.js';
+import {
+  calculateWinLossStats,
+  kellyPositionSize,
+  calculateBreakEvenTarget,
+  DEFAULT_TP_LEVELS,
+} from '../services/riskManager.js';
 
 const BINANCE_ENDPOINTS = {
   testnet: 'https://testnet.binance.vision/api/v3',
@@ -171,12 +177,17 @@ router.post('/bots', async (req, res) => {
     const safeMaxPositionUsd = Math.min(Math.max(Number(riskConfig.maxPositionUsd) || 5000, 1), 500000);
     const safeMaxDailyLoss = Math.min(Math.max(Number(riskConfig.maxDailyLoss) || 500, 1), 50000);
     const safeMaxDrawdown = Math.min(Math.max(Number(riskConfig.maxDrawdown) || 10, 1), 50);
+    const safeTrailPct = Math.min(Math.max(Number(riskConfig.trailPct) || 0.025, 0.005), 0.20);
+    const safeKellyFraction = Math.min(Math.max(Number(riskConfig.kellyFraction) || 0.25, 0.1), 1.0);
     const safeConfig = {
       ...riskConfig,
       maxTradeUsd: safeMaxTradeUsd,
       maxPositionUsd: safeMaxPositionUsd,
       maxDailyLoss: safeMaxDailyLoss,
       maxDrawdown: safeMaxDrawdown,
+      trailPct: safeTrailPct,
+      kellyFraction: safeKellyFraction,
+      useKelly: riskConfig.useKelly !== false, // default true
     };
 
     // Validate and clamp interval (30s minimum to avoid Binance rate limits)
@@ -446,6 +457,86 @@ router.get('/running', (req, res) => {
   } catch (err) {
     logger.error({ err }, '[live-trading] Failed to get running bots');
     res.status(500).json({ error: 'Failed to get running bots' });
+  }
+});
+
+// ── Risk Management Stats ──────────────────────────────────
+
+/**
+ * GET /api/live-trading/risk-stats/:botId
+ * Returns Kelly sizing, win/loss stats, fee analysis, and TP levels for a bot.
+ */
+router.get('/risk-stats/:botId', (req, res) => {
+  try {
+    const db = getDb();
+    const bot = db.prepare('SELECT * FROM live_bots WHERE id = ? AND user_id = ?').get(req.params.botId, req.userId);
+    if (!bot) return res.status(404).json({ error: 'Bot not found' });
+
+    // Get recent trades for Kelly calculation
+    const trades = db.prepare(
+      'SELECT action, pnl, price, created_at FROM live_trades WHERE bot_id = ? ORDER BY created_at DESC LIMIT 100'
+    ).all(req.params.botId);
+
+    const stats = calculateWinLossStats(trades, 50);
+    const riskConfig = JSON.parse(bot.risk_config || '{}');
+    const balance = riskConfig.initialBalance || 1000; // Approximate
+
+    const kelly = !stats.insufficient
+      ? kellyPositionSize({
+          winRate: stats.winRate,
+          avgWin: stats.avgWin,
+          avgLoss: stats.avgLoss,
+          balance,
+          kellyFraction: riskConfig.kellyFraction || 0.25,
+          maxAllocation: riskConfig.maxKellyAllocation || 0.25,
+        })
+      : null;
+
+    const breakEven = calculateBreakEvenTarget();
+
+    // Current position info
+    const positions = db.prepare('SELECT * FROM live_positions WHERE bot_id = ?').all(req.params.botId);
+    const positionInfo = positions.map(p => ({
+      coin: p.coin,
+      qty: p.qty,
+      avgEntry: p.avg_entry_price,
+      currentPrice: p.current_price,
+      unrealizedPnl: p.unrealized_pnl,
+      gainPct: p.avg_entry_price > 0
+        ? ((p.current_price - p.avg_entry_price) / p.avg_entry_price * 100).toFixed(2)
+        : 0,
+    }));
+
+    res.json({
+      botId: req.params.botId,
+      strategy: bot.strategy,
+      winLossStats: {
+        winRate: stats.winRate,
+        avgWin: stats.avgWin,
+        avgLoss: stats.avgLoss,
+        tradeCount: stats.tradeCount,
+        insufficient: stats.insufficient,
+      },
+      kelly: kelly ? {
+        raw: kelly.kellyRaw,
+        adjusted: kelly.kellyAdjusted,
+        suggestedSize: kelly.positionSize,
+        reason: kelly.reason,
+      } : null,
+      fees: {
+        breakEvenPct: (breakEven * 100).toFixed(3),
+        description: `Need ${(breakEven * 100).toFixed(2)}% gain to cover round-trip fees`,
+      },
+      tpLevels: DEFAULT_TP_LEVELS.map(l => ({
+        label: l.label,
+        targetPct: (l.pct * 100).toFixed(1),
+        sellRatio: (l.sellRatio * 100).toFixed(0),
+      })),
+      positions: positionInfo,
+    });
+  } catch (err) {
+    logger.error({ err }, '[live-trading] Failed to get risk stats');
+    res.status(500).json({ error: 'Failed to get risk stats' });
   }
 });
 

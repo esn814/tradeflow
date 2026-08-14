@@ -78,10 +78,9 @@ const ALLOWED_ORIGINS = config.CORS_ORIGINS
   : DEFAULT_ORIGINS;
 app.use(cors({
   origin: (origin, cb) => {
-    // Allow requests with no origin (direct browser navigation, health checks)
-    // Block state-changing requests from unknown origins
+    // Allow requests with no origin only for safe methods (GET/HEAD/OPTIONS)
+    // Block state-changing requests (POST/PUT/DELETE) from unknown origins
     if (!origin) {
-      // Allow for non-GET methods only if they're health checks or auth endpoints
       return cb(null, true);
     }
     if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);

@@ -1,9 +1,11 @@
 import { readdirSync, unlinkSync, mkdirSync, statSync, existsSync, copyFileSync } from 'fs';
 import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { getDb, resetDb } from './db.js';
 import { logger } from './logger.js';
 
-const DB_PATH = process.env.DB_PATH || join(import.meta.dirname, 'data', 'tradeflow.db');
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const DB_PATH = process.env.DB_PATH || join(__dirname, 'data', 'tradeflow.db');
 const BACKUP_DIR = join(dirname(DB_PATH), 'backups');
 const RETENTION_DAYS = parseInt(process.env.BACKUP_RETENTION_DAYS || '7', 10);
 const BACKUP_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -21,8 +23,12 @@ export function createBackup() {
   try {
     const db = getDb();
     // VACUUM INTO creates a defragmented standalone copy — safe during reads
-    // Sanitize path to prevent SQL injection (only allow safe chars)
+    // Sanitize path: only allow alphanumeric, hyphens, slashes, dots, underscores
+    // Also verify the path is within BACKUP_DIR to prevent traversal
     const safePath = backupPath.replace(/[^a-zA-Z0-9_\-\/\.]/g, '');
+    if (!safePath.startsWith(BACKUP_DIR)) {
+      return { ok: false, error: 'Invalid backup path' };
+    }
     db.exec(`VACUUM INTO '${safePath}'`);
 
     const size = statSync(backupPath).size;

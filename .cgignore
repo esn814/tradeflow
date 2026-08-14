@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+.npm_cache/
+
+# Build output
+dist/
+coverage/
+
+# Native / mobile
+android/
+
+# Database files
+server/data/*.db
+server/data/*.db-journal
+server/data/*.db-wal
+server/data/*.db-shm
+tradeflow.db
+tradeflow.db-journal
+tradeflow.db-wal
+tradeflow.db-shm
+
+# APK builds
+*.apk
+
+# Keys / secrets
+vapid-keys.json
+*.pem
+*.key
+
+# Temp / system
+tmp/
+*.tmp
+*.log
+.DS_Store
+Thumbs.db
