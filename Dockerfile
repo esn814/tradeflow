@@ -2,18 +2,21 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
+# Disable production mode so devDependencies install
+ENV NODE_ENV=development
+
 # Copy package files first
 COPY package*.json ./
 COPY server/package*.json ./server/
 
 # Install ALL dependencies (including devDependencies for vite + esbuild)
-RUN npm install --include=dev
-RUN cd server && npm install --include=dev
+RUN npm install
+RUN cd server && npm install
 
 # Copy source code
 COPY . .
 
-# Build frontend
+# Build frontend with Vite
 RUN npm run build
 
 # Build backend with esbuild (ESM→CJS bundling)
@@ -23,6 +26,8 @@ RUN cd server && npm run build
 FROM node:18-alpine
 
 WORKDIR /app
+
+ENV NODE_ENV=production
 
 # Copy package files
 COPY package*.json ./
