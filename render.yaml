@@ -1,9 +1,11 @@
 services:
   - type: web
     name: tradeflow-api
-    runtime: docker
-    dockerfilePath: Dockerfile
+    runtime: node
     region: oregon
+    plan: free
+    buildCommand: npm install --include=dev && npm run build && cd server && npm install && npm run build
+    startCommand: cd server && node dist/server.cjs
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
