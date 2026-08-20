@@ -11,8 +11,10 @@
     "build": "esbuild index.js --bundle --platform=node --target=node20 --format=esm --outfile=dist/server.mjs --external:express --external:cors --external:helmet --external:cookie-parser --external:pino-http --external:express-rate-limit --external:@sentry/node --external:better-sqlite3 --external:jsonwebtoken --external:pino --external:pino-pretty --external:siwe --external:web-push --external:zod --external:sql.js --sourcemap && printf \"import('./server.mjs');\\n\" > dist/server.cjs"
   },
   "dependencies": {
+    "better-sqlite3": "^11.10.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "esbuild": "^0.28.0",
     "express": "^4.21.0",
     "express-rate-limit": "^8.6.0",
     "helmet": "^8.3.0",
@@ -23,9 +25,7 @@
     "siwe": "^3.0.0",
     "sql.js": "^1.14.1",
     "web-push": "^3.6.7",
-    "zod": "^4.4.3",
-    "esbuild": "^0.28.0"
+    "zod": "^4.4.3"
   },
-  "type": "module",
-  "devDependencies": {}
+  "type": "module"
 }
