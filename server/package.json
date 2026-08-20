@@ -23,10 +23,9 @@
     "siwe": "^3.0.0",
     "sql.js": "^1.14.1",
     "web-push": "^3.6.7",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "esbuild": "^0.28.0"
   },
   "type": "module",
-  "devDependencies": {
-    "esbuild": "^0.28.0"
-  }
+  "devDependencies": {}
 }
