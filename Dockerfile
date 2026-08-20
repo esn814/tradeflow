@@ -19,7 +19,7 @@ COPY . .
 # Build frontend with Vite
 RUN npm run build
 
-# Build backend with esbuild (ESM→CJS bundling)
+# Build backend with esbuild (ESM bundling with top-level await support)
 RUN cd server && npm run build
 
 # Production stage
@@ -49,5 +49,5 @@ COPY --from=builder /app/server ./server
 # Set working directory to server
 WORKDIR /app/server
 
-# Start backend with bundled CJS file
-CMD ["node", "dist/server.cjs"]
+# Start backend with bundled ESM file
+CMD ["node", "dist/server.mjs"]
