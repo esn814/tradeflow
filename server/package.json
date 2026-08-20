@@ -8,7 +8,7 @@
   "scripts": {
     "start": "node dist/server.mjs",
     "dev": "node --watch index.js",
-    "build": "esbuild index.js --bundle --platform=node --target=node20 --format=esm --outfile=dist/server.mjs --external:express --external:cors --external:helmet --external:cookie-parser --external:pino-http --external:express-rate-limit --external:@sentry/node --external:better-sqlite3 --external:jsonwebtoken --external:pino --external:pino-pretty --external:siwe --external:web-push --external:zod --external:sql.js --sourcemap"
+    "build": "esbuild index.js --bundle --platform=node --target=node20 --format=esm --outfile=dist/server.mjs --external:express --external:cors --external:helmet --external:cookie-parser --external:pino-http --external:express-rate-limit --external:@sentry/node --external:better-sqlite3 --external:jsonwebtoken --external:pino --external:pino-pretty --external:siwe --external:web-push --external:zod --external:sql.js --sourcemap && printf \"import('./server.mjs');\\n\" > dist/server.cjs"
   },
   "dependencies": {
     "cookie-parser": "^1.4.7",
