@@ -46,6 +46,11 @@ function getEndpoints(env) {
 
 const router = Router();
 router.use(authMiddleware);
+// Demo sessions may inspect the UI but must never create credentials, bots, or orders.
+router.use((req, res, next) => {
+  if (req.isDemo) return res.status(403).json({ error: 'Demo sessions cannot access live trading' });
+  next();
+});
 
 // ── Strategies ─────────────────────────────────────────────
 
@@ -184,6 +189,7 @@ router.post('/bots', async (req, res) => {
       maxTradeUsd: safeMaxTradeUsd,
       maxPositionUsd: safeMaxPositionUsd,
       maxDailyLoss: safeMaxDailyLoss,
+      dailyLossLimitUsd: safeMaxDailyLoss,
       maxDrawdown: safeMaxDrawdown,
       trailPct: safeTrailPct,
       kellyFraction: safeKellyFraction,

@@ -191,15 +191,33 @@ export class BinanceServer {
   }
 
   /**
-   * Place a market order.
+   * Place a market order using base-asset quantity.
    */
-  async marketOrder(symbol, side, quantity) {
+  async marketOrder(symbol, side, quantity, clientOrderId) {
     const qty = this.roundQuantity(symbol, quantity);
     return this._request('POST', '/api/v3/order', {
       symbol: symbol.toUpperCase(),
       side: side.toUpperCase(),
       type: 'MARKET',
       quantity: qty,
+      ...(clientOrderId ? { newClientOrderId: clientOrderId } : {}),
+    });
+  }
+
+  /**
+   * Place a market BUY using quote-asset notional (for example, USDT).
+   */
+  async marketOrderQuote(symbol, quoteOrderQty, clientOrderId) {
+    const notional = Number(quoteOrderQty);
+    if (!Number.isFinite(notional) || notional <= 0) {
+      throw new Error('Invalid quote order amount');
+    }
+    return this._request('POST', '/api/v3/order', {
+      symbol: symbol.toUpperCase(),
+      side: 'BUY',
+      type: 'MARKET',
+      quoteOrderQty: notional.toFixed(8),
+      ...(clientOrderId ? { newClientOrderId: clientOrderId } : {}),
     });
   }
 
@@ -234,6 +252,17 @@ export class BinanceServer {
       stopPrice: sp,
       price: lp,
       timeInForce: 'GTC',
+    });
+  }
+
+  /**
+   * Get the current exchange state for an order.
+   */
+  async getOrder(symbol, orderId, origClientOrderId) {
+    return this._request('GET', '/api/v3/order', {
+      symbol: symbol.toUpperCase(),
+      ...(orderId ? { orderId } : {}),
+      ...(origClientOrderId ? { origClientOrderId } : {}),
     });
   }
 

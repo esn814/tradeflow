@@ -31,10 +31,11 @@ function StatusDot({ active, label }) {
 }
 
 export default function ExchangeSettings({ useBinanceHook }) {
+  const defaultBinanceHook = useBinance();
   const {
     connected, connecting, prices, balances, error, executorStatus, wsStatus,
     config, connect, disconnect, switchMode, updateRisk, killSwitch, refreshBalances,
-  } = useBinanceHook || useBinance();
+  } = useBinanceHook || defaultBinanceHook;
 
   const [apiKey, setApiKey] = useState('');
   const [apiSecret, setApiSecret] = useState('');

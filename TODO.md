@@ -1,19 +1,22 @@
 # TradeFlow TODO — Master Task Tracker
 
-*Last updated: 2026-08-12*
-*Source: Competitive analysis + codebase audit*
+*Last updated: 2026-08-23*
+*Canonical project tracker — use this file for all TradeFlow tasks, status, priorities, and decisions.*
+*Source: Competitive analysis + codebase audit; validated against the current workspace*
 
 ---
 
 ## 🔴 Phase 1 — Quick Wins (Highest Impact, Lowest Effort)
 
-### Risk Management (NEW — code written, needs pushing)
-- [ ] **Create `server/services/riskManager.js`** — Kelly Criterion, trailing stops, multi-TP, circuit breaker, fee-aware targets, ATR-based levels. ⚠️ FILE WRITTEN IN SANDBOX — needs manual creation on device.
-- [ ] **Enhance `server/services/autoTrader.js`** — integrate trailing stops + multi-TP execution, entry price tracking, Kelly sizing warnings, fee-aware logging. ⚠️ CHANGES WRITTEN IN SANDBOX — needs manual patch.
-- [ ] **Add StepGrid strategy** to `server/services/strategies.js` — ATR-dynamic grid spacing, trend-aware pausing, scale-up on dips. ⚠️ CODE WRITTEN IN SANDBOX — needs manual insertion.
-- [ ] **Register stepGrid in STRATEGIES registry** — add entry to the export object.
-- [ ] **Add `risk-stats/:botId` endpoint** to `server/routes/liveTrading.js` — returns Kelly sizing, win/loss stats, fee analysis, TP levels.
-- [ ] **Add new risk config fields** to bot creation: `trailPct`, `kellyFraction`, `useKelly`.
+### Risk Management (implemented locally; verify before push)
+- [x] **Create `server/services/riskManager.js`** — Kelly Criterion, trailing stops, multi-TP, circuit breaker, fee-aware targets, ATR-based levels.
+- [x] **Enhance `server/services/autoTrader.js`** — integrate trailing stops + multi-TP execution, entry price tracking, Kelly sizing warnings, fee-aware logging.
+- [x] **Add StepGrid strategy** to `server/services/strategies.js` — ATR-dynamic grid spacing, trend-aware pausing, scale-up on dips.
+- [x] **Register stepGrid in STRATEGIES registry** — add entry to the export object.
+- [x] **Add `risk-stats/:botId` endpoint** to `server/routes/liveTrading.js` — returns Kelly sizing, win/loss stats, fee analysis, TP levels.
+- [x] **Add new risk config fields** to bot creation: `trailPct`, `kellyFraction`, `useKelly`.
+- [x] **Validate Phase 1 locally** — lint, 74 frontend tests, 25 server tests, and production build pass under Node 20.
+- [ ] **Push validated local safety commit** — synchronize `master` with `origin/master` after review.
 
 ### What These Do
 | Feature | What It Solves |
@@ -24,6 +27,32 @@
 | Circuit breaker | Auto-pause all bots at 15% portfolio drawdown |
 | Fee-aware targets | Ensures trades are profitable after Binance round-trip fees |
 | StepGrid strategy | ATR-adaptive grid — Gunbot's best performer |
+
+---
+
+## 🔴 Phase 1A — AutoTrader Execution Integrity (In progress)
+
+- [x] **Persist order intents and lifecycle states** — requested, submitted, partially filled, filled, canceled, rejected, expired, unknown.
+- [x] **Add idempotent order submission** — client order key and reconcile-before-retry behavior.
+- [x] **Add exchange reconciliation** — unresolved intents are checked before new strategy decisions.
+- [x] **Make partial fills first-class** — executed, remaining, and already-applied quantities are tracked.
+- [ ] **Add stale-data and transport circuit breakers** — stale price/kline, clock drift, rate limits, repeated API errors, abnormal slippage, and reconciliation mismatch.
+- [x] **Add initial failure-mode tests** — partial fill, unknown state, applied-fill idempotency, and migration coverage.
+- [x] **Add integration failure-mode tests** — timeout-after-submit, duplicate tick, partial-to-filled progression, and exactly-once fill application.
+- [ ] **Add further integration coverage** — full process restart recovery and cancel/fill race against a live exchange adapter.
+
+### Operator Safety and Observability
+- [ ] **Add bot lifecycle states** — draft, paper, canary, live, paused, error, archived.
+- [ ] **Add system-health metrics** — data age, last successful API call, order latency, API error count, rate-limit status, and reconciliation status.
+- [ ] **Add emergency controls** — pause entries, cancel open orders, close position, and clear key/revoke guidance.
+- [ ] **Add notifications and audit trail** — risk stops, order failures, unknown states, config changes, and human-readable trade rationale.
+
+### Realistic Paper Trading and Strategy Validation
+- [ ] **Use the same strategy/risk path for paper and live** — only the execution adapter differs.
+- [ ] **Model fees, spread, latency, slippage, partial fills, lot-size rules, and insufficient balance.**
+- [ ] **Add walk-forward and out-of-sample validation** with regime-segmented results and buy-and-hold comparison.
+- [ ] **Add lookahead/data-leakage checks and parameter-sensitivity warnings.**
+- [ ] **Persist reproducible experiment metadata** — data range, exchange, fee assumptions, configuration, and code/model version.
 
 ---
 

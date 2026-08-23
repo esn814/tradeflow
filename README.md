@@ -57,7 +57,7 @@ See [.env.example](.env.example) for all required variables.
 - Helmet security headers (HSTS preload, CSP without unsafe-inline, X-Frame-Options)
 - 3-tier rate limiting (global, auth, trade, backup)
 - Input validation with Zod schemas on all write endpoints
-- 12 security findings identified and fixed (see [PROGRESS.md](PROGRESS.md))
+- Security findings and current work are tracked in the [canonical TODO tracker](TODO.md)
 
 ## Testing
 
@@ -67,12 +67,11 @@ npm run test:server   # Server tests
 npx playwright test   # E2E tests
 ```
 
-## Documentation
+## Project documentation
 
-- [PROGRESS.md](PROGRESS.md) — current state, completed work, remaining items
-- [TODOLIST.md](TODOLIST.md) — task tracker with improvement roadmap
-- [ROADMAP.md](ROADMAP.md) — feature tiers, security audit, architecture summary
-- [MONITORING.md](MONITORING.md) — uptime monitoring and error tracking setup
+- [TODO.md](TODO.md) — canonical task tracker, priorities, completed work, and remaining items
+- [CODIFY_SETUP.md](CODIFY_SETUP.md) — Codify/spec workflow notes
+- [docs/API.md](docs/API.md) — API reference
 
 ## License
 

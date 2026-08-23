@@ -35,6 +35,16 @@ import {
   createPositionState,
   calculateBreakEvenTarget,
 } from './riskManager.js';
+import {
+  createOrderIntent,
+  markIntentSubmitted,
+  markIntentError,
+  applyExchangeOrder,
+  markIntentQuantityApplied,
+  listReconciliationCandidates,
+  isTerminalStatus,
+  ORDER_STATES,
+} from './orderExecution.js';
 
 // ── In-memory bot runtimes ────────────────────────────────────
 
@@ -42,7 +52,7 @@ import {
 const runtimes = new Map();
 const botLocks = new Map();
 
-class BotRuntime {
+export class BotRuntime {
   constructor(bot, binance, userId) {
     this.botId = bot.id;
     this.userId = userId;
@@ -63,11 +73,14 @@ class BotRuntime {
     this.dailyPnl = 0;
     this.dailyTradeCount = 0;
     this.sessionStartTime = Date.now();
+    this.state.highWaterEquity = Number(savedState.highWaterEquity) || 0;
     this.lastError = null;
     this._timer = null;
     this._running = false;
     this._saveCounter = 0;
     this._lastTradeDate = new Date().toISOString().slice(0, 10);
+    this._reconcileCounter = 0;
+    this._activeIntentId = null;
   }
 
   start() {
@@ -116,13 +129,33 @@ class BotRuntime {
   }
 
   async _tick() {
+    if (!this._running || this._tickInFlight) return;
+    this._tickInFlight = true;
+    try {
+      await this._runTick();
+    } finally {
+      this._tickInFlight = false;
+    }
+  }
+
+  async _runTick() {
     if (!this._running) return;
     const startTime = Date.now();
 
     try {
+      // Reconcile durable order state before making new decisions. Never place a
+      // new order while an earlier intent is still unresolved.
+      this._reconcileCounter++;
+      // Any unresolved intent blocks new decisions. Reconcile immediately on
+      // every tick while one exists; the normal path performs no exchange call.
+      const pendingIntents = listReconciliationCandidates(this.botId);
+      if (pendingIntents.length > 0) {
+        const reconciled = await this._reconcileOrders();
+        if (!reconciled.ok || listReconciliationCandidates(this.botId).length > 0) return;
+      }
+
       // 1. Fetch current price
-      const priceData = await this.binance.getPrice(this.coin);
-      const price = priceData.price;
+      const price = await this.binance.getPrice(this.coin);
       if (!price || price <= 0) {
         logger.warn({ botId: this.botId, coin: this.coin }, '[AutoTrader] Invalid price, skipping tick');
         return;
@@ -219,12 +252,7 @@ class BotRuntime {
       // 7. Execute trade
       const tradeResult = await this._executeTrade(signal, price);
 
-      // 8. Update state
-      if (signal._setState) {
-        this.state = { ...this.state, ...signal._setState };
-      }
-
-      // 9. Advanced risk management — trailing stops + multi-TP
+      // 8. Advanced risk management — trailing stops + multi-TP
       if (this.state.holdings > 0.0001 && this.state.entryPrice) {
         const riskResult = updatePositionState(
           {
@@ -268,8 +296,26 @@ class BotRuntime {
 
       // 10. Record trade
       if (tradeResult) {
+        const filledQty = tradeResult.filledQty || signal.amount;
+        const previousHoldings = this.state.holdings || 0;
         this._recordTrade(signal, price, tradeResult);
         this._updatePosition(signal, price, tradeResult);
+
+        // Apply strategy metadata only after a confirmed fill. Holdings are
+        // derived from the actual filled quantity, never the requested amount.
+        if (signal._setState) {
+          this.state = {
+            ...this.state,
+            ...signal._setState,
+            holdings: signal.action === 'buy'
+              ? previousHoldings + filledQty
+              : Math.max(0, previousHoldings - filledQty),
+          };
+        } else {
+          this.state.holdings = signal.action === 'buy'
+            ? previousHoldings + filledQty
+            : Math.max(0, previousHoldings - filledQty);
+        }
 
         // Track entry price for trailing stops and multi-TP
         if (signal.action === 'buy') {
@@ -310,6 +356,71 @@ class BotRuntime {
     }
   }
 
+  async _reconcileOrders() {
+    const candidates = listReconciliationCandidates(this.botId);
+    for (const intent of candidates) {
+      if (!intent.exchange_order_id && !intent.client_order_id) {
+        logger.error({ botId: this.botId, intentId: intent.id }, '[AutoTrader] Unresolved order intent has no exchange identifier');
+        this.lastError = `Unresolved order intent: ${intent.id}`;
+        this.stop('unknown_order_state');
+        return { ok: false };
+      }
+      try {
+        const exchangeOrder = await this.binance.getOrder(this.coin, intent.exchange_order_id, intent.client_order_id);
+        const updated = applyExchangeOrder(intent, exchangeOrder);
+        const newlyFilledQty = Math.max(0, Number(updated.executed_qty || 0) - Number(intent.applied_qty || 0));
+        if (newlyFilledQty > 0) {
+          const fillPrice = Number(updated.avg_fill_price || intent.signal_price || 0);
+          const fillResult = {
+            orderId: updated.exchange_order_id,
+            filledQty: newlyFilledQty,
+            filledQuote: newlyFilledQty * fillPrice,
+            avgFillPrice: fillPrice,
+            slippagePct: fillPrice > 0 && intent.signal_price > 0
+              ? Math.abs(fillPrice - intent.signal_price) / intent.signal_price
+              : 0,
+          };
+          const signal = {
+            action: intent.action,
+            coin: intent.coin,
+            amount: newlyFilledQty,
+            price: Number(intent.signal_price || fillPrice),
+            reason: intent.reason,
+          };
+          this._recordTrade(signal, fillPrice, fillResult);
+          this._updatePosition(signal, fillPrice, fillResult);
+          const previousHoldings = Number(this.state.holdings || 0);
+          this.state.holdings = intent.action === 'buy'
+            ? previousHoldings + newlyFilledQty
+            : Math.max(0, previousHoldings - newlyFilledQty);
+          if (intent.action === 'buy' && !this.state.entryPrice) {
+            this.state.entryPrice = fillPrice;
+            this.state.trailPct = this.riskConfig.trailPct || 0.025;
+            this.state.highestPrice = fillPrice;
+          }
+          if (intent.action === 'sell' && this.state.holdings < 0.0001) {
+            this.state.entryPrice = null;
+            this.state.trailingStop = 0;
+            this.state.hitTpLevels = [];
+            this.state.highestPrice = 0;
+          }
+          markIntentQuantityApplied(updated, Number(updated.executed_qty || 0));
+        }
+        if (isTerminalStatus(updated.status) && this._activeIntentId === intent.id) this._activeIntentId = null;
+        if (!isTerminalStatus(updated.status)) {
+          logger.warn({ botId: this.botId, intentId: intent.id, status: updated.status }, '[AutoTrader] Order still unresolved');
+          this.lastError = `Order ${intent.exchange_order_id} is ${updated.status}`;
+          return { ok: false };
+        }
+      } catch (err) {
+        logger.error({ botId: this.botId, intentId: intent.id, err: err.message }, '[AutoTrader] Order reconciliation failed');
+        this.lastError = `Reconciliation failed: ${err.message}`;
+        return { ok: false };
+      }
+    }
+    return { ok: true };
+  }
+
   async _executeTrade(signal, price) {
     const { action, coin, amount, reason } = signal;
     const maxSlippagePct = this.riskConfig.maxSlippagePct || 0.005; // default 0.5%
@@ -319,18 +430,40 @@ class BotRuntime {
       return null;
     }
 
+    let intent;
     try {
+      const quoteAmount = action === 'buy' ? amount * price : null;
+      if (quoteAmount !== null && quoteAmount < 10) {
+        logger.warn({ botId: this.botId, quoteAmount }, '[AutoTrader] Below minimum notional ($10), skipping');
+        return null;
+      }
+
+      intent = createOrderIntent({
+        botId: this.botId,
+        userId: this.userId,
+        coin,
+        action,
+        amount,
+        price,
+        reason,
+      });
+      this._activeIntentId = intent.id;
+
       let result;
       if (action === 'buy') {
-        const quoteAmount = amount * price;
-        if (quoteAmount < 10) {
-          logger.warn({ botId: this.botId, quoteAmount }, '[AutoTrader] Below minimum notional ($10), skipping');
-          return null;
-        }
-        result = await this.binance.marketOrderQuote('BUY', coin, quoteAmount);
+        result = await this.binance.marketOrderQuote(coin, quoteAmount, intent.client_order_id);
       } else {
-        result = await this.binance.marketOrder('SELL', coin, amount);
+        result = await this.binance.marketOrder(coin, 'SELL', amount, intent.client_order_id);
       }
+
+      // Persist the exchange acknowledgement before local position updates.
+      const persistedIntent = markIntentSubmitted(intent, result);
+      if (!isTerminalStatus(persistedIntent.status)) {
+        this.lastError = `Order ${persistedIntent.client_order_id} is ${persistedIntent.status}`;
+        logger.warn({ botId: this.botId, intentId: intent.id, status: persistedIntent.status }, '[AutoTrader] Order requires reconciliation');
+        return null;
+      }
+      this._activeIntentId = null;
 
       // Extract actual fill data from Binance response
       const filledQty = parseFloat(result.executedQty) || amount;
@@ -367,8 +500,11 @@ class BotRuntime {
       };
 
     } catch (err) {
+      if (intent) markIntentError(intent, err, ORDER_STATES.UNKNOWN);
       logger.error({ botId: this.botId, action, coin, amount, err: err.message }, '[AutoTrader] Order execution failed');
       this.lastError = `Order failed: ${err.message}`;
+      // A timeout may have happened after exchange submission. Reconcile before
+      // allowing a future tick to submit another order.
       return null;
     }
   }
@@ -376,9 +512,21 @@ class BotRuntime {
   _checkRiskLimits(signal, price, balance) {
     const rc = this.riskConfig;
 
-    // Daily loss limit
-    if (rc.dailyLossLimitUsd && this.dailyPnl < -rc.dailyLossLimitUsd) {
+    // Daily loss limit (the route normalizes maxDailyLoss to this field)
+    const dailyLossLimit = Number(rc.dailyLossLimitUsd ?? rc.maxDailyLoss);
+    if (dailyLossLimit > 0 && this.dailyPnl <= -dailyLossLimit) {
       return { ok: false, reason: `Daily loss limit reached: $${this.dailyPnl.toFixed(2)}` };
+    }
+
+    // Track peak equity and enforce maximum drawdown.
+    const equity = Number(balance || 0) + (Number(this.state.holdings || 0) * Number(price || 0));
+    if (equity > (this.state.highWaterEquity || 0)) this.state.highWaterEquity = equity;
+    const maxDrawdownPct = Number(rc.maxDrawdown);
+    if (maxDrawdownPct > 0 && this.state.highWaterEquity > 0) {
+      const drawdownPct = ((this.state.highWaterEquity - equity) / this.state.highWaterEquity) * 100;
+      if (drawdownPct >= maxDrawdownPct) {
+        return { ok: false, reason: `Maximum drawdown reached: ${drawdownPct.toFixed(2)}%` };
+      }
     }
 
     // Max daily trades
@@ -486,8 +634,9 @@ class BotRuntime {
       const fillValue = tradeResult.filledQuote || (fillPrice * fillQty);
       const slippagePct = tradeResult.slippagePct || 0;
 
-      const pnl = signal.action === 'sell'
-        ? fillValue - (this.state.avgEntryPrice || fillPrice) * fillQty
+      const entryPrice = Number(this.state.entryPrice);
+      const pnl = signal.action === 'sell' && entryPrice > 0
+        ? (fillPrice - entryPrice) * fillQty
         : 0;
 
       db.prepare(`
@@ -672,9 +821,13 @@ export async function startBot(botId, userId) {
   const bot = db.prepare('SELECT * FROM live_bots WHERE id = ? AND user_id = ?').get(botId, userId);
   if (!bot) throw new Error('Bot not found');
 
-  // Get exchange keys
-  const keys = db.prepare('SELECT * FROM exchange_keys WHERE user_id = ? ORDER BY verified_at DESC LIMIT 1').get(userId);
-  if (!keys) throw new Error('No exchange API keys configured. Add your Binance API keys first.');
+  // AutoTrader currently supports Binance only. Select the exact environment
+  // requested by the bot, never an arbitrary key from the user's account.
+  const requestedEnvironment = bot.environment || JSON.parse(bot.config || '{}').environment || 'testnet';
+  const keys = db.prepare(
+    "SELECT * FROM exchange_keys WHERE user_id = ? AND lower(exchange) = 'binance' AND environment = ? ORDER BY verified_at DESC, updated_at DESC LIMIT 1"
+  ).get(userId, requestedEnvironment);
+  if (!keys) throw new Error(`No Binance ${requestedEnvironment} API keys configured. Add them in Connections first.`);
 
   // Decrypt keys (AES-256-GCM only — no legacy fallback)
   const { decrypt } = await import('./crypto.js');
@@ -721,7 +874,7 @@ export async function startBot(botId, userId) {
   const positions = db.prepare('SELECT * FROM live_positions WHERE bot_id = ?').all(botId);
   if (positions.length > 0) {
     runtime.state.holdings = positions.reduce((sum, p) => sum + p.qty, 0);
-    runtime.state.avgEntryPrice = positions[0].avg_entry_price;
+    runtime.state.entryPrice = positions[0].avg_entry_price;
   }
 
   // Update bot status

@@ -72,7 +72,7 @@ cg watch             # Auto-reindex on file changes (inotify/FSEvents)
 | `spec/workflow.kvx` | Master spec: 7 phases, 22 tasks, dependency waves, acceptance criteria |
 | `spec/requirements.md` | Feature requirements (R1-R8) |
 | `spec/design.md` | Technical architecture and module descriptions |
-| `spec/tasks.md` | Human-readable task board (markdown) |
+| `TODO.md` | Canonical human-readable task tracker |
 | `AGENTS.md` | Agent guide: directory map, entry points, build commands, routes |
 
 ## Spec Workflow

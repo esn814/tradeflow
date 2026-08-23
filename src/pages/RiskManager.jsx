@@ -218,13 +218,13 @@ export default function RiskManager({ onNavigate }) {
           <CardBody>
             <SectionHeader icon={Shield} title="Position Exposure vs Limits" />
             <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={EXPOSURE_DATA} layout="vertical">
+              <BarChart data={DEFAULT_EXPOSURE_DATA} layout="vertical">
                 <CartesianGrid {...CHART_GRID} />
                 <XAxis type="number" tick={CHART_AXIS_TICK} {...CHART_AXIS} />
                 <YAxis type="category" dataKey="name" tick={{ fill: 'var(--color-text-on-dark)', fontSize: 11 }} axisLine={false} tickLine={false} width={40} />
                 <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
                 <Bar dataKey="exposure" radius={[0, 4, 4, 0]}>
-                  {EXPOSURE_DATA.map((e, i) => <Cell key={i} fill={e.color} />)}
+                  {DEFAULT_EXPOSURE_DATA.map((e, i) => <Cell key={i} fill={e.color} />)}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -265,7 +265,7 @@ export default function RiskManager({ onNavigate }) {
         <CardBody>
           <SectionHeader icon={AlertTriangle} title="Risk Alerts" />
           <div className="space-y-2">
-            {RISK_ALERTS.map((a, i) => (
+            {riskAlerts.map((a, i) => (
               <div key={i} className="flex items-start gap-3 p-3 rounded-lg min-w-0" style={{
                 background: a.level === 'critical' ? 'var(--color-loss-12)' : a.level === 'warning' ? 'var(--color-warning-12)' : 'var(--color-accent-8)',
                 borderLeft: `3px solid ${a.level === 'critical' ? 'var(--color-loss)' : a.level === 'warning' ? 'var(--color-warning)' : 'var(--color-accent)'}`,

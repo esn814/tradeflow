@@ -68,7 +68,8 @@ RAILWAY_SETUP.md
 tradeflow-debug.apk
 tradeflow.apk
 
-# Cache
+# Local toolchains and caches
+.tools/
 .npm_cache/
 
 # Codify code graph

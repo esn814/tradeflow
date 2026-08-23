@@ -106,4 +106,16 @@ describe('Database', () => {
     const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all().map(t => t.name);
     expect(tables).toContain('refresh_tokens');
   });
+
+  it('order_intents table has durable lifecycle columns', () => {
+    const db = getDb();
+    const info = db.prepare("PRAGMA table_info('order_intents')").all();
+    const colNames = info.map(c => c.name);
+    expect(colNames).toContain('client_order_id');
+    expect(colNames).toContain('exchange_order_id');
+    expect(colNames).toContain('status');
+    expect(colNames).toContain('executed_qty');
+    expect(colNames).toContain('applied_qty');
+    expect(colNames).toContain('last_reconciled_at');
+  });
 });

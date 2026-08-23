@@ -221,6 +221,7 @@ export function authMiddleware(req, res, next) {
     const payload = jwt.verify(token, JWT_SECRET, { algorithms: [JWT_ALGORITHM] });
     req.userId = payload.userId;
     req.address = payload.address;
+    req.isDemo = payload.demo === true;
     next();
   } catch {
     return res.status(401).json({ error: 'Authentication required' });
