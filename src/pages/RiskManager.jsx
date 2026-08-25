@@ -7,7 +7,7 @@ import { fetchCandles, useLivePrices } from '../data/liveData';
 import { Card, CardBody, SectionHeader, Badge, Stat, PageHeader, Divider, LinkCard } from '../components/ui';
 
 // Exposure data derived from real positions (placeholder until portfolio API is wired)
-const DEFAULT_EXPOSURE_DATA = [
+const EXPOSURE_DATA = [
   { name: 'BTC', exposure: 35, limit: 40, color: 'var(--color-btc)' },
   { name: 'ETH', exposure: 25, limit: 30, color: 'var(--color-eth)' },
   { name: 'SOL', exposure: 15, limit: 20, color: 'var(--color-sol)' },
@@ -91,7 +91,7 @@ export default function RiskManager({ onNavigate }) {
   // Real BTC price for position sizing
   const btcPrice = prices?.btc?.price || prices?.btc?.usd || null;
 
-  // Kelly criterion — use real win rate from recent returns if available
+  // Kelly criterion â€” use real win rate from recent returns if available
   const kelly = useMemo(() => {
     if (!dailyReturns || dailyReturns.length < 10) return null;
     const wins = dailyReturns.filter(d => d.return > 0);
@@ -116,19 +116,19 @@ export default function RiskManager({ onNavigate }) {
     if (drawdownData && drawdownData.length > 0) {
       const worstDD = Math.min(...drawdownData.map(d => d.drawdown));
       if (worstDD < -10) {
-        alerts.push({ level: 'critical', msg: `Max drawdown reached ${worstDD.toFixed(1)}% — exceeds -10% threshold`, time: 'Recent' });
+        alerts.push({ level: 'critical', msg: `Max drawdown reached ${worstDD.toFixed(1)}% â€” exceeds -10% threshold`, time: 'Recent' });
       } else if (worstDD < -5) {
-        alerts.push({ level: 'warning', msg: `Drawdown at ${worstDD.toFixed(1)}% — approaching -10% limit`, time: 'Recent' });
+        alerts.push({ level: 'warning', msg: `Drawdown at ${worstDD.toFixed(1)}% â€” approaching -10% limit`, time: 'Recent' });
       }
     }
     if (dailyReturns && dailyReturns.length > 0) {
       const lastReturn = dailyReturns[dailyReturns.length - 1]?.return;
       if (lastReturn !== undefined && lastReturn < -3) {
-        alerts.push({ level: 'warning', msg: `Last daily return: ${lastReturn.toFixed(1)}% — significant single-day loss`, time: '1d ago' });
+        alerts.push({ level: 'warning', msg: `Last daily return: ${lastReturn.toFixed(1)}% â€” significant single-day loss`, time: '1d ago' });
       }
     }
     if (btcPrice) {
-      alerts.push({ level: 'info', msg: `BTC live price: $${btcPrice.toLocaleString()} — ATR-based stop at $${atr ? (btcPrice - 2 * atr).toLocaleString() : '...'}`, time: 'Now' });
+      alerts.push({ level: 'info', msg: `BTC live price: $${btcPrice.toLocaleString()} â€” ATR-based stop at $${atr ? (btcPrice - 2 * atr).toLocaleString() : '...'}`, time: 'Now' });
     }
     if (alerts.length === 0) {
       alerts.push({ level: 'info', msg: 'All risk metrics within acceptable range', time: 'Active' });
@@ -218,13 +218,13 @@ export default function RiskManager({ onNavigate }) {
           <CardBody>
             <SectionHeader icon={Shield} title="Position Exposure vs Limits" />
             <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={DEFAULT_EXPOSURE_DATA} layout="vertical">
+              <BarChart data={EXPOSURE_DATA} layout="vertical">
                 <CartesianGrid {...CHART_GRID} />
                 <XAxis type="number" tick={CHART_AXIS_TICK} {...CHART_AXIS} />
                 <YAxis type="category" dataKey="name" tick={{ fill: 'var(--color-text-on-dark)', fontSize: 11 }} axisLine={false} tickLine={false} width={40} />
                 <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
                 <Bar dataKey="exposure" radius={[0, 4, 4, 0]}>
-                  {DEFAULT_EXPOSURE_DATA.map((e, i) => <Cell key={i} fill={e.color} />)}
+                  {EXPOSURE_DATA.map((e, i) => <Cell key={i} fill={e.color} />)}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>

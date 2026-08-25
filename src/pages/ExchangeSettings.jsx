@@ -36,7 +36,6 @@ export default function ExchangeSettings({ useBinanceHook }) {
     connected, connecting, prices, balances, error, executorStatus, wsStatus,
     config, connect, disconnect, switchMode, updateRisk, killSwitch, refreshBalances,
   } = useBinanceHook || defaultBinanceHook;
-
   const [apiKey, setApiKey] = useState('');
   const [apiSecret, setApiSecret] = useState('');
   const [environment, setEnvironment] = useState(config?.environment || 'testnet');
@@ -104,7 +103,7 @@ export default function ExchangeSettings({ useBinanceHook }) {
         )}
         {executorStatus?.killSwitch && (
           <div className="bg-yellow-900/30 border border-yellow-800 rounded-lg p-3 text-sm text-yellow-300 mb-3">
-            Kill switch is active — all trading is halted.
+            Kill switch is active Ã¢â‚¬â€ all trading is halted.
           </div>
         )}
         {connected && (
@@ -184,7 +183,7 @@ export default function ExchangeSettings({ useBinanceHook }) {
 
           <div className="mt-4 text-xs text-gray-500 space-y-1">
             <p><strong>How to get API keys:</strong></p>
-            <p>1. Go to {environment === 'testnet' ? 'testnet.binance.vision' : 'binance.com'} → API Management</p>
+            <p>1. Go to {environment === 'testnet' ? 'testnet.binance.vision' : 'binance.com'} Ã¢â€ â€™ API Management</p>
             <p>2. Create a new API key with <strong>Enable Spot Trading</strong> checked</p>
             <p>3. For testnet, keys are generated instantly with no IP restrictions</p>
             <p>4. Copy both the API Key and Secret Key here</p>
